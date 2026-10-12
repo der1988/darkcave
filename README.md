@@ -1,8 +1,8 @@
 # LIMINAL
 
-A solitary walk through abandoned, isometric architecture. A small figure, a warm flashlight, and almost absolute darkness. No objectives, enemies, interface, or soundtrack.
+A small human in near-total darkness. A heartbeat, footsteps, and something moving in the architecture. The flashlight reveals the way—and can reveal the player to the creature.
 
-## Play and develop
+## Play
 
 Requires Node.js 22.12+ (validated on Node 24) and npm.
 
@@ -11,39 +11,46 @@ npm ci
 npm run dev
 ```
 
-- **WASD / arrows:** move relative to the screen
-- **Mouse:** aim the flashlight independently of walking
-- **Shift:** walk slightly faster
-- **F:** switch the flashlight on or off
+- **WASD / arrows:** screen-relative movement
+- **Mouse:** aim independently of movement
+- **Shift:** walk faster
+- **Space:** toggle the flashlight (F is no longer bound)
 
-The canvas fills the browser viewport. Click the scene if keyboard focus is elsewhere. Desktop keyboard and mouse are required; the canvas resizes to narrow displays, but touch movement is not implemented.
+Audio initializes after a keypress or click, respecting browser autoplay restrictions. Headphones help distinguish the creature's direction. The canvas fills the viewport; desktop keyboard and mouse are required. The interface consists only of a small portrait, BPM readout, and synchronized heartbeat trace.
+
+Illuminate the creature and it reacts, then pursues. Switch off the light or break line of sight and move away: it follows the last position it saw, searches nearby, then returns to wandering. A concealed player is not detected merely by proximity. Physical contact during pursuit—including pursuit of the last known position—causes a rapid final heartbeat, fade, silence, and an automatic restart. Contact during wandering or searching does not cause capture.
+
+## Systems
+
+The existing TypeScript/Vite Canvas renderer, fixed 2:1 projection, authored level, wall geometry, collision, and smooth camera remain in place. No production dependencies, external assets, services, or credentials are required.
+
+- `world.ts`: the connected authored architecture, grid visibility, circular collision, and projection.
+- `light.ts`: the shared directional beam, range falloff, wall occlusion, and tiny local illumination. The creature's rendering and exposure detection use this beam, without the ambient term. Turning off the flashlight leaves the surroundings black and the protagonist barely perceptible.
+- `main.ts`: integration and depth-sorted pixel rendering. The nineteen-pixel protagonist has articulated limbs and directional poses. Reflected surface light shades the body asymmetrically. The thirty-eight-pixel creature reacts, turns, and walks irregularly; it is hidden outside the beam.
+- `navigation.ts` / `creature.ts`: cardinal grid pathfinding, independent patrol, reaction, pursuit, remembered-position pursuit, timed local search, and return to wandering. The AI accepts only an optional currently visible player observation. It copies that position and cannot access a hidden player's coordinates for navigation. Collision remains active while following waypoints.
+- `heart.ts`: one smooth BPM/phase simulation drives beat events, waveform timing, and the HUD value. Fear comes from visible danger, actual playing and audible creature voices, and decaying memory of an encounter. Lower-intensity sounds cannot indefinitely preserve pursuit-level fear.
+- `audio.ts`: synthesized muffled double heartbeats, alternating footfalls tied to animation distance, and irregular layered creature vocalizations. Creature voices pan in projected screen space, attenuate with distance, and become quieter and low-pass filtered through walls. Voices clean up after playback; audio and simulation pause on focus loss. No music or downloaded samples.
+- `hud.ts`: restrained pixel portrait, BPM, and a waveform sampled from the same beat simulation as the audio.
+
+## Validation
 
 ```sh
 npm test
 npm run build
 npm run preview
+npm run test:browser
 ```
 
-## Architecture
+The browser suite requires Chromium. It uses `/usr/bin/chromium` when available, accepts `CHROMIUM_PATH`, or uses Playwright's installed browser (`npx playwright install chromium`). It starts and stops its own Vite server on port 5174. Playwright is a development-only dependency.
 
-TypeScript and Vite, with a dependency-free Canvas 2D game renderer. The logical framebuffer is scaled with nearest-neighbor sampling. Geometry uses a fixed 2:1 projection. A seventeen-pixel character has directional poses, alternating legs, a hand-held lamp, and movement bob. Frame-independent movement uses a circular collision body, subdivided steps, and axis sliding. The camera eases behind the player.
+The unit suite covers map connectivity, projection, beam occlusion, collisions, long independent patrols, pathfinding around columns, detection/reaction, immutable last-known positions, search timeout, heart-rate response and recovery, waveform timing, spatial attenuation, and capture eligibility.
 
-`src/world.ts` contains the authored modular map, grid ray traversal, collision, and projection math. The connected level includes an arrival hall, columned atria, oversized galleries, repeating waiting rooms, a southern loop, and dead ends. Floor material variations are deterministic. The module layout can later be replaced or extended without changing the renderer.
+The browser suite exercises actual keyboard controls, audio activation and non-silent heartbeat output, synchronized footstep events, light toggling without key-repeat, removal of F, visible detection, a successful dark escape, search and return to patrol, capture and spawn reset, wall-blocked detection, audible warnings, and narrow-viewport scaling. A development-only scenario harness enables deterministic placement; Vite removes it from production builds.
 
-`src/main.ts` samples warm directional light separately on small floor and wall patches. Angular penumbra, distance falloff, surface incidence, and a small local light determine brightness. Grid DDA rays stop at opaque walls and columns, including closed corners. Nothing is revealed beyond a blocked ray. Solid walls are treated as full-height occluders; this is a 2.5D lighting model, not a full 3D ray tracer. Camera-facing wall faces, caps, and the character are depth ordered. Unlit wall geometry still occludes what is behind it. Scan-converted polygons avoid antialiased tile seams. There is no transparent cone overlay, bloom, or circular reveal mask.
+Manual listening and playtesting remain useful for judging sound character, volume balance, and difficulty across headphones and hardware. The automated audio check establishes signal generation, not subjective audio quality.
 
-## Validation
+## Vercel and scope
 
-`npm test` checks that every walkable cell belongs to the connected level, walls and columns block light, large movement steps cannot tunnel through columns, and projection conversions preserve screen-relative controls.
+`vercel.json` retains the static Vite deployment: build with `npm run build`, serve `dist`, use the repository root. A successful local build does not establish deployment status.
 
-The prototype was also exercised in headless Chromium: movement and architectural rendering were visually inspected; flashlight toggling, portrait resizing without overflow, and absence of browser errors were checked. The measured frame interval was approximately 16.7 ms on the development machine, not a guarantee for every device.
-
-For a manual smoke test, sweep the light across the arrival hall columns, walk north into the narrowing passage, hold movement against a wall, toggle F, and resize the browser. Objects behind a column must remain dark and the character must remain outside solid geometry.
-
-## Vercel
-
-This is a static Vite application. The existing repository remote is preserved. `vercel.json` specifies `npm run build` and the `dist` output directory. No backend, secrets, runtime APIs, or external assets are needed. The connected Vercel project must use this repository's root directory. An actual deployment must be checked separately; a successful local production build does not establish that Vercel has deployed it.
-
-## Scope
-
-One authored level, with no procedural expansion, audio, touch controls, save system, combat, or puzzles. Surface lighting has intentionally low-resolution shading and hard architectural shadows. The game starts directly in the scene without instructions or menus.
+This remains one authored level with one creature. No combat, procedural expansion, save system, touch controls, or soundtrack. Lighting and sound occlusion use the existing 2.5D grid: sound is attenuated through walls, not acoustically simulated around corridors. Character illumination approximates reflected light rather than full global illumination.
