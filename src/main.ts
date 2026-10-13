@@ -4,6 +4,8 @@ import { Possessions, SAVE_KEY, owned } from "./possessions";
 import { ITEMS, TARGETS, type Item, type Target } from "./items";
 import { Menu, appearance, type MenuAction } from "./menu";
 import { drawPlayer } from "./player-sprite";
+import { FURNITURE, isSafe, roomLight, type Furniture } from "./environments";
+import { drawFurniture } from "./scenery";
 import { ZONES, zoneAt } from "./zones";
 import { beam, surfaceLight, RANGE, type Lamp } from "./light";
 import { Creature } from "./creature";
@@ -33,17 +35,32 @@ try {
   cargo.saveWarning = "Local storage unavailable.";
 }
 if (restored) Object.assign(player, restored.player);
+cargo.exploration.visit(player);
 const camera = { ...player };
 const keys = new Set<string>();
-function freshCreature(avoidNearby=false){
- const c=new Creature();
- if(!canStand(c.position.x,c.position.y)||(avoidNearby&&Math.hypot(c.position.x-player.x,c.position.y-player.y)<12)){
-  const safe=[{x:53.5,y:30.5},{x:80.5,y:52.5},{x:23.5,y:80.5}].find(p=>canStand(p.x,p.y)&&Math.hypot(p.x-player.x,p.y-player.y)>15);
-  if(safe)c.position=safe;
- }
- return c;
+function freshCreature(avoidNearby = false) {
+  const c = new Creature();
+  if (
+    isSafe(c.position.x, c.position.y) ||
+    !canStand(c.position.x, c.position.y) ||
+    (avoidNearby &&
+      Math.hypot(c.position.x - player.x, c.position.y - player.y) < 12)
+  ) {
+    const safe = [
+      { x: 53.5, y: 30.5 },
+      { x: 80.5, y: 52.5 },
+      { x: 23.5, y: 80.5 },
+    ].find(
+      (p) =>
+        !isSafe(p.x, p.y) &&
+        canStand(p.x, p.y) &&
+        Math.hypot(p.x - player.x, p.y - player.y) > 15,
+    );
+    if (safe) c.position = safe;
+  }
+  return c;
 }
-let creature=freshCreature(!!restored);
+let creature = freshCreature(!!restored);
 let heart = new Heart();
 let capture = new Capture();
 const sound = new Sound();
@@ -119,6 +136,7 @@ const menu = new Menu(
         cargo.reachable(t.position, player, true) &&
         cargo.exposure(t.position, lamp(), true) > 0.035,
     ).map((t) => t.id),
+  () => player,
 );
 function say(text: string) {
   feedback = text;
@@ -308,7 +326,13 @@ function floor(x: number, y: number, m: number) {
         ],
         zone === "underground" && y % 7 === 0 && x % 3 === 0 && v < 0.25
           ? [133, 130, 105]
-          : color,
+          : zone === "mall" && (x % 6 === 0 || y % 6 === 0)
+            ? [104, 111, 104]
+            : zone === "playground" && x >= 12 && x < 30 && y >= 6 && y < 15
+              ? (Math.floor(x / 3) + Math.floor(y / 3)) % 2
+                ? [104, 106, 90]
+                : [105, 94, 83]
+              : color,
         intensity * variation,
       );
     }
@@ -335,8 +359,14 @@ function wall(x: number, y: number) {
         );
         const zone = zoneAt(x, y),
           base = ZONES[zone].wall;
-        const color =
-          z < 0.16
+        const fixture =
+          roomLight(a + nx * 0.012, b + ny * 0.012, z) > 0 &&
+          (x + y) % 5 === 0 &&
+          z > 0.96 &&
+          z < 1.13;
+        const color = fixture
+          ? [195, 193, 154]
+          : z < 0.16
             ? [77, 79, 65]
             : zone === "service" && z > 0.8 && z < 1
               ? [79, 86, 80]
@@ -349,7 +379,7 @@ function wall(x: number, y: number) {
             [a, b, z + 0.16],
           ],
           color,
-          intensity,
+          fixture ? 0.8 : intensity,
         );
       }
   }
@@ -417,7 +447,9 @@ function character() {
           (0.12 + 0.22 * Math.max(0, normal * side)) *
           (0.65 + 0.35 * facingLight)
       : 0.035;
-    const v = Math.round(tone * strength);
+    const v = Math.round(
+      tone * (strength + roomLight(player.x, player.y, 0.6) * 0.85),
+    );
     return `rgb(${v},${Math.round(v * 0.96)},${Math.round(v * 0.81)})`;
   };
   drawPlayer(
@@ -548,6 +580,7 @@ function drawObject(e: Item | Target) {
 }
 
 function drawCreature() {
+  if (isSafe(creature.position.x, creature.position.y)) return;
   if (beam(lamp(), creature.position.x, creature.position.y, 0.7) < 0.018)
     return;
   const p = project(creature.position.x, creature.position.y);
@@ -672,7 +705,7 @@ function update(dt: number) {
     if (!mouse) targetAngle = Math.atan2(direction.y, direction.x);
   }
   walking = Math.hypot(player.x - beforeX, player.y - beforeY) > 0.0001;
-  motionBlend+=(Number(walking)-motionBlend)*(1-Math.exp(-dt*12));
+  motionBlend += (Number(walking) - motionBlend) * (1 - Math.exp(-dt * 12));
   stride += Math.hypot(player.x - beforeX, player.y - beforeY) * 5;
   const phase = Math.floor(stride / Math.PI);
   if (walking && phase !== footPhase) {
@@ -698,7 +731,12 @@ function update(dt: number) {
   angle +=
     Math.atan2(Math.sin(targetAngle - angle), Math.cos(targetAngle - angle)) *
     (1 - Math.exp(-dt * 16));
-  if (!walking) {const target=Math.round(angle/(Math.PI/4))*Math.PI/4;bodyAngle+=Math.atan2(Math.sin(target-bodyAngle),Math.cos(target-bodyAngle))*(1-Math.exp(-dt*10));}
+  if (!walking) {
+    const target = (Math.round(angle / (Math.PI / 4)) * Math.PI) / 4;
+    bodyAngle +=
+      Math.atan2(Math.sin(target - bodyAngle), Math.cos(target - bodyAngle)) *
+      (1 - Math.exp(-dt * 10));
+  }
   // Hand offset in the same projected location as the tiny flashlight sprite.
   const side = project(Math.cos(angle), Math.sin(angle)).x >= 0 ? 1 : -1;
   const hand = screenToWorld(side * 5, 0);
@@ -708,11 +746,14 @@ function update(dt: number) {
     lampX = player.x;
     lampY = player.y;
   }
+  cargo.exploration.visit(player);
   updateSurvival(dt);
 }
 function render() {
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, width, height);
+  // Lit rooms remain visible across the whole viewport, beyond the torch radius.
+  const viewRadius = Math.ceil(width / 48 + height / 24 + WALL_HEIGHT + 2);
   const drawables: {
     x: number;
     y: number;
@@ -720,18 +761,32 @@ function render() {
     player?: boolean;
     creature?: boolean;
     object?: Item | Target;
+    furniture?: Furniture;
   }[] = [];
   for (
-    let y = Math.floor(player.y - RANGE - 1);
-    y <= player.y + RANGE + 1;
+    let y = Math.floor(player.y - viewRadius);
+    y <= player.y + viewRadius;
     y++
   ) {
     for (
-      let x = Math.floor(player.x - RANGE - 1);
-      x <= player.x + RANGE + 1;
+      let x = Math.floor(player.x - viewRadius);
+      x <= player.x + viewRadius;
       x++
     ) {
-      if (Math.hypot(x + 0.5 - player.x, y + 0.5 - player.y) > RANGE + 1.5)
+      const screen = project(x + 0.5, y + 0.5);
+      if (
+        screen.x + offsetX < -26 ||
+        screen.x + offsetX > width + 26 ||
+        screen.y + offsetY < -14 ||
+        screen.y + offsetY > height + WALL_HEIGHT * 24 + 14
+      )
+        continue;
+      if (
+        Math.hypot(x + 0.5 - player.x, y + 0.5 - player.y) > RANGE + 1.5 &&
+        !roomLight(x + 0.5, y + 0.5) &&
+        !roomLight(x + 1.01, y + 0.5) &&
+        !roomLight(x + 0.5, y + 1.01)
+      )
         continue;
       const m = material(x, y);
       if (m) floor(x, y, m);
@@ -762,11 +817,24 @@ function render() {
     if (Math.hypot(p.x - player.x, p.y - player.y) < RANGE + 2)
       drawables.push({ x: p.x, y: p.y, depth: p.x + p.y, object: e });
   }
+  for (const f of FURNITURE) {
+    if (
+      Math.hypot(f.x + f.w / 2 - player.x, f.y + f.d / 2 - player.y) <
+      viewRadius + 4
+    )
+      drawables.push({
+        x: f.x,
+        y: f.y,
+        depth: f.x + f.y + (f.w + f.d) / 2,
+        furniture: f,
+      });
+  }
   drawables.sort((a, b) => a.depth - b.depth);
   for (const d of drawables) {
     if (d.player) character();
     else if (d.creature) drawCreature();
     else if (d.object) drawObject(d.object);
+    else if (d.furniture) drawFurniture(d.furniture, polygon, lamp());
     else wall(d.x, d.y);
   }
   hud.draw(ctx, heart, height);

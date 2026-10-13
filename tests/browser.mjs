@@ -281,6 +281,69 @@ let browser;
     new Set(loaded.inventory.items.map((i) => i.id)).size,
     loaded.inventory.items.length,
   );
+  // Progressive map: menus freeze simulation, and unknown stages stay unnamed.
+  await page.keyboard.press("i");
+  await page.getByRole("button", { name: "Map", exact: true }).click();
+  await page.getByRole("heading", { name: "EXPLORED SPACES" }).waitFor();
+  assert.equal(
+    await page.getByText("The Empty Mall", { exact: false }).count(),
+    0,
+  );
+  const mapped = await state();
+  await page.keyboard.down("d");
+  await page.waitForTimeout(300);
+  await page.keyboard.up("d");
+  assert.deepEqual((await state()).player, mapped.player);
+  assert.deepEqual((await state()).creature, mapped.creature);
+  await page.keyboard.press("Escape");
+  await page.keyboard.down("d");
+  await page.waitForTimeout(150);
+  await page.keyboard.up("d");
+  assert.notDeepEqual((await state()).player, mapped.player);
+  await place({ x: 20.5, y: 33.5 }, { x: 53.5, y: 30.5 }, 0, false);
+  await page.waitForTimeout(200);
+  assert.equal((await state()).zone, "mall");
+  assert.equal((await state()).creatureLight, 0);
+  assert.ok(
+    (await bodyBrightness()) > darkBody * 3,
+    "Overhead lighting must illuminate the character with the torch off",
+  );
+  await page.screenshot({ path: "/tmp/liminal-mall.png" });
+  await page.keyboard.press("i");
+  await page.getByRole("button", { name: "Map", exact: true }).click();
+  assert.equal(
+    await page.getByText("The Empty Mall", { exact: false }).count(),
+    1,
+  );
+  assert.equal(
+    await page.getByText("Forgotten Playground", { exact: false }).count(),
+    0,
+  );
+  await page.keyboard.press("Escape");
+  await place({ x: 23.5, y: 12.5 }, { x: 53.5, y: 30.5 }, 0, false);
+  await page.waitForTimeout(200);
+  assert.equal((await state()).zone, "playground");
+  await page.screenshot({ path: "/tmp/liminal-playground.png" });
+  const explored = (await state()).inventory.explored;
+  assert.ok(explored.length > mapped.inventory.explored.length);
+  await page.evaluate(() => window.__liminal.save());
+  await page.reload();
+  await page.waitForFunction(() => window.__liminal);
+  assert.deepEqual((await state()).inventory.explored, explored);
+  await page.keyboard.press("i");
+  await page.getByRole("button", { name: "Map", exact: true }).click();
+  assert.equal(
+    await page.getByText("Forgotten Playground", { exact: false }).count(),
+    1,
+  );
+  await page.screenshot({ path: "/tmp/liminal-map.png" });
+  await page.keyboard.press("Escape");
+  // A beam from the lit annex must not invite the creature into it.
+  await place({ x: 42.5, y: 47.5 }, { x: 44.5, y: 47.5 }, 0);
+  await page.waitForTimeout(1800);
+  assert.equal((await state()).lastKnown, null);
+  assert.ok((await state()).creature.x >= 43);
+  assert.equal((await state()).capture, null);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(300);
   assert.equal(
@@ -298,6 +361,7 @@ let browser;
         helpPauseResume: "passed",
         transport: "passed",
         persistence: "passed",
+        explorationAndLitStages: "passed",
         litBody,
         darkBody,
         audioPeak: peak,

@@ -1,3 +1,4 @@
+import { roomLight } from "./environments";
 import { visible } from "./world";
 export type Point = { x: number; y: number };
 export type Lamp = Point & { angle: number; on: boolean };
@@ -57,5 +58,10 @@ export function surfaceLight(
     local && visible(lamp.x, lamp.y, x + nx * 0.012, y + ny * 0.012)
       ? local
       : 0;
-  return Math.min(1, beam(lamp, x, y, z, nx, ny) + ambient);
+  return Math.min(
+    1,
+    beam(lamp, x, y, z, nx, ny) +
+      ambient +
+      roomLight(x + nx * 0.012, y + ny * 0.012, z) * (nx || ny ? 0.85 : 1),
+  );
 }

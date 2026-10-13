@@ -27,7 +27,7 @@ test("light off, outside cone, behind column: no exposure; same clear beam expos
   const adapted = surfaceLight({ ...lamp, on: false }, 48.6, 49.5, 0);
   assert.ok(adapted > 0.015 && adapted < 0.04);
   assert.equal(surfaceLight({ ...lamp, on: false }, 50.5, 49.5, 0), 0);
-  assert.equal(surfaceLight({ ...lamp, on: false }, 40.5, 49.5, 0), 0);
+  assert.equal(surfaceLight({ ...lamp, on: false }, 53.5, 39.5, 0), 0);
 });
 test("wandering is independent and remains in navigable geometry over a long patrol", () => {
   const c = new Creature(random());

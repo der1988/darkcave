@@ -1,3 +1,4 @@
+import { furnitureSolid } from "./environments";
 /** Hand-authored modules. Empty space is intentional; no random maze generation. */
 export const SIZE = 112;
 export const tiles = new Uint8Array(SIZE * SIZE);
@@ -64,6 +65,10 @@ room(63, 92, 3, 6, 2);
 room(57, 98, 20, 8, 2);
 room(61, 101, 1, 2, 0);
 room(71, 101, 1, 2, 0);
+// A vacant shopping concourse leads through a dark passage to an abandoned play hall.
+room(8, 3, 29, 17, 3);
+room(37, 44, 6, 6, 2);
+room(43, 47, 2, 2, 1);
 export let geometryRevision = 0;
 const obstacles = new Set<number>();
 export function setObstacles(points: { x: number; y: number }[]) {
@@ -83,7 +88,9 @@ export function material(x: number, y: number): number {
 }
 export function solid(x: number, y: number): boolean {
   return (
-    material(x, y) === 0 || obstacles.has(Math.floor(y) * SIZE + Math.floor(x))
+    material(x, y) === 0 ||
+    furnitureSolid(x, y) ||
+    obstacles.has(Math.floor(y) * SIZE + Math.floor(x))
   );
 }
 
@@ -127,10 +134,14 @@ export function visible(
   return true;
 }
 export const RADIUS = 0.19;
-export function canStand(x: number, y: number): boolean {
+export function canStand(
+  x: number,
+  y: number,
+  forbidden: (x: number, y: number) => boolean = () => false,
+): boolean {
   for (let j = Math.floor(y - RADIUS); j <= Math.floor(y + RADIUS); j++) {
     for (let i = Math.floor(x - RADIUS); i <= Math.floor(x + RADIUS); i++) {
-      if (!solid(i, j)) continue;
+      if (!solid(i, j) && !forbidden(i, j)) continue;
       const dx = x - Math.max(i, Math.min(x, i + 1));
       const dy = y - Math.max(j, Math.min(y, j + 1));
       if (dx * dx + dy * dy < RADIUS * RADIUS) return false;
@@ -138,11 +149,16 @@ export function canStand(x: number, y: number): boolean {
   }
   return true;
 }
-export function move(p: { x: number; y: number }, dx: number, dy: number) {
+export function move(
+  p: { x: number; y: number },
+  dx: number,
+  dy: number,
+  forbidden: (x: number, y: number) => boolean = () => false,
+) {
   const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / (RADIUS * 0.5)));
   for (let i = 0; i < steps; i++) {
-    if (canStand(p.x + dx / steps, p.y)) p.x += dx / steps;
-    if (canStand(p.x, p.y + dy / steps)) p.y += dy / steps;
+    if (canStand(p.x + dx / steps, p.y, forbidden)) p.x += dx / steps;
+    if (canStand(p.x, p.y + dy / steps, forbidden)) p.y += dy / steps;
   }
 }
 export function screenToWorld(x: number, y: number) {

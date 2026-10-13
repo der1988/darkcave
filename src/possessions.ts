@@ -8,10 +8,19 @@ import {
   type Target,
   type Location,
 } from "./items";
-import { RADIUS, material, canStand, setObstacles, spawn, visible } from "./world";
+import {
+  RADIUS,
+  material,
+  canStand,
+  setObstacles,
+  spawn,
+  visible,
+} from "./world";
 import { beam, type Point, type Lamp } from "./light";
+import { Exploration } from "./exploration";
+import { roomLight, furnitureSolid } from "./environments";
 export const SAVE_KEY = "liminal.transport.v1";
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 export type Save = {
   version: number;
   map: string;
@@ -19,11 +28,13 @@ export type Save = {
   items: Item[];
   active: string[];
   lightRequested: boolean;
+  explored?: number[];
 };
 export const owned = (i: Item) =>
   i.location.kind === "inventory" || i.location.kind === "equipped";
 export class Possessions {
   items = seedItems();
+  exploration = new Exploration();
   active = new Set<string>();
   saveWarning = "";
   get weight() {
@@ -180,11 +191,14 @@ export class Possessions {
         if (
           canStand(p.x, p.y) &&
           visible(player.x, player.y, p.x, p.y) &&
-          !(ITEMS[i.def].large && [player,...occupied].some(a=>{
-            const dx=a.x-Math.max(p.x-.5,Math.min(a.x,p.x+.5));
-            const dy=a.y-Math.max(p.y-.5,Math.min(a.y,p.y+.5));
-            return Math.hypot(dx,dy)<RADIUS+.01;
-          })) &&
+          !(
+            ITEMS[i.def].large &&
+            [player, ...occupied].some((a) => {
+              const dx = a.x - Math.max(p.x - 0.5, Math.min(a.x, p.x + 0.5));
+              const dy = a.y - Math.max(p.y - 0.5, Math.min(a.y, p.y + 0.5));
+              return Math.hypot(dx, dy) < RADIUS + 0.01;
+            })
+          ) &&
           !occupied.some(
             (a) =>
               Math.floor(a.x) === Math.floor(p.x) &&
@@ -272,7 +286,7 @@ export class Possessions {
   }
   exposure(position: Point, lamp: Lamp, blocking: boolean) {
     const p = this.face(position, lamp, blocking);
-    return beam(lamp, p.x, p.y, 0.25);
+    return Math.max(beam(lamp, p.x, p.y, 0.25), roomLight(p.x, p.y, 0.25));
   }
   nearby(player: Point, lamp: Lamp): (Item | Target) | undefined {
     const candidates: (Item | Target)[] = [
@@ -310,6 +324,7 @@ export class Possessions {
       items: structuredClone(this.items),
       active: [...this.active],
       lightRequested,
+      explored: [...this.exploration.cells].sort((a, b) => a - b),
     };
   }
   save(player: Point, lightRequested: boolean) {
@@ -331,13 +346,15 @@ export class Possessions {
     try {
       const data = JSON.parse(raw) as Save;
       if (
-        data.version !== SAVE_VERSION ||
+        (data.version !== SAVE_VERSION && data.version !== 1) ||
         data.map !== "transport-1" ||
         !Array.isArray(data.items) ||
         !Array.isArray(data.active) ||
         typeof data.lightRequested !== "boolean"
       )
         throw Error();
+      const explored = new Exploration();
+      explored.load(data.version === 1 ? [] : data.explored);
       const seed = seedItems(),
         ids = new Set<string>();
       if (data.items.length !== seed.length) throw Error();
@@ -395,6 +412,47 @@ export class Possessions {
           throw Error();
       if (data.active.includes("shutter") !== data.active.includes("drive"))
         throw Error();
+      // Additive map update: move legacy floor items off newly placed furniture.
+      // Preserve their IDs and ownership instead of discarding the whole old save.
+      if (data.version === 1) {
+        const occupied = new Set<string>();
+        const key = (p: Point) => `${Math.floor(p.x)},${Math.floor(p.y)}`;
+        for (const t of TARGETS)
+          if (t.kind !== "door" || !data.active.includes(t.id))
+            for (const p of t.cells || [t.position]) occupied.add(key(p));
+        for (const i of data.items)
+          if (i.location.kind === "world")
+            occupied.add(key(i.location.position));
+        for (const i of data.items)
+          if (
+            i.location.kind === "world" &&
+            furnitureSolid(i.location.position.x, i.location.position.y)
+          ) {
+            const old = i.location.position,
+              options: Point[] = [];
+            for (let dy = -8; dy <= 8; dy++)
+              for (let dx = -8; dx <= 8; dx++) {
+                const p = {
+                  x: Math.floor(old.x) + dx + 0.5,
+                  y: Math.floor(old.y) + dy + 0.5,
+                };
+                if (
+                  material(p.x, p.y) &&
+                  !furnitureSolid(p.x, p.y) &&
+                  !occupied.has(key(p))
+                )
+                  options.push(p);
+              }
+            options.sort(
+              (a, b) =>
+                Math.hypot(a.x - old.x, a.y - old.y) -
+                Math.hypot(b.x - old.x, b.y - old.y),
+            );
+            if (!options[0]) throw Error();
+            i.location.position = options[0];
+            occupied.add(key(options[0]));
+          }
+      }
       this.items = data.items;
       this.active = new Set(data.active);
       if (this.check()) throw Error();
@@ -409,9 +467,10 @@ export class Possessions {
         if (i.location.kind === "world") {
           const p = i.location.position,
             key = `${Math.floor(p.x)},${Math.floor(p.y)}`;
-          if (cells.has(key)) throw Error();
+          if (cells.has(key) || furnitureSolid(p.x, p.y)) throw Error();
           if (ITEMS[i.def].large) cells.add(key);
         }
+      this.exploration = explored;
       return {
         player: canStand(data.player.x, data.player.y)
           ? data.player

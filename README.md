@@ -77,3 +77,15 @@ Phases 1–4 are implemented for this representative vertical slice: inventory/e
 ## Vercel
 
 `vercel.json` retains the static Vite configuration: build with `npm run build`, serve `dist`, repository root as project root. Successful local tests/builds do not establish the status of a Vercel deployment.
+
+## Explored map and illuminated stages
+
+Open **I / Tab → Map** to consult a persistent plan of nearby space already seen while walking. Unknown rooms and passages stay black; the map shows your position and marks discovered lit cells in green. It never displays creatures, loot, or undiscovered zone names. Map, inventory, equipment, and Help share the same pause/resume behavior.
+
+The western atrium is now **The Empty Mall**, with closed shop shutters, a vacant kiosk, dry fountain, benches, and dead planters. Its northern corridor leads to **The Forgotten Playground**, an empty indoor play hall with swings, a slide, and a roundabout. A smaller lit **Waiting Annex** branches from the west side of arrival. These spaces are connected to the existing yellow rooms, service areas, and underground without loading screens. Fixed overhead lighting reveals their muted materials even with the flashlight off; adjoining corridors retain the original darkness.
+
+For now, lit rooms are safe from creatures. `environments.ts` supplies the shared room bounds for lighting and AI exclusion. Patrol, chase, search, physical movement, and capture all respect those bounds; safe rooms provide no player observation to the creature. This rule concerns fixed environmental lighting, not the handheld flashlight. Furniture footprints participate in player collision, beam occlusion, and navigation. `scenery.ts` draws the authored furnishings using the existing pixel projection.
+
+`exploration.ts` records nearby, unobstructed floor cells and renders only remembered space. Save format **2** adds explored cells while retaining the existing `liminal.transport.v1` storage key. Valid version-1 saves migrate with inventory, equipment, mechanisms, and cargo intact; old floor items overlapped by new furniture move to the nearest free floor cell. A previously unexplored map starts empty. Invalid new exploration data is rejected transactionally.
+
+Added acceptance coverage checks progressive discovery, map persistence and old-save migration, furniture collision, connected routes, fixed lighting without creature exposure, and creature exclusion over pursuit/search/patrol. Browser checks cover Map navigation, pause/resume, new-stage rendering with the torch off, safe-room behavior, and reload. This adds two environmental stages and one smaller lit room; further liminal settings and interactions remain content work.

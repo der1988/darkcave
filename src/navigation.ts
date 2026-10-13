@@ -2,8 +2,18 @@ import { SIZE, solid } from "./world";
 import type { Point } from "./light";
 const id = (p: Point) => Math.floor(p.y) * SIZE + Math.floor(p.x);
 /** Cardinal navigation avoids corner cutting; waypoints lie in safe cell centers. */
-export function pathfind(from: Point, to: Point): Point[] {
-  if (solid(from.x, from.y) || solid(to.x, to.y)) return [];
+export function pathfind(
+  from: Point,
+  to: Point,
+  forbidden: (x: number, y: number) => boolean = () => false,
+): Point[] {
+  if (
+    solid(from.x, from.y) ||
+    solid(to.x, to.y) ||
+    forbidden(from.x, from.y) ||
+    forbidden(to.x, to.y)
+  )
+    return [];
   const start = id(from),
     goal = id(to),
     parent = new Int32Array(SIZE * SIZE).fill(-1);
@@ -20,7 +30,7 @@ export function pathfind(from: Point, to: Point): Point[] {
       [x, y + 1],
     ]) {
       const next = ny * SIZE + nx;
-      if (solid(nx, ny) || parent[next] !== -1) continue;
+      if (solid(nx, ny) || forbidden(nx, ny) || parent[next] !== -1) continue;
       parent[next] = n;
       queue.push(next);
     }

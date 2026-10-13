@@ -1,3 +1,4 @@
+import { isSafe } from "./environments";
 import { move, visible, geometryRevision } from "./world";
 import type { Point } from "./light";
 import { nearbyDestinations, pathfind } from "./navigation";
@@ -34,10 +35,11 @@ export class Creature {
       const target = choices[Math.floor(this.random() * choices.length)];
       if (
         !target ||
+        isSafe(target.x, target.y) ||
         Math.hypot(target.x - this.position.x, target.y - this.position.y) < 1.5
       )
         continue;
-      const route = pathfind(this.position, target);
+      const route = pathfind(this.position, target, isSafe);
       if (route.length) {
         this.route = route;
         return;
@@ -46,6 +48,7 @@ export class Creature {
   }
   /** The only player information accepted is a currently visible observation. */
   update(dt: number, observation: Point | null): boolean {
+    if (observation && isSafe(observation.x, observation.y)) observation = null;
     if (this.geometry !== geometryRevision) {
       this.geometry = geometryRevision;
       this.route = [];
@@ -97,7 +100,7 @@ export class Creature {
           Math.floor(end.x) !== Math.floor(this.lastKnown.x) ||
           Math.floor(end.y) !== Math.floor(this.lastKnown.y)
         )
-          this.route = pathfind(this.position, this.lastKnown);
+          this.route = pathfind(this.position, this.lastKnown, isSafe);
         else this.route[this.route.length - 1] = { ...this.lastKnown };
         this.repath = 0.6;
         if (
@@ -151,7 +154,12 @@ export class Creature {
         const amount = Math.min(distance, this.speed * dt),
           x = this.position.x,
           y = this.position.y;
-        move(this.position, (dx / distance) * amount, (dy / distance) * amount);
+        move(
+          this.position,
+          (dx / distance) * amount,
+          (dy / distance) * amount,
+          isSafe,
+        );
         this.stride += Math.hypot(this.position.x - x, this.position.y - y) * 5;
         this.heading = Math.atan2(dy, dx);
       }
@@ -160,6 +168,8 @@ export class Creature {
   }
   canCapture(player: Point): boolean {
     return (
+      !isSafe(player.x, player.y) &&
+      !isSafe(this.position.x, this.position.y) &&
       (this.state === "pursuing" || this.state === "remembering") &&
       Math.hypot(player.x - this.position.x, player.y - this.position.y) <
         0.36 &&

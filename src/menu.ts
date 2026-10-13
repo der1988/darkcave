@@ -9,7 +9,9 @@ import {
 } from "./items";
 import { Possessions, owned } from "./possessions";
 import { drawPlayer, type Appearance } from "./player-sprite";
-export type MenuKind = "inventory" | "character" | "help";
+import { ZONES } from "./zones";
+import type { Point } from "./light";
+export type MenuKind = "inventory" | "character" | "help" | "map";
 export type MenuAction = {
   type: "equip" | "unequip" | "drop" | "use" | "store" | "take";
   id: string;
@@ -53,6 +55,7 @@ export class Menu {
     private act: (a: MenuAction) => string,
     private onChange: (open: boolean) => void,
     private targets: () => string[],
+    private player: () => Point,
   ) {
     this.panel.id = "management";
     this.panel.hidden = true;
@@ -133,24 +136,42 @@ export class Menu {
         ? "FIELD REFERENCE"
         : this.kind === "character"
           ? "PERSONAL EQUIPMENT"
-          : "CARRIED OBJECTS",
+          : this.kind === "map"
+            ? "EXPLORED SPACES"
+            : "CARRIED OBJECTS",
       head,
     );
     this.button("Close · ESC", head, () => this.close());
     const nav = el("nav", "", frame);
-    for (const k of ["inventory", "character", "help"] as const)
+    for (const k of ["inventory", "map", "character", "help"] as const)
       this.button(
         k === "inventory"
           ? "Inventory"
           : k === "character"
             ? "Character"
-            : "Help",
+            : k === "map"
+              ? "Map"
+              : "Help",
         nav,
         () => {
           this.kind = k;
           this.render();
         },
       );
+    if (this.kind === "map") {
+      const c = el("canvas", "", frame);
+      c.className = "exploration-map";
+      c.setAttribute("aria-label", "Explored map");
+      const zones = state.exploration.draw(c, this.player());
+      el("p", "Pale square: you · Green: lit rooms · Black: unknown", frame);
+      el("p", zones.map((z) => ZONES[z].name).join(" / "), frame);
+      el(
+        "p",
+        "Only nearby, visible space is remembered. Fixed lighting keeps these rooms empty of creatures. Unvisited passages remain unknown.",
+        frame,
+      );
+      return;
+    }
     if (this.kind === "help") {
       const dl = el("dl", "", frame);
       dl.className = "controls";
@@ -161,7 +182,7 @@ export class Menu {
         }
       el(
         "p",
-        "Two occupied hands need a body-mounted lamp. Cargo slows walking. Menus pause the world and its sounds. Progress is stored on this browser.",
+        "Two occupied hands need a body-mounted lamp. Cargo slows walking. Menus pause the world and its sounds. The inventory Map records visited space. Progress is stored on this browser.",
         frame,
       );
       return;

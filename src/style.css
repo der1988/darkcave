@@ -168,3 +168,12 @@ canvas {
     gap: 8px;
   }
 }
+
+.exploration-map {
+  display: block;
+  width: min(100%, 600px);
+  height: auto;
+  image-rendering: pixelated;
+  margin: 16px auto;
+  border: 1px solid #343b32;
+}

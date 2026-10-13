@@ -12,7 +12,7 @@ test('every authored floor cell is reachable from arrival', () => {
     seen.add(key);
     queue.push([x-1,y],[x+1,y],[x,y-1],[x,y+1]);
   }
-  assert.equal(seen.size, [...tiles].filter(Boolean).length);
+  assert.equal(seen.size, [...tiles].filter((v,i)=>v && !solid(i%SIZE,Math.floor(i/SIZE))).length);
   assert.ok(seen.size > 2000);
 });
 test('flashlight reaches open floors and stops at structural columns and walls', () => {
