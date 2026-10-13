@@ -1,5 +1,170 @@
-:root { color-scheme: dark; background: #000; }
-* { box-sizing: border-box; }
-html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
-body { position: fixed; inset: 0; }
-canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; outline: none; touch-action: none; cursor: crosshair; }
+:root {
+  color-scheme: dark;
+  background: #000;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+body {
+  position: fixed;
+  inset: 0;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  outline: none;
+  touch-action: none;
+  cursor: crosshair;
+}
+#management[hidden] {
+  display: none;
+}
+#management {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.76);
+  color: #aaa991;
+  font: 13px/1.6 monospace;
+}
+.menu-frame {
+  width: min(880px, 100%);
+  max-height: 92dvh;
+  overflow: auto;
+  background: rgba(12, 15, 12, 0.96);
+  border: 1px solid #424638;
+  padding: 24px;
+  box-shadow: 0 0 0 4px #050705;
+}
+#management header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+#management h1 {
+  font-size: 15px;
+  letter-spacing: 0.16em;
+  font-weight: normal;
+}
+#management h2 {
+  font-size: 13px;
+  color: #c0bda0;
+  font-weight: normal;
+}
+#management button {
+  color: inherit;
+  font: inherit;
+  background: #141811;
+  border: 1px solid #383e30;
+  padding: 7px 10px;
+  cursor: pointer;
+  text-align: left;
+}
+#management button:hover,
+#management button:focus-visible,
+#management button[aria-pressed="true"] {
+  background: #2c3325;
+  outline: 1px solid #899071;
+}
+#management nav,
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 12px 0;
+}
+.menu-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-top: 1px solid #303629;
+  padding-top: 12px;
+}
+.item-list {
+  flex: 1;
+  min-width: 220px;
+}
+.item-row {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 5px;
+}
+.item-detail {
+  flex: 1;
+  min-width: 200px;
+}
+.item-detail button {
+  margin: 0 5px 6px 0;
+}
+#management .item-icon {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+.character-view {
+  width: 200px;
+}
+.character-view canvas {
+  width: 160px;
+  height: 140px;
+  margin: auto;
+}
+#management .slot {
+  display: block;
+  width: 100%;
+  padding: 3px 5px;
+  font-size: 11px;
+}
+.controls {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) 2fr;
+  gap: 10px 18px;
+}
+.controls dt {
+  color: #c0bda0;
+}
+.controls dd {
+  margin: 0;
+}
+.menu-feedback {
+  min-height: 1.6em;
+  color: #c3b48d;
+}
+@media (max-width: 600px) {
+  #management {
+    padding: 12px;
+  }
+  .menu-frame {
+    padding: 12px;
+  }
+  #management header {
+    align-items: flex-start;
+  }
+  #management h1 {
+    font-size: 12px;
+  }
+  .character-view {
+    width: 100%;
+  }
+  .controls {
+    font-size: 11px;
+    gap: 8px;
+  }
+}

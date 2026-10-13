@@ -163,6 +163,124 @@ let browser;
   assert.ok(heard.audible > 0.015);
   assert.ok(heard.bpm > 75 && heard.bpm < 120);
   assert.equal(heard.state, "wandering");
+
+  // Help, inventory, and character menus pause the same simulation and audio.
+  await place({ x: 53.5, y: 53.5 }, { x: 88.5, y: 80.5 }, 0);
+  await page.keyboard.press("h");
+  await page.waitForTimeout(100);
+  assert.equal((await state()).menu, "help");
+  await page.getByText("FIELD REFERENCE", { exact: true }).waitFor();
+  const frozen = await state();
+  await page.keyboard.down("d");
+  await page.waitForTimeout(400);
+  await page.keyboard.up("d");
+  assert.deepEqual((await state()).player, frozen.player);
+  assert.deepEqual((await state()).creature, frozen.creature);
+  assert.equal((await state()).beats, frozen.beats);
+  await page.keyboard.press("h");
+  assert.equal((await state()).menu, null);
+  await page.keyboard.down("d");
+  await page.waitForTimeout(150);
+  await page.keyboard.up("d");
+  assert.notDeepEqual((await state()).player, frozen.player);
+  await place({ x: 53.5, y: 53.5 }, { x: 88.5, y: 80.5 }, 0);
+  await page.waitForTimeout(100);
+  await page.keyboard.press("e");
+  const item = (s, id) => s.inventory.items.find((i) => i.id === id);
+  assert.equal(item(await state(), "key-01").location.kind, "inventory");
+  await page.keyboard.press("Tab");
+  await page.locator('[data-item="key-01"]').click();
+  await page.getByRole("button", { name: "Drop", exact: true }).click();
+  assert.equal(item(await state(), "key-01").location.kind, "world");
+  await page.keyboard.press("Escape");
+  const dropped = item(await state(), "key-01").location.position;
+  const playerNow = (await state()).player;
+  await place(
+    playerNow,
+    { x: 88.5, y: 80.5 },
+    Math.atan2(dropped.y - playerNow.y, dropped.x - playerNow.x),
+  );
+  await page.waitForTimeout(100);
+  await page.keyboard.press("e");
+  assert.equal(item(await state(), "key-01").location.kind, "inventory");
+  await place({ x: 55.5, y: 53.5 }, { x: 88.5, y: 80.5 }, 0);
+  await page.waitForTimeout(100);
+  await page.keyboard.press("e");
+  await page.keyboard.press("c");
+  await page.locator('[data-item="pack-01"]').click();
+  await page.getByRole("button", { name: "Equip · Back", exact: true }).click();
+  assert.equal(item(await state(), "pack-01").location.slot, "Back");
+  await page.screenshot({ path: "/tmp/liminal-equipment.png" });
+  await page.keyboard.press("Escape");
+  await place({ x: 86.5, y: 45.5 }, { x: 53.5, y: 30.5 }, 0);
+  await page.waitForTimeout(100);
+  await page.keyboard.press("e");
+  assert.ok((await state()).inventory.active.includes("store-door"));
+  await place({ x: 91.5, y: 45.5 }, { x: 53.5, y: 30.5 }, 0);
+  await page.waitForTimeout(100);
+  await page.keyboard.press("e");
+  const carrying = await state();
+  assert.equal(item(carrying, "module-01").location.kind, "equipped");
+  assert.equal(carrying.canLight, false);
+  assert.ok(carrying.speed < 0.85);
+  assert.equal(carrying.creatureLight, 0);
+  await page.screenshot({ path: "/tmp/liminal-cargo-dark.png" });
+  await page.keyboard.press("i");
+  await page.locator('[data-item="module-01"]').click();
+  await page.getByRole("button", { name: "Drop", exact: true }).click();
+  assert.equal((await state()).canLight, true);
+  await page.keyboard.press("Escape");
+  const moduleDrop = item(await state(), "module-01").location.position;
+  await place(
+    { x: 91.5, y: 45.5 },
+    { x: 53.5, y: 30.5 },
+    Math.atan2(moduleDrop.y - 45.5, moduleDrop.x - 91.5),
+  );
+  await page.waitForTimeout(100);
+  await page.keyboard.press("e");
+  assert.equal(item(await state(), "module-01").location.kind, "equipped");
+  // A lamp must be obtained before filling both hands, or cargo temporarily set down.
+  await page.keyboard.press("i");
+  await page.locator('[data-item="module-01"]').click();
+  await page.getByRole("button", { name: "Drop", exact: true }).click();
+  await page.keyboard.press("Escape");
+  const moduleFloor = item(await state(), "module-01").location.position;
+  await place({ x: 81.5, y: 45.5 }, { x: 53.5, y: 30.5 }, Math.PI / 2);
+  await page.waitForTimeout(100);
+  await page.keyboard.press("e");
+  await page.keyboard.press("c");
+  await page.locator('[data-item="lamp-01"]').click();
+  await page
+    .getByRole("button", { name: "Equip · Utility", exact: true })
+    .click();
+  await page.keyboard.press("Escape");
+  const approach = { x: moduleFloor.x - 1, y: moduleFloor.y };
+  await place(approach, { x: 53.5, y: 30.5 }, 0);
+  await page.waitForTimeout(100);
+  await page.keyboard.press("e");
+  assert.equal((await state()).canLight, true);
+  assert.equal(item(await state(), "module-01").location.kind, "equipped");
+  await page.keyboard.press("c");
+  await page.screenshot({ path: "/tmp/liminal-cargo-equipped.png" });
+  await page.keyboard.press("Escape");
+  await place({ x: 61.5, y: 89.5 }, { x: 53.5, y: 30.5 }, 0);
+  await page.waitForTimeout(100);
+  await page.keyboard.press("e");
+  const delivered = await state();
+  assert.ok(delivered.inventory.active.includes("shutter"));
+  assert.equal(item(delivered, "module-01").location.kind, "used");
+  assert.equal(delivered.zone, "underground");
+  await page.evaluate(() => window.__liminal.save());
+  await page.reload();
+  await page.waitForFunction(() => window.__liminal);
+  const loaded = await state();
+  assert.deepEqual(loaded.inventory.items, delivered.inventory.items);
+  assert.ok(loaded.inventory.active.includes("shutter"));
+  assert.equal(loaded.state, "wandering");
+  assert.equal(
+    new Set(loaded.inventory.items.map((i) => i.id)).size,
+    loaded.inventory.items.length,
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(300);
   assert.equal(
@@ -174,18 +292,15 @@ let browser;
   console.log(
     JSON.stringify(
       {
-        moving,
-        detected,
-        remembered,
-        escaped,
-        searched,
-        caught,
-        reset,
-        blocked,
-        heard,
+        stealth: "passed",
+        inventory: "passed",
+        equipment: "passed",
+        helpPauseResume: "passed",
+        transport: "passed",
+        persistence: "passed",
         litBody,
         darkBody,
-        peak,
+        audioPeak: peak,
         errors,
       },
       null,

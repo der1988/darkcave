@@ -7,6 +7,10 @@ export class Heart {
   beats = 0;
   private alarm = 0;
   private memory = 0;
+  settle() {
+    this.alarm = 70;
+    this.memory = 0;
+  }
   perceive(visible: boolean, pursuing: boolean, audible: number) {
     const target = visible
       ? pursuing

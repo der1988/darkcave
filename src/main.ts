@@ -1,10 +1,17 @@
 import "./style.css";
+import { actionFor, held } from "./controls";
+import { Possessions, SAVE_KEY, owned } from "./possessions";
+import { ITEMS, TARGETS, type Item, type Target } from "./items";
+import { Menu, appearance, type MenuAction } from "./menu";
+import { drawPlayer } from "./player-sprite";
+import { ZONES, zoneAt } from "./zones";
 import { beam, surfaceLight, RANGE, type Lamp } from "./light";
 import { Creature } from "./creature";
 import { Heart, Capture } from "./heart";
 import { Sound } from "./audio";
 import { Hud } from "./hud";
 import {
+  canStand,
   material,
   solid,
   spawn,
@@ -17,19 +24,38 @@ import {
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const ctx = canvas.getContext("2d", { alpha: false })!;
 const player = { ...spawn };
-const camera = { ...spawn };
+const cargo = new Possessions();
+cargo.sync();
+let restored: ReturnType<Possessions["load"]> = null;
+try {
+  restored = cargo.load(localStorage.getItem(SAVE_KEY));
+} catch {
+  cargo.saveWarning = "Local storage unavailable.";
+}
+if (restored) Object.assign(player, restored.player);
+const camera = { ...player };
 const keys = new Set<string>();
-let creature = new Creature();
+function freshCreature(avoidNearby=false){
+ const c=new Creature();
+ if(!canStand(c.position.x,c.position.y)||(avoidNearby&&Math.hypot(c.position.x-player.x,c.position.y-player.y)<12)){
+  const safe=[{x:53.5,y:30.5},{x:80.5,y:52.5},{x:23.5,y:80.5}].find(p=>canStand(p.x,p.y)&&Math.hypot(p.x-player.x,p.y-player.y)>15);
+  if(safe)c.position=safe;
+ }
+ return c;
+}
+let creature=freshCreature(!!restored);
 let heart = new Heart();
 let capture = new Capture();
 const sound = new Sound();
 const hud = new Hud();
 let footPhase = 0;
+let motionBlend = 0;
 let creatureLight = 0;
 let audible = 0;
 let paused = false;
 function unlockAudio() {
   paused = false;
+  if (menu?.kind) return;
   void sound.unlock().catch(() => {
     /* A later gesture can retry audio. */
   });
@@ -41,7 +67,7 @@ let width = 0,
   angle = -Math.PI / 2,
   targetAngle = angle;
 let bodyAngle = angle;
-let lightOn = true,
+let lightOn = restored?.lightRequested ?? true,
   walking = false,
   stride = 0,
   time = 0;
@@ -57,26 +83,147 @@ function resize() {
 }
 window.addEventListener("resize", resize);
 resize();
-const controls = [
-  "KeyW",
-  "KeyA",
-  "KeyS",
-  "KeyD",
-  "ArrowUp",
-  "ArrowLeft",
-  "ArrowDown",
-  "ArrowRight",
-  "ShiftLeft",
-  "ShiftRight",
-  "Space",
-];
+let interactionTime = 0,
+  feedback = "",
+  feedbackTime = 0,
+  saveClock = 0;
+let pendingSound: "cloth" | "drop" | "mechanism" | undefined;
+const save = () => cargo.save(player, lightOn);
+const menu = new Menu(
+  () => cargo,
+  performAction,
+  (open) => {
+    keys.clear();
+    walking = false;
+    sound.stopSteps();
+    last = performance.now();
+    if (open) {
+      save();
+      sound.suspend();
+    } else {
+      void sound
+        .unlock()
+        .then(() => {
+          if (pendingSound) {
+            sound.object(pendingSound);
+            pendingSound = undefined;
+          }
+        })
+        .catch(() => {});
+      render();
+    }
+  },
+  () =>
+    TARGETS.filter(
+      (t) =>
+        cargo.reachable(t.position, player, true) &&
+        cargo.exposure(t.position, lamp(), true) > 0.035,
+    ).map((t) => t.id),
+);
+function say(text: string) {
+  feedback = text;
+  feedbackTime = 3;
+}
+function performAction(a: MenuAction): string {
+  let error = "";
+  if (a.type === "equip") error = cargo.equip(a.id, a.slot!);
+  if (a.type === "unequip") error = cargo.unequip(a.id);
+  if (a.type === "drop") error = cargo.drop(a.id, player, [creature.position]);
+  if (a.type === "store") error = cargo.store(a.id, a.target!, player);
+  if (a.type === "take") error = cargo.take(a.id, player, a.target);
+  if (a.type === "use") {
+    if (
+      a.target !== "drink" &&
+      !TARGETS.some(
+        (t) =>
+          t.id === a.target && cargo.exposure(t.position, lamp(), true) > 0.035,
+      )
+    )
+      return "Illuminate the target first.";
+    error = cargo.use(a.id, a.target!, player);
+    if (!error && a.target === "drink") heart.settle();
+  }
+  if (!error) {
+    interactionTime = 0.38;
+    const cue =
+      a.type === "drop" ? "drop" : a.type === "use" ? "mechanism" : "cloth";
+    if (menu.kind) pendingSound = cue;
+    else sound.object(cue);
+    save();
+    render();
+  }
+  return error;
+}
+function interact() {
+  const e = cargo.nearby(player, lamp());
+  if (!e) return;
+  if ("def" in e) {
+    const error = cargo.take(e.id, player);
+    say(
+      error ||
+        `Taken: ${ITEMS[e.def].name}${cargo.canLight ? "" : ". Both hands occupied; use a clip lamp or drop cargo."}`,
+    );
+    if (!error) {
+      interactionTime = 0.38;
+      sound.object("cloth");
+      save();
+    }
+    return;
+  }
+  if (e.rule && !cargo.active.has(e.id)) {
+    const item = cargo.items.find(
+      (i) =>
+        owned(i) &&
+        ITEMS[i.def].capability === e.rule!.capability &&
+        (!e.rule!.equipped || i.location.kind === "equipped"),
+    );
+    if (!item) {
+      say(e.description);
+      return;
+    }
+    const error = cargo.use(item.id, e.id, player);
+    say(error || "The mechanism releases.");
+    if (!error) {
+      interactionTime = 0.3;
+      sound.object("mechanism");
+      save();
+    }
+  }
+  if (e.storage && cargo.storageAvailable(e.id, player))
+    menu.toggle("inventory", e.id);
+  else if (!e.rule) say(e.description);
+}
 window.addEventListener("keydown", (e) => {
-  if (!controls.includes(e.code)) return;
+  const action = actionFor(e.code);
+  if (!action) return;
+  if (
+    menu.kind &&
+    e.code === "Space" &&
+    (e.target as HTMLElement).tagName === "BUTTON"
+  )
+    return;
   e.preventDefault();
+  if (e.repeat) return;
+  if (action === "close") {
+    if (menu.kind) menu.close();
+    return;
+  }
+  if (capture.elapsed !== null) return;
+  if (action === "inventory" || action === "character" || action === "help") {
+    menu.toggle(action);
+    return;
+  }
+  if (menu.kind) return;
   keys.add(e.code);
-  if (e.code === "Space" && !e.repeat && capture.elapsed === null)
+  if (action === "light") {
     lightOn = !lightOn;
+    if (lightOn && !cargo.canLight)
+      say("Both hands occupied. Equip a clip lamp or drop cargo.");
+    save();
+  }
+  if (action === "interact") interact();
 });
+window.addEventListener("pagehide", save);
 window.addEventListener("keyup", (e) => keys.delete(e.code));
 window.addEventListener("blur", () => {
   keys.clear();
@@ -102,7 +249,12 @@ const palettes = [
 ];
 let lampX = player.x,
   lampY = player.y;
-const lamp = (): Lamp => ({ x: lampX, y: lampY, angle, on: lightOn });
+const lamp = (): Lamp => ({
+  x: lampX,
+  y: lampY,
+  angle,
+  on: lightOn && cargo.canLight,
+});
 function illumination(x: number, y: number, z: number, nx = 0, ny = 0) {
   return surfaceLight(lamp(), x, y, z, nx, ny);
 }
@@ -136,7 +288,8 @@ function noise(x: number, y: number) {
   return n - Math.floor(n);
 }
 function floor(x: number, y: number, m: number) {
-  const color = palettes[m];
+  const zone = zoneAt(x, y);
+  const color = zone === "yellow" ? palettes[m] : ZONES[zone].floor;
   // Small surface samples receive real light; no cone or visibility-mask overlay.
   const step = 0.25;
   for (let v = 0; v < 1; v += step)
@@ -153,7 +306,9 @@ function floor(x: number, y: number, m: number) {
           [a + step, b + step, 0],
           [a, b + step, 0],
         ],
-        color,
+        zone === "underground" && y % 7 === 0 && x % 3 === 0 && v < 0.25
+          ? [133, 130, 105]
+          : color,
         intensity * variation,
       );
     }
@@ -178,12 +333,14 @@ function wall(x: number, y: number) {
           nx,
           ny,
         );
+        const zone = zoneAt(x, y),
+          base = ZONES[zone].wall;
         const color =
           z < 0.16
-            ? [97, 91, 72]
-            : axis === 0
-              ? [178, 166, 126]
-              : [157, 151, 119];
+            ? [77, 79, 65]
+            : zone === "service" && z > 0.8 && z < 1
+              ? [79, 86, 80]
+              : base.map((n) => n * (axis === 0 ? 1 : 0.87));
         polygon(
           [
             [a, b, z],
@@ -236,8 +393,6 @@ function character() {
   const p = project(player.x, player.y),
     x = Math.round(p.x + offsetX),
     y = Math.round(p.y + offsetY);
-  const step = walking ? Math.sin(stride) : 0,
-    bob = walking ? Math.round(Math.abs(step)) : 0;
   const aim = project(Math.cos(angle), Math.sin(angle)),
     side = aim.x >= 0 ? 1 : -1;
   const facing = project(Math.cos(bodyAngle), Math.sin(bodyAngle));
@@ -256,49 +411,145 @@ function character() {
       ) / 3;
   const facingLight = 0.5 + 0.5 * Math.cos(bodyAngle - angle);
   const shade = (tone: number, normal = 0) => {
-    const strength = lightOn
+    const strength = lamp().on
       ? 0.07 +
         bounce *
           (0.12 + 0.22 * Math.max(0, normal * side)) *
           (0.65 + 0.35 * facingLight)
-      : 0.025;
+      : 0.035;
     const v = Math.round(tone * strength);
     return `rgb(${v},${Math.round(v * 0.96)},${Math.round(v * 0.81)})`;
   };
-  const rect = (
-    dx: number,
-    dy: number,
-    w: number,
-    h: number,
-    tone: number,
-    normal = 0,
-  ) => {
-    ctx.fillStyle = shade(tone, normal);
-    ctx.fillRect(x + dx, y + dy - bob, w, h);
-  };
-  // Nineteen pixels: head, neck, sloping shoulders, waist, articulated thin limbs.
-  const swing = Math.round(step * (profile ? 2 : 1));
-  rect(-2 + swing, -7, 1, 6 + Math.round(step), 155, -1);
-  rect(1 - swing, -7, 1, 6 - Math.round(step), 165, 1);
-  rect(-2 + swing, -2 + Math.round(step), 2, 1, 125, -1);
-  rect(1 - swing, -2 - Math.round(step), 2, 1, 125, 1);
-  rect(-2, -13, 5, 5, back ? 140 : 160);
-  rect(-1, -8, 3, 2, 140);
-  rect(-3, -14, 6, 2, 165);
-  rect(-1, -16, 2, 2, 180);
-  rect(-2, -19, 4, 3, 195);
-  rect(-2, -19, 4, 1, 100);
-  if (back) rect(-2, -18, 4, 2, 110);
-  rect(-3, -13, 1, 4, 145, -1);
-  rect(3, -13, 1, 4, 150, 1);
-  rect(side > 0 ? -4 : 3, -10 + Math.round(step), 1, 3, 175, -side);
-  rect(side > 0 ? 3 : -4, -10, 2, 2, 175, side);
-  rect(side > 0 ? 4 : -5, -10, 2, 1, 195, side);
-  ctx.fillStyle = lightOn ? "#8f8765" : "#050505";
-  ctx.fillRect(x + (side > 0 ? 5 : -6), y - 10 - bob, 2, 1);
+  drawPlayer(
+    ctx,
+    x,
+    y,
+    {
+      stride,
+      walking,
+      motion: motionBlend,
+      time,
+      side,
+      back,
+      profile,
+      load: cargo.weight / cargo.capacity,
+      action: interactionTime,
+      light: lamp().on,
+    },
+    appearance(cargo),
+    shade,
+  );
 }
+function drawObject(e: Item | Target) {
+  const item = "def" in e;
+  const position = item
+    ? e.location.kind === "world"
+      ? e.location.position
+      : null
+    : e.position;
+  if (!position) return;
+  const large = item ? !!ITEMS[e.def].large : true;
+  const face = cargo.face(position, lamp(), large);
+  const intensity = item
+    ? cargo.exposure(position, lamp(), large)
+    : surfaceLight(lamp(), face.x, face.y, 0.5);
+  if (intensity < 0.008 && !large) return;
+  if (item && !large) {
+    const p = project(position.x, position.y, 0.08);
+    const px = Math.round(p.x + offsetX),
+      py = Math.round(p.y + offsetY);
+    ctx.fillStyle = "#010201";
+    ctx.fillRect(px - 3, py + 1, 7, 2);
+    ITEMS[e.def].icon.forEach((row, y) =>
+      [...row].forEach((v, x) => {
+        if (v === " ") return;
+        const tone = Math.round((v === "+" ? 85 : 155) * intensity);
+        ctx.fillStyle = `rgb(${tone},${Math.round(tone * 0.96)},${Math.round(tone * 0.8)})`;
+        ctx.fillRect(px + x - 4, py + y - 4, 1, 1);
+      }),
+    );
+    return;
+  }
+  if (!item && e.kind === "door" && cargo.active.has(e.id)) return;
+  const cells =
+    !item && e.kind === "door"
+      ? (e.cells || [position]).map((p) => ({
+          x: Math.floor(p.x) + 0.5,
+          y: Math.floor(p.y) + 0.5,
+        }))
+      : [position];
+  for (const p of cells) {
+    const radius = !item && e.kind === "door" ? 0.49 : large ? 0.3 : 0.09;
+    const h = !item
+      ? e.kind === "door"
+        ? 1.25
+        : e.kind === "machine"
+          ? 0.72
+          : 0.95
+      : large
+        ? 0.34
+        : 0.06;
+    const a = p.x - radius,
+      b = p.y - radius,
+      c = p.x + radius,
+      d = p.y + radius;
+    const tone = item ? [141, 130, 101] : [118, 129, 119];
+    polygon(
+      [
+        [a, b, 0],
+        [c, b, 0],
+        [c, d, 0],
+        [a, d, 0],
+      ],
+      [0, 0, 0],
+      0,
+    );
+    polygon(
+      [
+        [c, b, 0],
+        [c, d, 0],
+        [c, d, h],
+        [c, b, h],
+      ],
+      tone,
+      intensity * 0.75,
+    );
+    polygon(
+      [
+        [a, d, 0],
+        [c, d, 0],
+        [c, d, h],
+        [a, d, h],
+      ],
+      tone,
+      intensity * 0.9,
+    );
+    polygon(
+      [
+        [a, b, h],
+        [c, b, h],
+        [c, d, h],
+        [a, d, h],
+      ],
+      tone,
+      intensity,
+    );
+    if (!item) {
+      const q = project(p.x, p.y, h);
+      ctx.fillStyle = `rgb(${Math.round(50 * intensity)},${Math.round(65 * intensity)},${Math.round(46 * intensity)})`;
+      ctx.fillRect(
+        Math.round(q.x + offsetX) - 2,
+        Math.round(q.y + offsetY) + 3,
+        4,
+        cargo.active.has(e.id) ? 1 : 3,
+      );
+    }
+  }
+}
+
 function drawCreature() {
-  if (creatureLight < 0.018) return;
+  if (beam(lamp(), creature.position.x, creature.position.y, 0.7) < 0.018)
+    return;
   const p = project(creature.position.x, creature.position.y);
   const x = Math.round(p.x + offsetX),
     y = Math.round(p.y + offsetY);
@@ -338,17 +589,18 @@ function drawCreature() {
 function restart() {
   Object.assign(player, spawn);
   Object.assign(camera, spawn);
-  creature = new Creature();
+  creature = freshCreature();
   heart = new Heart();
   capture = new Capture();
   lightOn = true;
   angle = targetAngle = bodyAngle = -Math.PI / 2;
   walking = false;
-  stride = footPhase = 0;
+  stride = footPhase = motionBlend = 0;
   mouse = null;
   keys.clear();
   sound.reset();
   hud.reset();
+  save();
 }
 function updateSurvival(dt: number) {
   creatureLight = beam(lamp(), creature.position.x, creature.position.y, 0.7);
@@ -376,6 +628,13 @@ function updateSurvival(dt: number) {
   creatureLight = beam(lamp(), creature.position.x, creature.position.y, 0.7);
 }
 function update(dt: number) {
+  interactionTime = Math.max(0, interactionTime - dt);
+  feedbackTime = Math.max(0, feedbackTime - dt);
+  saveClock += dt;
+  if (saveClock > 3 && capture.elapsed === null) {
+    save();
+    saveClock = 0;
+  }
   if (capture.elapsed !== null) {
     if (capture.update(dt)) {
       restart();
@@ -387,22 +646,24 @@ function update(dt: number) {
     hud.update(dt, heart);
     return;
   }
-  const sx =
-    Number(keys.has("KeyD") || keys.has("ArrowRight")) -
-    Number(keys.has("KeyA") || keys.has("ArrowLeft"));
-  const sy =
-    Number(keys.has("KeyS") || keys.has("ArrowDown")) -
-    Number(keys.has("KeyW") || keys.has("ArrowUp"));
+  const sx = Number(held(keys, "right")) - Number(held(keys, "left"));
+  const sy = Number(held(keys, "down")) - Number(held(keys, "up"));
   const direction = screenToWorld(sx, sy);
   const length = Math.hypot(direction.x, direction.y);
   const beforeX = player.x,
     beforeY = player.y;
   if (length > 0) {
-    bodyAngle =
+    const desired =
       (Math.round(Math.atan2(direction.y, direction.x) / (Math.PI / 4)) *
         Math.PI) /
       4;
-    const speed = keys.has("ShiftLeft") || keys.has("ShiftRight") ? 2.6 : 1.65;
+    bodyAngle +=
+      Math.atan2(Math.sin(desired - bodyAngle), Math.cos(desired - bodyAngle)) *
+      (1 - Math.exp(-dt * 12));
+    const speed =
+      (held(keys, "fast") && cargo.canRush ? 2.6 : 1.65) *
+      cargo.speed *
+      (interactionTime > 0 ? 0.25 : 1);
     move(
       player,
       (direction.x / length) * speed * dt,
@@ -411,9 +672,13 @@ function update(dt: number) {
     if (!mouse) targetAngle = Math.atan2(direction.y, direction.x);
   }
   walking = Math.hypot(player.x - beforeX, player.y - beforeY) > 0.0001;
+  motionBlend+=(Number(walking)-motionBlend)*(1-Math.exp(-dt*12));
   stride += Math.hypot(player.x - beforeX, player.y - beforeY) * 5;
   const phase = Math.floor(stride / Math.PI);
-  if (walking && phase !== footPhase) sound.step(player);
+  if (walking && phase !== footPhase) {
+    sound.step(player);
+    if (cargo.cargo && phase % 3 === 0) sound.object("cloth");
+  }
   if (!walking) sound.stopSteps();
   footPhase = phase;
   const follow = 1 - Math.exp(-dt * 5);
@@ -433,7 +698,7 @@ function update(dt: number) {
   angle +=
     Math.atan2(Math.sin(targetAngle - angle), Math.cos(targetAngle - angle)) *
     (1 - Math.exp(-dt * 16));
-  if (!walking) bodyAngle = (Math.round(angle / (Math.PI / 4)) * Math.PI) / 4;
+  if (!walking) {const target=Math.round(angle/(Math.PI/4))*Math.PI/4;bodyAngle+=Math.atan2(Math.sin(target-bodyAngle),Math.cos(target-bodyAngle))*(1-Math.exp(-dt*10));}
   // Hand offset in the same projected location as the tiny flashlight sprite.
   const side = project(Math.cos(angle), Math.sin(angle)).x >= 0 ? 1 : -1;
   const hand = screenToWorld(side * 5, 0);
@@ -454,6 +719,7 @@ function render() {
     depth: number;
     player?: boolean;
     creature?: boolean;
+    object?: Item | Target;
   }[] = [];
   for (
     let y = Math.floor(player.y - RANGE - 1);
@@ -485,13 +751,39 @@ function render() {
     depth: creature.position.x + creature.position.y,
     creature: true,
   });
+  for (const e of [
+    ...cargo.items.filter((i) => i.location.kind === "world"),
+    ...TARGETS,
+  ]) {
+    const p =
+      "def" in e
+        ? (e.location as { position: { x: number; y: number } }).position
+        : e.position;
+    if (Math.hypot(p.x - player.x, p.y - player.y) < RANGE + 2)
+      drawables.push({ x: p.x, y: p.y, depth: p.x + p.y, object: e });
+  }
   drawables.sort((a, b) => a.depth - b.depth);
   for (const d of drawables) {
     if (d.player) character();
     else if (d.creature) drawCreature();
+    else if (d.object) drawObject(d.object);
     else wall(d.x, d.y);
   }
   hud.draw(ctx, heart, height);
+  const nearby = cargo.nearby(player, lamp());
+  const hint =
+    feedbackTime > 0
+      ? feedback
+      : nearby
+        ? `E · ${"def" in nearby ? ITEMS[nearby.def].name : nearby.name}`
+        : "";
+  if (hint && !menu.kind) {
+    ctx.font = "7px monospace";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#8e917b";
+    ctx.fillText(hint, width / 2, height - 8, Math.max(20, width - 20));
+    ctx.textAlign = "left";
+  }
   if (capture.elapsed !== null) {
     ctx.fillStyle = `rgba(0,0,0,${capture.opacity})`;
     ctx.fillRect(0, 0, width, height);
@@ -501,8 +793,8 @@ let last = performance.now();
 function frame(now: number) {
   const dt = Math.min((now - last) / 1000, 0.05);
   last = now;
-  time += dt;
-  if (!paused) {
+  if (!paused && !menu.kind) {
+    time += dt;
     update(dt);
     render();
   }
@@ -528,7 +820,15 @@ if (import.meta.env.DEV)
         audio: sound.context?.state,
         capture: capture.elapsed,
         audible,
+        menu: menu.kind,
+        inventory: cargo.encode(player, lightOn),
+        weight: cargo.weight,
+        speed: cargo.speed,
+        canLight: cargo.canLight,
+        zone: zoneAt(player.x, player.y),
       }),
+      cargo,
+      save,
       place: (
         p: { x: number; y: number },
         c: { x: number; y: number },

@@ -1,4 +1,4 @@
-import { move, visible } from "./world";
+import { move, visible, geometryRevision } from "./world";
 import type { Point } from "./light";
 import { nearbyDestinations, pathfind } from "./navigation";
 export type CreatureState =
@@ -16,6 +16,7 @@ export class Creature {
   stride = 0;
   speed = 0;
   stateTime = 0;
+  private geometry = geometryRevision;
   private route: Point[] = [];
   private repath = 0;
   private pause = 2;
@@ -45,6 +46,12 @@ export class Creature {
   }
   /** The only player information accepted is a currently visible observation. */
   update(dt: number, observation: Point | null): boolean {
+    if (this.geometry !== geometryRevision) {
+      this.geometry = geometryRevision;
+      this.route = [];
+      this.repath = 0;
+      this.pause = 0;
+    }
     this.stateTime += dt;
     this.repath -= dt;
     this.soundIn -= dt;
@@ -93,6 +100,14 @@ export class Creature {
           this.route = pathfind(this.position, this.lastKnown);
         else this.route[this.route.length - 1] = { ...this.lastKnown };
         this.repath = 0.6;
+        if (
+          !this.route.length &&
+          this.state === "remembering" &&
+          this.stateTime > 4
+        ) {
+          this.enter("searching");
+          this.pause = 1;
+        }
       }
     }
     if (this.state === "searching") {

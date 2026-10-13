@@ -1,5 +1,6 @@
 import { project, visible, material } from "./world";
 import type { Point } from "./light";
+import { zoneAt } from "./zones";
 import { secondBeatDelay } from "./heart";
 type Voice = {
   source: AudioBufferSourceNode;
@@ -91,7 +92,9 @@ export class Sound {
   step(position: Point) {
     if (!this.active) return;
     this.stopSteps();
-    const concrete = material(position.x, position.y) === 2;
+    const concrete =
+      material(position.x, position.y) === 2 ||
+      zoneAt(position.x, position.y) !== "yellow";
     const pitch = 0.92 + Math.random() * 0.16;
     let colored = 0;
     this.foot = this.play(
@@ -108,6 +111,24 @@ export class Sound {
       concrete ? 1100 : 470,
     );
     this.footstepCount++;
+  }
+  object(kind: "cloth" | "drop" | "mechanism") {
+    const length = kind === "mechanism" ? 0.28 : kind === "drop" ? 0.18 : 0.09;
+    let noise = 0;
+    this.play(
+      length,
+      (t) => {
+        noise = noise * 0.8 + (Math.random() * 2 - 1) * 0.2;
+        return (
+          (noise * 0.5 +
+            Math.sin(t * 2 * Math.PI * (kind === "drop" ? 65 : 180)) * 0.13) *
+          Math.sin((Math.PI * t) / length) *
+          Math.exp(-t * 14)
+        );
+      },
+      kind === "cloth" ? 0.065 : 0.16,
+      kind === "mechanism" ? 900 : 400,
+    );
   }
   stopSteps() {
     if (this.foot) {

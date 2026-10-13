@@ -1,56 +1,79 @@
 # LIMINAL
 
-A small human in near-total darkness. A heartbeat, footsteps, and something moving in the architecture. The flashlight reveals the way—and can reveal the player to the creature.
+A small human in unfamiliar architecture. A flashlight, a heartbeat, and something moving beyond the beam. Objects now have a physical cost: what you carry changes your stride, your available hands, and your ability to see.
 
-## Play
+## Run
 
-Requires Node.js 22.12+ (validated on Node 24) and npm.
+Node.js 22.12+ and npm (validated on Node 24):
 
 ```sh
 npm ci
 npm run dev
-```
-
-- **WASD / arrows:** screen-relative movement
-- **Mouse:** aim independently of movement
-- **Shift:** walk faster
-- **Space:** toggle the flashlight (F is no longer bound)
-
-Audio initializes after a keypress or click, respecting browser autoplay restrictions. Headphones help distinguish the creature's direction. The canvas fills the viewport; desktop keyboard and mouse are required. The interface consists only of a small portrait, BPM readout, and synchronized heartbeat trace.
-
-Illuminate the creature and it reacts, then pursues. Switch off the light or break line of sight and move away: it follows the last position it saw, searches nearby, then returns to wandering. A concealed player is not detected merely by proximity. Physical contact during pursuit—including pursuit of the last known position—causes a rapid final heartbeat, fade, silence, and an automatic restart. Contact during wandering or searching does not cause capture.
-
-## Systems
-
-The existing TypeScript/Vite Canvas renderer, fixed 2:1 projection, authored level, wall geometry, collision, and smooth camera remain in place. No production dependencies, external assets, services, or credentials are required.
-
-- `world.ts`: the connected authored architecture, grid visibility, circular collision, and projection.
-- `light.ts`: the shared directional beam, range falloff, wall occlusion, and tiny local illumination. The creature's rendering and exposure detection use this beam, without the ambient term. Turning off the flashlight leaves the surroundings black and the protagonist barely perceptible.
-- `main.ts`: integration and depth-sorted pixel rendering. The nineteen-pixel protagonist has articulated limbs and directional poses. Reflected surface light shades the body asymmetrically. The thirty-eight-pixel creature reacts, turns, and walks irregularly; it is hidden outside the beam.
-- `navigation.ts` / `creature.ts`: cardinal grid pathfinding, independent patrol, reaction, pursuit, remembered-position pursuit, timed local search, and return to wandering. The AI accepts only an optional currently visible player observation. It copies that position and cannot access a hidden player's coordinates for navigation. Collision remains active while following waypoints.
-- `heart.ts`: one smooth BPM/phase simulation drives beat events, waveform timing, and the HUD value. Fear comes from visible danger, actual playing and audible creature voices, and decaying memory of an encounter. Lower-intensity sounds cannot indefinitely preserve pursuit-level fear.
-- `audio.ts`: synthesized muffled double heartbeats, alternating footfalls tied to animation distance, and irregular layered creature vocalizations. Creature voices pan in projected screen space, attenuate with distance, and become quieter and low-pass filtered through walls. Voices clean up after playback; audio and simulation pause on focus loss. No music or downloaded samples.
-- `hud.ts`: restrained pixel portrait, BPM, and a waveform sampled from the same beat simulation as the audio.
-
-## Validation
-
-```sh
 npm test
 npm run build
-npm run preview
 npm run test:browser
 ```
 
-The browser suite requires Chromium. It uses `/usr/bin/chromium` when available, accepts `CHROMIUM_PATH`, or uses Playwright's installed browser (`npx playwright install chromium`). It starts and stops its own Vite server on port 5174. Playwright is a development-only dependency.
+`npm run preview` serves the production build. Browser acceptance tests start their own Vite server on port 5174. They use `/usr/bin/chromium`, `CHROMIUM_PATH`, or Playwright's installed Chromium (`npx playwright install chromium`). No backend, runtime network requests, secrets, or downloaded game assets are required.
 
-The unit suite covers map connectivity, projection, beam occlusion, collisions, long independent patrols, pathfinding around columns, detection/reaction, immutable last-known positions, search timeout, heart-rate response and recovery, waveform timing, spatial attenuation, and capture eligibility.
+## Controls
 
-The browser suite exercises actual keyboard controls, audio activation and non-silent heartbeat output, synchronized footstep events, light toggling without key-repeat, removal of F, visible detection, a successful dark escape, search and return to patrol, capture and spawn reset, wall-blocked detection, audible warnings, and narrow-viewport scaling. A development-only scenario harness enables deterministic placement; Vite removes it from production builds.
+Press **H** for the in-game reference, generated from the same control configuration as input.
 
-Manual listening and playtesting remain useful for judging sound character, volume balance, and difficulty across headphones and hardware. The automated audio check establishes signal generation, not subjective audio quality.
+- WASD / arrows: move relative to the screen
+- Mouse: aim
+- Space: toggle requested flashlight state
+- E: pick up / interact / use a compatible carried item
+- I / Tab: inventory
+- C: character and equipment
+- Shift: faster movement when the load and hands permit
+- H: toggle Help
+- Escape: close the current screen
 
-## Vercel and scope
+Keyboard or pointer interaction enables audio. Menus pause player movement, creature AI, heartbeat simulation, and audio together. Click an item to inspect it and use its contextual actions. A close-by illuminated object gets one small E hint; darkness does not reveal object names or the creature.
 
-`vercel.json` retains the static Vite deployment: build with `npm run build`, serve `dist`, use the repository root. A successful local build does not establish deployment status.
+## Playable transport route
 
-This remains one authored level with one creature. No combat, procedural expansion, save system, touch controls, or soundtrack. Lighting and sound occlusion use the existing 2.5D grid: sound is attenuated through walls, not acoustically simulated around corridors. Character illumination approximates reflected light rather than full global illumination.
+The arrival area contains a service key, transfer slip, backpack, battery, and water. The slip describes the route. Look around with the flashlight to discover them.
+
+Travel through the long eastern gallery into the **Service Areas**. Tools and a self-contained clip lamp are on the service-room floor. Equip the lamp in **Utility** to keep the flashlight available with both hands occupied. A battery opens the service cabinet; its cargo harness supports a compact equipment case. An equipped maintenance tool opens the maintenance compartment.
+
+Use the service key at **S-04**, then carry the electrical module out of the store. It cannot go in a bag. It occupies both hands, appears on the character, reduces walking speed, and prevents faster movement. Without a clip lamp, the handheld beam is unavailable; drop the module through inventory to free your hands. Space preserves the requested light state, so freeing a hand restores a requested beam. Dark-adapted vision reveals only nearby large architecture, never the creature.
+
+Carry the module through the connecting rooms to the **Underground**. Install it in the inactive drive machine beside the southern shutter. The module moves into the machine's ownership and the shutter opens into another underground chamber. This is a transport example, not a final story objective.
+
+The original light-driven stealth loop remains: expose the creature, break the beam, leave the last observed position, and let its search expire. Cargo is not a new detection channel. Capture returns the player to arrival while preserving items, equipment, and mechanism progress.
+
+## Inventory and persistence
+
+One stable-ID item record owns exactly one location: world, inventory, equipment slot, storage, or installed/consumed target. Transfers validate weight, bulk, hands, slot compatibility, and capacity before committing. Equipment remains part of carried weight. Backpacks add capacity only while equipped; removing one is rejected if its contents would exceed the remaining capacity. Large cargo is always visibly carried, stored, installed, or on the floor.
+
+Dropped cargo and fixtures share the collision/occlusion grid used by the player, flashlight, and creature. Dropping checks actor collision radii; a box cannot be placed inside the player or creature. Geometry changes invalidate AI routes. If a remembered location becomes inaccessible, the creature performs a bounded search rather than pursuing forever.
+
+Local saves use `liminal.transport.v1`, a versioned format with a map revision. Position, requested light state, every item's location, storage, equipment, and activated mechanisms are saved after interactions, on menu entry, periodically while moving, and on page exit. Loading validates known IDs, definitions, ownership, equipment, capacities, positions, and consumption/mechanism consistency. Incompatible or damaged data falls back to a clean session. Storage denial/quota failure leaves the session playable and is reported in the management interface. No AI pursuit or search state is saved; reloading initializes a safe patrol location.
+
+## Architecture
+
+The existing TypeScript/Vite Canvas renderer, 2:1 projection, logical pixel scale, handcrafted map, collision system, camera, heartbeat, and procedural audio are retained.
+
+- `world.ts`, `zones.ts`: connected floor modules, zone palettes, dynamic obstruction revision, projection and collision.
+- `light.ts`: directional, geometry-aware beam plus faint short-range, occluded architectural ambient shading. Creature rendering and detection use only the beam.
+- `items.ts`: definitions, capabilities, equipment compatibility, stable instances, fixtures, and item-to-target rules.
+- `possessions.ts`: authoritative ownership, transactional transfers, weight/bulk/hand constraints, interaction eligibility, serialization and validation.
+- `controls.ts`, `menu.ts`: shared keyboard configuration and Help; inventory, categories, contextual actions, storage, and equipment panels.
+- `player-sprite.ts`: the same nineteen-pixel character in the world and enlarged equipment view, with breathing, turning, restrained walking, lifting posture, and visible equipment/cargo.
+- `navigation.ts`, `creature.ts`: layout-aware patrol, exposure reaction, pursuit, last-known navigation, search, and forgetting.
+- `heart.ts`, `audio.ts`, `hud.ts`: perceived-danger BPM, synchronized audio/trace, spatial creature voices, surface-dependent footsteps, object handling, and mechanical sounds. Sounds queued by paused inventory actions play when the menu closes.
+- `main.ts`: integration and depth-ordered scene rendering.
+
+## Validation and scope
+
+Unit tests cover existing stealth behavior plus item conservation, rollback, storage, equipment conflicts, weight penalties, body lighting, dark interaction rules, the complete collision-checked module route, opened passage connectivity, corrupted save rejection, blocked AI memories, and safe drops near actor boundaries.
+
+Chromium acceptance tests exercise the real controls and menus: Help freezes/resumes gameplay; pickups disappear into inventory; dropping/retrieving works; equipment renders; two-handed cargo disables the handheld beam; the clip lamp restores it; key unlocking, installation, and reload preserve progress. They also retain the earlier audio signal, footstep, pursuit, dark escape, capture/reset, and narrow-viewport checks. Development-only placement tools stage browser scenarios; the unit transport test physically traverses the complete route using the game's movement and collision code. These tools are absent from production builds.
+
+Phases 1–4 are implemented for this representative vertical slice: inventory/equipment, physical cargo, three connected zones and a complete delivery, followed by animation/audio polish and local persistence. Further content, broader equipment choices, touch controls, drag-and-drop, stack merging, and a final narrative/objective remain future work. Items currently use individual stable instances (quantity one); click-based actions are the supported interface. Geometry and sound occlusion remain conservative 2.5D approximations; hearing balance and cargo difficulty benefit from manual headphone playtesting.
+
+## Vercel
+
+`vercel.json` retains the static Vite configuration: build with `npm run build`, serve `dist`, repository root as project root. Successful local tests/builds do not establish the status of a Vercel deployment.

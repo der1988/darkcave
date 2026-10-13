@@ -46,9 +46,13 @@ export function surfaceLight(
   nx = 0,
   ny = 0,
 ) {
-  const local =
-    (lamp.on ? 0.08 : 0.006) *
-    (1 - smooth(0.1, 1, Math.hypot(x - lamp.x, y - lamp.y)));
+  // Dark-adapted vision: short-range, occluded, and stronger at vertical junctions.
+  // This ambient contribution never participates in creature rendering/detection.
+  const distance = Math.hypot(x - lamp.x, y - lamp.y);
+  const edge = nx || ny ? (z < 0.18 ? 1.15 : 0.85) : 0.53;
+  const local = lamp.on
+    ? 0.065 * (1 - smooth(0.1, 1, distance))
+    : 0.052 * edge * (1 - smooth(0.8, 6, distance));
   const ambient =
     local && visible(lamp.x, lamp.y, x + nx * 0.012, y + ny * 0.012)
       ? local
