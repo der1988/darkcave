@@ -26,18 +26,6 @@ export const MEMORY_ROOMS = [
     line: "Chiudete la porta, che entra freddo.",
     item: "memory-cup",
   },
-  {
-    id: "living",
-    name: "Il soggiorno",
-    x: 3,
-    y: 45,
-    w: 7,
-    h: 7,
-    person: { x: 5.5, y: 48.5 },
-    speaker: "Papà",
-    line: "Non state troppo vicini alla televisione.",
-    item: "memory-photo",
-  },
 ];
 export const DARK_PASSAGES: Region[] = [
   { x: 40, y: 20, w: 33, h: 3 },
@@ -62,7 +50,7 @@ export const LEVELS = {
     darkNetwork: DARK_PASSAGES,
     memoryRooms: MEMORY_ROOMS,
     safeRoom: HOME,
-    required: ["memory-cup", "memory-photo"],
+    required: ["memory-cup"],
     next: "unknown",
   },
   unknown: {

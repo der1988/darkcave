@@ -10,14 +10,14 @@ import {
 } from "./items";
 import { RADIUS, material, canStand, setObstacles, visible } from "./world";
 import { beam, type Point, type Lamp } from "./light";
-import { perceived, inView } from "./vision";
+import { perceived } from "./vision";
 import { Exploration } from "./exploration";
 import { roomLight, furnitureSolid } from "./environments";
 import { HOME, LEVELS, freshChapter, inHome, type ChapterSave } from "./levels";
 import { itemCells, protectedBaseCell } from "./base";
 import { pathfind } from "./navigation";
 export const SAVE_KEY = "liminal.transport.v1";
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 export type Save = {
   version: number;
   map: string;
@@ -38,7 +38,10 @@ export class Possessions {
   get delivered() {
     return this.items
       .filter(
-        (i) => i.location.kind === "used" && i.location.target === "archive",
+        (i) =>
+          LEVELS.surface.required.includes(i.id as "memory-cup") &&
+          i.location.kind === "used" &&
+          i.location.target === "archive",
       )
       .map((i) => i.id);
   }
@@ -407,7 +410,6 @@ export class Possessions {
         return (
           this.reachable(p, player, block) &&
           this.exposure(p, lamp, block) > 0.035 &&
-          inView(player, lamp.angle, p) &&
           perceived(player, lamp.angle, lamp, this.face(p, player, block))
         );
       })
@@ -416,10 +418,19 @@ export class Possessions {
           "def" in e
             ? (e.location as { position: Point }).position
             : e.position;
-        return (
-          Math.hypot(pos(a).x - player.x, pos(a).y - player.y) -
-          Math.hypot(pos(b).x - player.x, pos(b).y - player.y)
-        );
+        const score = (e: Item | Target) => {
+          const p = pos(e),
+            dx = p.x - player.x,
+            dy = p.y - player.y,
+            distance = Math.hypot(dx, dy),
+            alignment =
+              distance < 0.01
+                ? 1
+                : (dx * Math.cos(lamp.angle) + dy * Math.sin(lamp.angle)) /
+                  distance;
+          return distance + (1 - alignment) * 0.35;
+        };
+        return score(a) - score(b);
       })[0];
   }
   placeFurniture(
@@ -506,7 +517,7 @@ export class Possessions {
     try {
       const data = JSON.parse(raw) as Save;
       if (
-        ![1, 2, 3, SAVE_VERSION].includes(data.version) ||
+        ![1, 2, 3, 4, SAVE_VERSION].includes(data.version) ||
         data.map !== "transport-1" ||
         !Array.isArray(data.items) ||
         !Array.isArray(data.active) ||
@@ -537,6 +548,16 @@ export class Possessions {
         throw Error();
       const seed = seedItems(),
         ids = new Set<string>();
+      if (data.version < 5) {
+        data.items = data.items.filter((i) => i.id !== "memory-photo");
+        if (
+          data.active.includes("archive") &&
+          !data.items.some(
+            (i) => i.id === "memory-cup" && i.location.kind === "used",
+          )
+        )
+          data.active = data.active.filter((id) => id !== "archive");
+      }
       if (data.version < 3) {
         const additions = seed.filter(
           (i) => i.id.startsWith("memory-") || i.id.startsWith("f-"),

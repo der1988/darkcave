@@ -1,5 +1,5 @@
 import { SIZE, material, solid, visible, geometryRevision } from "./world";
-import { perceived, inView } from "./vision";
+import { perceived } from "./vision";
 import type { Point, Lamp } from "./light";
 import { roomLight, isSafe } from "./environments";
 import { HOME, IMPORTANT_PLACES, type LevelId } from "./levels";
@@ -38,7 +38,6 @@ export class Exploration {
         if (x < 0 || y < 0 || x >= SIZE || y >= SIZE) continue;
         const center = { x: x + 0.5, y: y + 0.5 },
           id = y * SIZE + x;
-        if (!inView(p, angle, center)) continue;
         if (!solid(x, y)) {
           if (perceived(p, angle, lamp, center, false)) {
             this.cells.add(id);

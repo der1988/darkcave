@@ -24,12 +24,7 @@ export function perceived(
   p: Point,
   dynamic = true,
 ) {
-  if (!inView(observer, angle, p) || !visible(observer.x, observer.y, p.x, p.y))
-    return false;
-  const d = Math.hypot(p.x - observer.x, p.y - observer.y);
-  return (
-    roomLight(p.x, p.y, 0.3) > 0.055 ||
-    beam(lamp, p.x, p.y, 0.3) > 0.025 ||
-    (!dynamic && d < 1.7)
-  );
+  if (!visible(observer.x, observer.y, p.x, p.y)) return false;
+  const ambient = roomLight(p.x, p.y, 0.3);
+  return ambient > 0.055 || beam(lamp, p.x, p.y, 0.3) > 0.025;
 }

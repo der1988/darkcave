@@ -1,12 +1,12 @@
 import "./style.css";
-import { HOME, MEMORY_ROOMS, inHome, inDarkNetwork } from "./levels";
+import { HOME, LEVELS, MEMORY_ROOMS, inHome, inDarkNetwork } from "./levels";
 import { Companion } from "./companion";
 import { Dialogue } from "./dialogue";
 import { pixelText, speechLines } from "./pixel-text";
 import { motionInput, type Gait } from "./movement";
 import { SoundEvents } from "./sound-events";
 import { createInhabitants, type Inhabitant } from "./enemies";
-import { perceived, inView } from "./vision";
+import { perceived } from "./vision";
 import { footprintRegion } from "./base";
 import { pursuerForbidden, homeEquipmentLight } from "./environments";
 import { actionFor, held } from "./controls";
@@ -17,13 +17,7 @@ import { drawPlayer, drawChild } from "./player-sprite";
 import { FURNITURE, isSafe, roomLight, type Furniture } from "./environments";
 import { drawFurniture } from "./scenery";
 import { ZONES, zoneAt } from "./zones";
-import {
-  architecturalAwareness,
-  beam,
-  surfaceLight,
-  RANGE,
-  type Lamp,
-} from "./light";
+import { beam, surfaceLight, RANGE, type Lamp } from "./light";
 import { Creature } from "./creature";
 import { Heart, Capture } from "./heart";
 import { Sound } from "./audio";
@@ -167,7 +161,6 @@ const menu = new Menu(
       (t) =>
         cargo.reachable(t.position, player, true) &&
         cargo.exposure(t.position, lamp(), true) > 0.035 &&
-        inView(player, angle, t.position) &&
         perceived(player, angle, lamp(), cargo.face(t.position, player, true)),
     ).map((t) => t.id),
   () => player,
@@ -269,7 +262,6 @@ function performAction(a: MenuAction): string {
         (t) =>
           t.id === a.target &&
           cargo.exposure(t.position, lamp(), true) > 0.035 &&
-          inView(player, angle, t.position) &&
           perceived(
             player,
             angle,
@@ -351,7 +343,7 @@ function interact() {
       }
     } else
       say(
-        `Ricordi riportati: ${cargo.delivered.length}/2.${cargo.complete ? " Il computer ha una nuova destinazione." : ""}`,
+        `Ricordi riportati: ${cargo.delivered.length}/${LEVELS.surface.required.length}.${cargo.complete ? " Il computer ha una nuova destinazione." : ""}`,
       );
     return;
   }
@@ -442,21 +434,7 @@ const lamp = (): Lamp => ({
   on: lightOn && cargo.canLight,
 });
 function illumination(x: number, y: number, z: number, nx = 0, ny = 0) {
-  const sample = { x: x + nx * 0.012, y: y + ny * 0.012 };
-  const clear = visible(player.x, player.y, sample.x, sample.y);
-  const live = inView(player, angle, sample) && clear;
-  const remembered = cargo.exploration.cells.has(
-    Math.floor(y) * 112 + Math.floor(x),
-  );
-  return (
-    surfaceLight(lamp(), x, y, z, nx, ny) *
-    architecturalAwareness(
-      live,
-      clear,
-      Math.hypot(sample.x - player.x, sample.y - player.y),
-      remembered,
-    )
-  );
+  return surfaceLight(lamp(), x, y, z, nx, ny);
 }
 function polygon(points: number[][], color: number[], intensity: number) {
   ctx.fillStyle = `rgb(${Math.round(color[0] * intensity)},${Math.round(color[1] * intensity)},${Math.round(color[2] * intensity)})`;
@@ -666,11 +644,7 @@ function drawObject(e: Item | Target) {
   if (!position) return;
   const large = item ? !!ITEMS[e.def].large : true;
   const face = cargo.face(position, lamp(), large);
-  if (
-    !inView(player, angle, position) ||
-    !perceived(player, angle, lamp(), face)
-  )
-    return;
+  if (!perceived(player, angle, lamp(), face)) return;
   if (item && ITEMS[e.def].furniture) {
     const r = footprintRegion(e)!;
     drawFurniture(
@@ -717,13 +691,28 @@ function drawObject(e: Item | Target) {
         }))
       : [position];
   for (const p of cells) {
-    const radius = !item && e.kind === "door" ? 0.49 : large ? 0.3 : 0.09;
+    const radius =
+      !item && e.kind === "door"
+        ? 0.49
+        : !item && e.id === "archive"
+          ? 0.22
+          : !item && e.id === "home-computer"
+            ? 0.2
+            : large
+              ? 0.3
+              : 0.09;
     const h = !item
       ? e.kind === "door"
         ? 1.25
-        : e.kind === "machine"
-          ? 0.72
-          : 0.95
+        : e.id === "archive"
+          ? 0.18
+          : e.id === "home-computer"
+            ? 0.32
+            : e.id === "home-storage"
+              ? 0.55
+              : e.kind === "machine"
+                ? 0.72
+                : 0.65
       : large
         ? 0.34
         : 0.06;
@@ -1300,7 +1289,10 @@ function render() {
       "def" in e
         ? (e.location as { position: { x: number; y: number } }).position
         : e.position;
-    if (Math.hypot(p.x - player.x, p.y - player.y) < RANGE + 2)
+    if (
+      Math.hypot(p.x - player.x, p.y - player.y) < RANGE + 2 ||
+      roomLight(p.x, p.y) > 0
+    )
       drawables.push({ x: p.x, y: p.y, depth: p.x + p.y, object: e });
   }
   for (const f of FURNITURE) {
@@ -1348,10 +1340,7 @@ function render() {
         const t = d.object,
           p = project(t.position.x, t.position.y, 0.95),
           face = cargo.face(t.position, player, true);
-        if (
-          inView(player, angle, t.position) &&
-          perceived(player, angle, lamp(), face)
-        ) {
+        if (perceived(player, angle, lamp(), face)) {
           const x = Math.round(p.x + offsetX),
             y = Math.round(p.y + offsetY);
           ctx.fillStyle = "#15251f";

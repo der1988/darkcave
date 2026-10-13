@@ -194,12 +194,12 @@ export class Menu {
       el("h2", LEVELS.surface.name, frame);
       el(
         "p",
-        `STATUS: ${state.complete ? "COMPLETE" : "ACCESSIBLE"} · MEMORIES: ${state.delivered.length}/2`,
+        `STATUS: ${state.complete ? "COMPLETE" : "ACCESSIBLE"} · MEMORIES: ${state.delivered.length}/${LEVELS.surface.required.length}`,
         frame,
       );
       el(
         "p",
-        "Trova una tazza nella cucina e una fotografia nel soggiorno. Riportale qui, nell’archivio accanto al computer.",
+        "Trova la tazza nella stanza dei ricordi e riportala nella scatola accanto al computer.",
         frame,
       );
       for (const id of state.delivered)

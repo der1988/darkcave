@@ -101,17 +101,11 @@ test("all eight movement directions have equal world speed and CTRL wins over SH
     assert.equal(silent.speed, 1.65 * 0.4 * 0.8);
   }
 });
-test("both brothers traverse real rooms, corners and furniture to both memories and home", () => {
+test("both brothers traverse real rooms to the single memory and home", () => {
   state();
   const p = { ...HOME.spawn },
     child = new Companion(HOME.child);
-  for (const goal of [
-    { x: 43.5, y: 12.5 },
-    HOME.spawn,
-    { x: 7.5, y: 49.5 },
-    HOME.spawn,
-  ])
-    walk(p, goal, child);
+  for (const goal of [{ x: 43.5, y: 12.5 }, HOME.spawn]) walk(p, goal, child);
 });
 test("child running is slower, silent following generates no ordinary footstep noise", () => {
   const c = new Companion({ x: 42.5, y: 21.5 }),
@@ -224,22 +218,32 @@ test("observed geometry depends on facing, light and walls; separate level memor
     false,
   );
 });
-test("both memories physically return to the archive, unlocking only the registered unavailable layer", () => {
+test("room lighting replaces directional player vision", () => {
+  const off = { x: 53.5, y: 53.5, angle: Math.PI, on: false };
+  assert.equal(
+    perceived(off, off.angle, off, { x: 55.5, y: 53.5 }, true),
+    true,
+    "a dim room stays visible behind the facing direction",
+  );
+  const dark = { x: 53.5, y: 43.5, angle: 0, on: false };
+  assert.equal(perceived(dark, dark.angle, dark, { x: 54.5, y: 43.5 }), false);
+  assert.equal(
+    perceived({ ...dark }, 0, { ...dark, on: true }, { x: 54.5, y: 43.5 }),
+    true,
+  );
+});
+test("the single memory physically returns to the archive and unlocks the next layer", () => {
   const s = state(),
     p = { ...HOME.spawn };
-  for (const [id, goal] of [
-    ["memory-cup", { x: 43.5, y: 12.5 }],
-    ["memory-photo", { x: 7.5, y: 49.5 }],
-  ] as const) {
-    walk(p, goal);
-    assert.equal(s.take(id, p), "");
-    assert.notEqual(s.take(id, p), "");
-    walk(p, { x: 35.5, y: 45.5 });
-    assert.equal(s.use(id, "archive", p), "");
-    assert.notEqual(s.use(id, "archive", p), "");
-  }
+  const id = "memory-cup";
+  walk(p, { x: 43.5, y: 12.5 });
+  assert.equal(s.take(id, p), "");
+  assert.notEqual(s.take(id, p), "");
+  walk(p, { x: 35.5, y: 45.5 });
+  assert.equal(s.use(id, "archive", p), "");
+  assert.notEqual(s.use(id, "archive", p), "");
   assert.equal(s.complete, true);
-  assert.equal(s.delivered.length, 2);
+  assert.equal(s.delivered.length, 1);
   assert.equal(LEVELS.unknown.implemented, false);
   const loaded = new Possessions();
   assert.ok(loaded.load(JSON.stringify(s.encode(p, false))));
@@ -315,18 +319,8 @@ test("memory dialogue fires once and is suppressed during silent movement or dan
   d.update(1, p, p, true, false, events, () => true);
   assert.equal(d.current, null);
 });
-test("noclip anomalies are authored static geometry, never collectible item instances", () => {
-  const s = state();
-  assert.ok(ANOMALIES.length >= 8);
-  assert.ok(
-    ANOMALIES.some(
-      (a) => a.kind === "armchair" && Math.abs(a.visualOffset![0]) > 0.4,
-    ),
-  );
-  assert.equal(
-    s.items.some((i) => ANOMALIES.some((a) => a.id === i.id)),
-    false,
-  );
+test("the simplified level contains no oversized anomaly furniture", () => {
+  assert.deepEqual(ANOMALIES, []);
   for (const r of MEMORY_ROOMS)
     assert.ok(
       pathfind(HOME.spawn, { x: r.x + r.w - 2.5, y: r.y + r.h - 2.5 }).length,
@@ -373,6 +367,11 @@ test("a portable crate retains contents and adds their weight when lifted, dropp
 test("version 3 saves relocate the brothers and furniture from the old safe room", () => {
   const old = state().encode({ x: 42.5, y: 51.5 }, true);
   old.version = 3;
+  old.items.push({
+    id: "memory-photo",
+    def: "photo",
+    location: { kind: "world", position: { x: 8.5, y: 49.5 } },
+  });
   const cabinet = old.items.find((i) => i.id === "f-cabinet")!;
   cabinet.location = {
     kind: "world",
@@ -381,6 +380,7 @@ test("version 3 saves relocate the brothers and furniture from the old safe room
   const loaded = new Possessions(),
     restored = loaded.load(JSON.stringify(old));
   assert.deepEqual(restored?.player, HOME.spawn);
+  assert.equal(loaded.item("memory-photo"), undefined);
   const location = loaded.item("f-cabinet")!.location;
   assert.equal(location.kind, "world");
   if (location.kind !== "world") throw Error("cabinet was not relocated");

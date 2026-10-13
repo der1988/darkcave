@@ -10,6 +10,23 @@ function room(x: number, y: number, w: number, h: number, material = 1) {
   for (let j = y; j < y + h; j++)
     for (let i = x; i < x + w; i++) tiles[j * SIZE + i] = material;
 }
+function divider(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  opening: { x: number; y: number; w: number; h: number },
+) {
+  for (let j = y; j < y + h; j++)
+    for (let i = x; i < x + w; i++)
+      if (
+        i < opening.x ||
+        i >= opening.x + opening.w ||
+        j < opening.y ||
+        j >= opening.y + opening.h
+      )
+        tiles[j * SIZE + i] = 0;
+}
 // Arrival hall, a procession of columns, and an oversized waiting room.
 room(45, 46, 17, 14);
 room(51, 39, 4, 7);
@@ -85,6 +102,13 @@ for (const y of [60, 70, 80]) {
 room(13, 88, 7, 4, 1);
 room(19, 64, 6, 3, 1);
 room(20, 84, 3, 3, 1);
+// Break the largest halls into compact, legible rooms. Door-sized openings keep
+// every route continuous while avoiding oversized empty floor plates.
+divider(55, 24, 1, 15, { x: 55, y: 31, w: 1, h: 3 });
+divider(45, 56, 17, 1, { x: 52, y: 56, w: 3, h: 1 });
+divider(26, 25, 1, 16, { x: 26, y: 32, w: 1, h: 3 });
+divider(24, 3, 1, 17, { x: 24, y: 11, w: 1, h: 3 });
+divider(83, 17, 1, 12, { x: 83, y: 22, w: 1, h: 3 });
 for (const r of DARK_PASSAGES) room(r.x, r.y, r.w, r.h, 2);
 export let geometryRevision = 0;
 const obstacles = new Set<number>();

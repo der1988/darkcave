@@ -105,26 +105,33 @@ export class Dialogue {
       ]);
       return;
     }
-    this.say(
-      inHome(p)
-        ? [
-            {
-              speaker: "child",
-              text: "Qui almeno possiamo chiudere la porta.",
-            },
-            { speaker: "older", text: "Restiamo solo il necessario." },
-          ]
-        : [
-            { speaker: "child", text: "Resta vicino." },
-            { speaker: "older", text: "Sono qui." },
-          ],
-    );
+    if (inHome(p))
+      this.say(
+        [
+          {
+            speaker: "child",
+            text: "Qui almeno possiamo chiudere la porta.",
+          },
+          { speaker: "older", text: "Restiamo solo il necessario." },
+        ],
+        65,
+        30,
+      );
+    else
+      this.say(
+        [
+          { speaker: "child", text: "Resta vicino." },
+          { speaker: "older", text: "Sono qui." },
+        ],
+        105,
+        40,
+      );
   }
-  private say(lines: Speech[]) {
+  private say(lines: Speech[], baseCooldown = 50, variation = 30) {
     this.current = lines[0];
     this.queue = lines.slice(1);
     this.age = 4.5;
-    this.cooldown = 50 + Math.random() * 30;
+    this.cooldown = baseCooldown + Math.random() * variation;
   }
   clear() {
     this.current = null;

@@ -166,8 +166,8 @@ export const ITEMS: Record<string, ItemDef> = {
 };
 for (const [id, name, kind, weight, capacity, footprint] of [
   ["cabinet", "Mobiletto recuperabile", "cabinet", 6, 12, [1, 1]],
-  ["shelf", "Scaffale basso", "shelf", 5, 8, [2, 1]],
-  ["desk", "Piccola scrivania", "desk", 5, 2, [2, 1]],
+  ["shelf", "Scaffale basso", "shelf", 5, 8, [1, 1]],
+  ["desk", "Piccola scrivania", "desk", 5, 2, [1, 1]],
   ["crate", "Cassetta di legno", "crate", 3, 6, [1, 1]],
   ["generator", "Generatore portatile", "generator", 7, 0, [1, 1]],
   ["standlamp", "Lampada da terra", "lamp", 3, 0, [1, 1]],
@@ -176,7 +176,9 @@ for (const [id, name, kind, weight, capacity, footprint] of [
     name,
     category: "Cargo",
     description: capacity
-      ? kind==='crate' ? `Cassetta trasportabile: ${capacity} spazi. Il contenuto pesa mentre la porti.` : `Trasporta a casa e sistema sul pavimento. Contiene fino a ${capacity} spazi. Svuota prima di spostare.`
+      ? kind === "crate"
+        ? `Cassetta trasportabile: ${capacity} spazi. Il contenuto pesa mentre la porti.`
+        : `Trasporta a casa e sistema sul pavimento. Contiene fino a ${capacity} spazi. Svuota prima di spostare.`
       : kind === "generator"
         ? "Alimenta le lampade recuperate. La luce di casa non dipende da questo generatore."
         : "Una lampada recuperata. Il generatore le restituisce luce.",
@@ -245,10 +247,10 @@ export const TARGETS: Target[] = [
   },
   {
     id: "archive",
-    name: "Archivio dei ricordi",
+    name: "Scatola dei ricordi",
     position: { x: 34.5, y: 45.5 },
     kind: "archive",
-    description: "Riportiamo qui le cose che ricordiamo.",
+    description: "La scatola dove conserviamo ciò che ricordiamo.",
     rule: { capability: "memory", consume: true },
   },
   {
@@ -328,7 +330,6 @@ export function seedItems(): Item[] {
   });
   return [
     world("memory-cup", "cup", 44.5, 12.5),
-    world("memory-photo", "photo", 8.5, 49.5),
     world("f-cabinet", "cabinet", 79.5, 43.5),
     world("f-shelf", "shelf", 5.5, 63.5),
     world("f-desk", "desk", 15.5, 89.5),

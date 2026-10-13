@@ -12,7 +12,7 @@ export type LitRoom = {
 };
 export const LIT_ROOMS: LitRoom[] = [
   { ...HOME, level: 0.62, safe: true },
-  ...MEMORY_ROOMS.map((r) => ({ ...r, level: 0.7, safe: true })),
+  ...MEMORY_ROOMS.map((r) => ({ ...r, level: 0.7 })),
   {
     id: "yellow-north",
     name: "Yellow rooms",
@@ -78,7 +78,6 @@ export const LIT_ROOMS: LitRoom[] = [
   },
   {
     id: "mall",
-    safe: true,
     name: "The Empty Mall",
     x: 12,
     y: 25,
@@ -88,7 +87,6 @@ export const LIT_ROOMS: LitRoom[] = [
   },
   {
     id: "playground",
-    safe: true,
     name: "The Forgotten Playground",
     x: 8,
     y: 3,
@@ -168,16 +166,10 @@ export type Furniture = {
   h: number;
 };
 export const FURNITURE: Furniture[] = [
-  { id: "mall-shutter-a", kind: "shutter", x: 13, y: 26, w: 4, d: 1, h: 1.15 },
-  { id: "mall-shutter-b", kind: "shutter", x: 21, y: 26, w: 4, d: 1, h: 1.15 },
-  { id: "mall-shutter-c", kind: "shutter", x: 29, y: 26, w: 3, d: 1, h: 1.15 },
-];
-// Ordinary domestic props, distinct from collectible furniture instances.
-FURNITURE.push(
   { id: "home-bed", kind: "bed", x: 38, y: 46, w: 1, d: 2, h: 0.36 },
-  { id: "kitchen-table", kind: "desk", x: 42, y: 13, w: 2, d: 1, h: 0.5 },
+  { id: "kitchen-table", kind: "desk", x: 42, y: 13, w: 1, d: 1, h: 0.45 },
   { id: "kitchen-chair", kind: "chair", x: 42, y: 14, w: 1, d: 1, h: 0.27 },
-  { id: "kitchen-cupboard", kind: "cabinet", x: 38, y: 9, w: 1, d: 3, h: 1 },
+  { id: "kitchen-cupboard", kind: "cabinet", x: 38, y: 9, w: 1, d: 1, h: 0.82 },
   {
     id: "kitchen-window",
     kind: "window",
@@ -188,130 +180,8 @@ FURNITURE.push(
     h: 1.1,
     collision: false,
   },
-  { id: "living-sofa", kind: "sofa", x: 4, y: 50, w: 3, d: 1, h: 0.65 },
-  { id: "living-tv", kind: "television", x: 8, y: 46, w: 1, d: 1, h: 0.65 },
-  { id: "living-curtains", kind: "curtain", x: 3, y: 46, w: 1, d: 3, h: 1.1 },
-  { id: "hotel-reception", kind: "desk", x: 15, y: 60, w: 3, d: 1, h: 0.7 },
-  { id: "hotel-lounge", kind: "sofa", x: 14, y: 81, w: 3, d: 1, h: 0.65 },
-  { id: "hotel-chair", kind: "armchair", x: 5, y: 72, w: 1, d: 1, h: 0.65 },
-  { id: "service-pipes", kind: "cabinet", x: 76, y: 19, w: 1, d: 3, h: 1 },
-);
-for (const y of [61, 71, 81])
-  FURNITURE.push({
-    id: `hotel-door-${y}`,
-    kind: "hotel-door",
-    x: 9,
-    y,
-    w: 1,
-    d: 1,
-    h: 1.15,
-    collision: false,
-  });
-export const ANOMALIES: Furniture[] = [
-  {
-    id: "a-armchair-wall",
-    kind: "armchair",
-    x: 49,
-    y: 28,
-    w: 1,
-    d: 1,
-    h: 0.7,
-    visualOffset: [-0.55, 0, 0],
-    clip: { axis: 0, minimum: 49 },
-    parent: "yellow",
-  },
-  {
-    id: "a-desk-column",
-    kind: "desk",
-    x: 59,
-    y: 34,
-    w: 3,
-    d: 1,
-    h: 0.55,
-    visualOffset: [0.35, 0, 0],
-    cutout: { x: 60, y: 34, w: 1, h: 2 },
-    parent: "yellow",
-  },
-  {
-    id: "a-service-lamp",
-    kind: "lamp",
-    x: 78,
-    y: 19,
-    w: 1,
-    d: 1,
-    h: 0.95,
-    visualOffset: [0, 0, -0.38],
-    parent: "service",
-  },
-  {
-    id: "a-service-chair",
-    kind: "chair",
-    x: 89,
-    y: 78,
-    w: 1,
-    d: 1,
-    h: 0.3,
-    visualOffset: [0, 0, 0.12],
-    parent: "service",
-  },
-  {
-    id: "a-parking-sofa",
-    kind: "sofa",
-    x: 54,
-    y: 87,
-    w: 3,
-    d: 1,
-    h: 0.7,
-    visualOffset: [0, 0, -0.4],
-    parent: "underground",
-  },
-  {
-    id: "a-parking-frame",
-    kind: "window",
-    x: 59,
-    y: 80,
-    w: 1,
-    d: 1,
-    h: 0.7,
-    visualOffset: [0.7, 0, 0.1],
-    parent: "underground",
-  },
-  {
-    id: "a-hotel-wardrobe",
-    kind: "cabinet",
-    x: 18,
-    y: 70,
-    w: 2,
-    d: 1,
-    h: 1.1,
-    visualOffset: [0.45, -0.5, 0],
-    parent: "hotel",
-  },
-  {
-    id: "a-hotel-chair",
-    kind: "armchair",
-    x: 4,
-    y: 85,
-    w: 1,
-    d: 1,
-    h: 0.6,
-    visualOffset: [0, 0.65, 0],
-    parent: "hotel",
-  },
-  {
-    id: "a-dark-phone",
-    kind: "television",
-    x: 71,
-    y: 36,
-    w: 1,
-    d: 1,
-    h: 0.25,
-    visualOffset: [0, 0, 0.2],
-    parent: "transition",
-    collision: false,
-  },
-].map((a) => ({ ...a, anomaly: true }) as Furniture);
-FURNITURE.push(...ANOMALIES);
+];
+export const ANOMALIES: Furniture[] = [];
 const furnitureCells = new Set<string>();
 for (const p of FURNITURE.filter((p) => p.collision !== false))
   for (let y = p.y; y < p.y + p.d; y++)

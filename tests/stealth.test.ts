@@ -2,12 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Creature } from "../src/creature.ts";
 import { Heart, Capture } from "../src/heart.ts";
-import {
-  architecturalAwareness,
-  beam,
-  surfaceLight,
-  type Point,
-} from "../src/light.ts";
+import { beam, surfaceLight, type Point } from "../src/light.ts";
 import { pathfind } from "../src/navigation.ts";
 import { canStand, visible } from "../src/world.ts";
 const tick = (
@@ -30,16 +25,9 @@ test("light off, outside cone, behind column: no exposure; same clear beam expos
   assert.equal(beam(lamp, 47.5, 49.5), 0);
   assert.ok(beam(lamp, 48.8, 49.5) > 0.5);
   const darkLamp = { x: 53.5, y: 43.5, angle: 0, on: false };
-  const adapted = surfaceLight(darkLamp, 53.6, 43.5, 0);
-  assert.ok(adapted > 0.015 && adapted < 0.04);
+  assert.equal(surfaceLight(darkLamp, 53.6, 43.5, 0), 0);
   assert.equal(beam({ ...lamp, on: false }, 50.5, 49.5, 0), 0);
   assert.equal(surfaceLight({ ...lamp, on: false }, 53.5, 39.5, 0), 0);
-});
-test("nearby architecture remains faintly readable behind the player", () => {
-  assert.equal(architecturalAwareness(false, true, 2, false), 0.42);
-  assert.equal(architecturalAwareness(false, true, 5, false), 0);
-  assert.equal(architecturalAwareness(false, false, 2, true), 0.26);
-  assert.equal(architecturalAwareness(true, true, 8, false), 1);
 });
 test("wandering is independent and remains in navigable geometry over a long patrol", () => {
   const c = new Creature(random());

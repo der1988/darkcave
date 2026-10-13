@@ -54,9 +54,9 @@ test("all new stages remain reachable; furniture shares collision and sightlines
     assert.equal(canStand(f.x + 0.5, f.y + 0.5), false);
     assert.ok(furnitureSolid(f.x, f.y));
   }
-  const p = { x: 12.5, y: 26.5 };
+  const p = { x: 37.5, y: 46.5 };
   move(p, 2, 0);
-  assert.ok(p.x < 13);
+  assert.ok(p.x < 38);
   assert.ok(canStand(p.x, p.y));
 });
 test("fixed light remains visible with torch off and never adds creature exposure", () => {
@@ -120,7 +120,7 @@ test("map progress survives save and reload; v1 saves migrate without changing o
   for (const item of encoded.items)
     assert.deepEqual(migrated.item(item.id), item);
   assert.equal(migrated.exploration.cells.size, 0);
-  assert.equal(migrated.encode(spawn, false).version, 4);
+  assert.equal(migrated.encode(spawn, false).version, 5);
   const before = [...loaded.exploration.cells];
   assert.equal(
     loaded.load(

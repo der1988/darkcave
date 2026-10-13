@@ -35,13 +35,13 @@ Menus suspend movement, hostile AI, health changes and audio consistently. Map c
 
 ## Playable first layer
 
-The brothers start at their protected home. Connected yellow rooms, service areas, underground parking and hotel corridors surround a dark passage network. The empty mall, abandoned playground and waiting annex remain accessible. Domestic rooms contain authored furniture, figures and restrained Italian dialogue. Nine authored architectural anomalies include intersecting, sunken and floating furnishings.
+The brothers start in the level’s only protected room: a compact bedroom. Connected yellow rooms, service areas, underground parking and hotel corridors surround a dark passage network. Large floor plates are divided into smaller rooms with regular door openings. Decorative furniture is deliberately sparse and scaled to the two characters.
 
-Discover the kitchen in the north and the living room in the west. Recover the cup and photograph, bring them home and deliver both to the archive. The home computer records progress and unlocks **Layer 02 — Unknown**. This destination is deliberately not yet playable; the first layer remains explorable after delivery.
+Discover the single memory room in the north. Recover the cup, bring it home and place it in the memory box. The home computer records this one delivery and unlocks **Layer 02 — Unknown**. This destination is deliberately not yet playable; the first layer remains explorable after delivery.
 
 The younger brother follows traversable routes, runs more slowly, matches silent movement and seeks nearby shared cover when exposed to a perceived threat. The nineteen-pixel older brother and twelve-pixel child have distinct proportions and restrained directional animations.
 
-The original Pursuer patrols the connected dark network and reacts to flashlight exposure. Blind Clickers track audible events; Zombies combine directional sight and hearing. Protected home, memory rooms, mall, playground and annex exclude hostiles. Dim lamps elsewhere do not imply safety. Enemies do not appear on the map, and ambient darkness never reveals the Pursuer outside the beam.
+The original Pursuer patrols the connected dark network and reacts to flashlight exposure. Blind Clickers track audible events; Zombies combine directional sight and hearing. Only the bedroom is a safe room. Enemies do not appear on the map, and fully dark areas never reveal the Pursuer outside the beam.
 
 Both brothers have health. Home restores health gradually. Capture or incapacitation returns both home without deleting collected objects or completed mechanisms. Enemy pursuit is not persisted; loading gives a short grace period. Original synthesized ambience, spatial footsteps, creature voices and heartbeat are retained, with restrained chase audio following confirmed pursuit.
 
@@ -55,21 +55,21 @@ Recover cabinets, shelves, a desk, crate, generator and lamp. Carry them home an
 
 ## Vision, map and persistence
 
-Directional 120-degree vision is separate from flashlight illumination. Geometry blocks sight; nearby architecture remains faintly readable in darkness. The map records observed floor, wall and obstruction cells per layer, with undiscovered space black. Remembered architecture does not reveal moving actors or undiscovered items.
+Player visibility depends on the room rather than facing direction. Illuminated rooms are fully readable; dim rooms remain visible in every direction with darker values; fully dark rooms reveal only surfaces and entities reached by the flashlight. Geometry still blocks sight. The map records observed floor, wall and obstruction cells per layer, with undiscovered space black, and never reveals moving actors or undiscovered items.
 
-Save format **4** retains the `liminal.transport.v1` localStorage key. It stores both brothers, health, facing, items, equipment, furniture rotation, mechanisms, explored maps, dialogue events and generator state. Valid older saves migrate with stable item ownership; objects left in the former safe-room footprint move to nearby valid floor. Validation rejects inconsistent ownership, invalid positions, capacities or mechanism consumption; incompatible data starts a clean session. Storage failures leave the current session playable.
+Save format **5** retains the `liminal.transport.v1` localStorage key. It stores both brothers, health, facing, items, equipment, furniture rotation, mechanisms, explored maps, dialogue events and generator state. Valid older saves migrate to the single-memory objective; objects left in the former safe-room footprint move to nearby valid floor. Validation rejects inconsistent ownership, invalid positions, capacities or mechanism consumption; incompatible data starts a clean session. Storage failures leave the current session playable.
 
 The computer's confirmed new-game action backs up the previous save. A confirmed restore action validates and restores that backup, retaining another copy of the current session. Saves are local to this browser, not cloud accounts.
 
 ## Architecture
 
 - `levels.ts`, `world.ts`, `zones.ts`, `environments.ts`: authored connected architecture, layer metadata, protected regions and dark network.
-- `vision.ts`, `light.ts`, `exploration.ts`: field of view, occlusion, illumination and persistent map memory.
+- `vision.ts`, `light.ts`, `exploration.ts`: room-based visibility, occlusion, flashlight illumination and persistent map memory.
 - `movement.ts`, `companion.ts`, `player-sprite.ts`: normalized movement, follower navigation and shared pixel character rendering.
 - `creature.ts`, `enemies.ts`, `sound-events.ts`: Pursuer, hearing/vision inhabitants and bounded sound observations.
 - `items.ts`, `possessions.ts`, `base.ts`: item data, authoritative ownership, save validation and furniture footprints/placement.
 - `controls.ts`, `menu.ts`: centralized keys, inventory, equipment, Help, map, computer and placement panels.
-- `dialogue.ts`, `pixel-text.ts`, `scenery.ts`: contextual dialogue, original bitmap lettering and authored furnishings/anomalies.
+- `dialogue.ts`, `pixel-text.ts`, `scenery.ts`: contextual dialogue, original bitmap lettering and sparse scaled furnishings.
 - `audio.ts`, `heart.ts`, `hud.ts`, `main.ts`: sound, perceived danger, health and scene integration.
 
 ## Validation and remaining scope

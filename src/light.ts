@@ -3,16 +3,6 @@ import { visible } from "./world";
 export type Point = { x: number; y: number };
 export type Lamp = Point & { angle: number; on: boolean };
 export const RANGE = 9.5;
-export function architecturalAwareness(
-  live: boolean,
-  clear: boolean,
-  distance: number,
-  remembered: boolean,
-) {
-  if (live) return 1;
-  if (clear && distance <= 4.5) return 0.42;
-  return remembered ? 0.26 : 0;
-}
 export function smooth(a: number, b: number, n: number) {
   const t = Math.max(0, Math.min(1, (n - a) / (b - a)));
   return t * t * (3 - 2 * t);
@@ -57,21 +47,11 @@ export function surfaceLight(
   nx = 0,
   ny = 0,
 ) {
-  // Dark-adapted vision: short-range, occluded, and stronger at vertical junctions.
-  // This ambient contribution never participates in creature rendering/detection.
-  const distance = Math.hypot(x - lamp.x, y - lamp.y);
-  const edge = nx || ny ? (z < 0.18 ? 1.15 : 0.85) : 0.53;
-  const local = lamp.on
-    ? 0.065 * (1 - smooth(0.1, 1, distance))
-    : 0.052 * edge * (1 - smooth(0.8, 6, distance));
-  const ambient =
-    local && visible(lamp.x, lamp.y, x + nx * 0.012, y + ny * 0.012)
-      ? local
-      : 0;
+  // Ambient visibility belongs to authored rooms. Truly dark spaces receive
+  // light only from the directional flashlight beam.
   return Math.min(
     1,
     beam(lamp, x, y, z, nx, ny) +
-      ambient +
       roomLight(x + nx * 0.012, y + ny * 0.012, z) * (nx || ny ? 0.85 : 1),
   );
 }

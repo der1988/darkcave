@@ -114,23 +114,13 @@ try {
   await place({ x: 35.5, y: 45.5 }, Math.PI);
   await press("e");
   assert.equal((await item("memory-cup")).location.kind, "used");
-  assert.equal((await state()).complete, false);
-  await place({ x: 6.5, y: 48.5 }, Math.PI);
-  await page.waitForTimeout(8500);
-  assert.equal((await state()).dialogue?.speaker, "father");
-  await page.screenshot({ path: "/tmp/liminal-chapter-living.png" });
-  await place({ x: 7.5, y: 49.5 });
-  await press("e");
-  assert.equal((await item("memory-photo")).location.kind, "inventory");
-  await place({ x: 35.5, y: 45.5 }, Math.PI);
-  await press("e");
   assert.equal((await state()).complete, true);
   await press("e");
   assert.equal(
     (await state()).inventory.items.filter(
       (i) => i.location.kind === "used" && i.location.target === "archive",
     ).length,
-    2,
+    1,
   );
   await place({ x: 36.5, y: 46.5 }, -Math.PI / 2);
   await press("e");
@@ -215,7 +205,7 @@ try {
   assert.equal(loaded.power, true);
   assert.deepEqual(loaded.inventory.items, saved.inventory.items);
   assert.deepEqual(loaded.inventory.maps, saved.inventory.maps);
-  assert.ok(loaded.inventory.chapter.events.includes("living"));
+  assert.ok(loaded.inventory.chapter.events.includes("kitchen"));
   // Damage, pause and invulnerability use the same real simulation.
   await place({ x: 53.5, y: 53.5 }, Math.PI);
   await page.evaluate(() =>
