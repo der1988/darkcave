@@ -51,12 +51,14 @@ test("isometric projection round-trips", () => {
   }
 });
 
-test("the flashlight is directional and has a finite range", () => {
-  const lamp = { x: 6, y: 5, angle: 0, on: true };
+test("the flashlight ends at the cursor-controlled range", () => {
+  const lamp = { x: 6, y: 5, angle: 0, range: 3, on: true };
   assert.ok(beam(lamp, { x: 8, y: 5 }) > 0.5);
   assert.equal(beam(lamp, { x: 4, y: 5 }), 0);
   assert.equal(beam({ ...lamp, on: false }, { x: 8, y: 5 }), 0);
-  assert.equal(beam(lamp, { x: 14, y: 5 }), 0);
+  assert.ok(beam(lamp, { x: 8.8, y: 5 }) > 0);
+  assert.equal(beam(lamp, { x: 9.01, y: 5 }), 0);
+  assert.ok(beam({ ...lamp, range: 5 }, { x: 10, y: 5 }) > 0);
 });
 
 test("the younger brother follows closely and is slightly faster", () => {

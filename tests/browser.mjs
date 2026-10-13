@@ -42,6 +42,13 @@ try {
   await page.mouse.move(1100, 400);
   const aimed = await state();
   assert.notEqual(aimed.angle, initial.angle);
+  assert.notEqual(aimed.lightRange, initial.lightRange);
+
+  await page.mouse.move(760, 400);
+  const nearAim = await state();
+  await page.mouse.move(1100, 400);
+  const farAim = await state();
+  assert.ok(farAim.lightRange > nearAim.lightRange);
 
   await page.keyboard.down("d");
   await page.waitForTimeout(700);

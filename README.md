@@ -17,7 +17,7 @@ npm run test:browser
 ## Controls
 
 - WASD / arrow keys: move in screen-relative isometric directions
-- Mouse: aim the flashlight
+- Mouse: aim the flashlight and set where its beam ends on the floor
 - Space: switch the flashlight on or off
 - Shift: move faster
 
@@ -25,7 +25,7 @@ npm run test:browser
 
 The older brother is controlled directly. The younger brother follows at a short distance and moves slightly faster so he can close small gaps without teleporting. Both characters collide with the room boundary.
 
-The room has no ambient visibility. Floors and walls appear only inside the flashlight cone, with distance falloff. The characters remain as very faint silhouettes when unlit so their position is still controllable.
+The room has no ambient visibility. Floors and walls appear only inside the flashlight cone. The cursor marks the beam's endpoint on the floor, controlling its direction and length. The characters remain as very faint silhouettes when unlit so their position is still controllable.
 
 There are no enemies, dialogue, inventory, cargo, map, furniture, objectives, audio, persistence or menus in this version. Those systems can be reconsidered after movement and flashlight handling feel correct.
 

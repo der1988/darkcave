@@ -1,6 +1,6 @@
 import "./style.css";
 import { Companion } from "./companion";
-import { beam, type Lamp } from "./light";
+import { beam, MAX_LIGHT_RANGE, MIN_LIGHT_RANGE, type Lamp } from "./light";
 import { movementSpeed, movementVector } from "./movement";
 import { drawPerson } from "./player-sprite";
 import {
@@ -26,6 +26,7 @@ let height = 0;
 let offsetX = 0;
 let offsetY = 0;
 let angle = -Math.PI / 2;
+let lightRange = 4;
 let torchOn = true;
 let playerHeading = angle;
 let playerStride = 0;
@@ -40,7 +41,7 @@ function resize() {
 }
 
 function lamp(): Lamp {
-  return { ...player, angle, on: torchOn };
+  return { ...player, angle, range: lightRange, on: torchOn };
 }
 
 function polygon(
@@ -219,7 +220,14 @@ canvas.addEventListener("pointermove", (event) => {
   const sy =
     ((event.clientY - rect.top) / rect.height) * height - (height / 2 + 20);
   const world = screenToWorld(sx, sy);
-  if (Math.hypot(world.x, world.y) > 0.05) angle = Math.atan2(world.y, world.x);
+  const cursorDistance = Math.hypot(world.x, world.y);
+  if (cursorDistance > 0.05) {
+    angle = Math.atan2(world.y, world.x);
+    lightRange = Math.max(
+      MIN_LIGHT_RANGE,
+      Math.min(MAX_LIGHT_RANGE, cursorDistance),
+    );
+  }
 });
 canvas.addEventListener("pointerdown", () => canvas.focus());
 
@@ -233,6 +241,7 @@ if (import.meta.env.DEV)
       brother: { ...brother.position },
       torchOn,
       angle,
+      lightRange,
     }),
     place: (p: Point) => Object.assign(player, p),
   };

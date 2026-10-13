@@ -10,6 +10,7 @@ declare global {
         brother: Point;
         torchOn: boolean;
         angle: number;
+        lightRange: number;
       };
       place(position: Point): void;
     };
