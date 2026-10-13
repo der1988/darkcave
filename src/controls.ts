@@ -25,7 +25,7 @@ export const CONTROLS = [
     action: "inventory",
     codes: ["KeyI", "Tab"],
     label: "I / TAB",
-    description: "Open inventory",
+    description: "Open inventory · Map tab: explored architecture",
   },
   {
     action: "character",
@@ -38,6 +38,12 @@ export const CONTROLS = [
     codes: ["ShiftLeft", "ShiftRight"],
     label: "SHIFT",
     description: "Move faster (when load permits)",
+  },
+  {
+    action: "silent",
+    codes: ["ControlLeft", "ControlRight"],
+    label: "CTRL",
+    description: "Silent movement (takes priority over running)",
   },
   {
     action: "help",
@@ -66,9 +72,11 @@ export function controlLabel(control: (typeof CONTROLS)[number]): string {
       ? code.slice(3)
       : code.startsWith("Shift")
         ? "SHIFT"
-        : code === "Escape"
-          ? "ESC"
-          : code.toUpperCase();
+        : code.startsWith("Control")
+          ? "CTRL"
+          : code === "Escape"
+            ? "ESC"
+            : code.toUpperCase();
   if (control.action === "aim") return "Mouse";
   if (control.action === "up") {
     const movement = CONTROLS.filter((c) =>

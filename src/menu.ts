@@ -9,14 +9,35 @@ import {
 } from "./items";
 import { Possessions, owned } from "./possessions";
 import { drawPlayer, type Appearance } from "./player-sprite";
+import { HOME, LEVELS, inHome } from "./levels";
+import { solid } from "./world";
+import type { MapView } from "./exploration";
 import { ZONES } from "./zones";
 import type { Point } from "./light";
-export type MenuKind = "inventory" | "character" | "help" | "map";
+export type MenuKind =
+  | "inventory"
+  | "character"
+  | "help"
+  | "map"
+  | "computer"
+  | "placement";
 export type MenuAction = {
-  type: "equip" | "unequip" | "drop" | "use" | "store" | "take";
+  type:
+    | "equip"
+    | "unequip"
+    | "drop"
+    | "use"
+    | "store"
+    | "take"
+    | "place"
+    | "generator"
+    | "reset"
+    | "restore";
   id: string;
   slot?: Slot;
   target?: string;
+  position?: Point;
+  rotation?: 0 | 1;
 };
 const el = <K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -47,6 +68,10 @@ export class Menu {
   storage: string | undefined;
   selected: string | undefined;
   private category = "All";
+  private mapView: MapView | null = null;
+  private rotation: 0 | 1 = 0;
+  private confirmReset = false;
+  private confirmRestore = false;
   private panel = el("section");
   private message = "";
   private priorFocus: HTMLElement | null = null;
@@ -56,6 +81,7 @@ export class Menu {
     private onChange: (open: boolean) => void,
     private targets: () => string[],
     private player: () => Point,
+    private facing: () => number = () => 0,
   ) {
     this.panel.id = "management";
     this.panel.hidden = true;
@@ -92,6 +118,8 @@ export class Menu {
     this.panel.querySelector("button")?.focus();
   }
   close() {
+    this.confirmReset = false;
+    this.confirmRestore = false;
     this.kind = null;
     this.storage = undefined;
     this.panel.hidden = true;
@@ -136,9 +164,13 @@ export class Menu {
         ? "FIELD REFERENCE"
         : this.kind === "character"
           ? "PERSONAL EQUIPMENT"
-          : this.kind === "map"
-            ? "EXPLORED SPACES"
-            : "CARRIED OBJECTS",
+          : this.kind === "computer"
+            ? "LIMINAL — MEMORY ARCHIVE"
+            : this.kind === "placement"
+              ? "SISTEMA IN CASA"
+              : this.kind === "map"
+                ? "EXPLORED SPACES"
+                : "CARRIED OBJECTS",
       head,
     );
     this.button("Close · ESC", head, () => this.close());
@@ -158,16 +190,168 @@ export class Menu {
           this.render();
         },
       );
+    if (this.kind === "computer") {
+      el("h2", LEVELS.surface.name, frame);
+      el(
+        "p",
+        `STATUS: ${state.complete ? "COMPLETE" : "ACCESSIBLE"} · MEMORIES: ${state.delivered.length}/2`,
+        frame,
+      );
+      el(
+        "p",
+        "Trova una tazza nella cucina e una fotografia nel soggiorno. Riportale qui, nell’archivio accanto al computer.",
+        frame,
+      );
+      for (const id of state.delivered)
+        el("p", ITEMS[state.item(id)!.def].name, frame);
+      el("h2", LEVELS.unknown.name, frame);
+      el("p", `STATUS: ${state.complete ? "UNLOCKED" : "LOCKED"}`, frame);
+      const next = this.button("LAYER 02", frame, () => {
+        this.message = "Destinazione sbloccata, ma non ancora disponibile.";
+        this.render();
+      });
+      next.disabled = !state.complete;
+      this.button("Nuova partita", frame, () => {
+        this.confirmReset = true;
+        this.render();
+      });
+      if (this.confirmReset) {
+        el(
+          "p",
+          "La partita attuale sarà conservata come copia di sicurezza locale.",
+          frame,
+        );
+        this.button("Conferma nuova partita", frame, () =>
+          this.run({ type: "reset", id: "" }),
+        );
+      }
+      this.button("Ripristina copia precedente", frame, () => {
+        this.confirmRestore = true;
+        this.render();
+      });
+      if (this.confirmRestore) {
+        el(
+          "p",
+          "Ripristina la copia salvata prima della nuova partita. Anche questa partita verrà conservata.",
+          frame,
+        );
+        this.button("Conferma ripristino", frame, () =>
+          this.run({ type: "restore", id: "" }),
+        );
+      }
+      el("p", this.message, frame).setAttribute("role", "status");
+      return;
+    }
+    if (this.kind === "placement") {
+      el(
+        "p",
+        "Scegli una casella libera. Le vie di passaggio e l’ingresso devono restare accessibili.",
+        frame,
+      );
+      this.button(`Ruota · ${this.rotation ? 90 : 0}°`, frame, () => {
+        this.rotation = this.rotation ? 0 : 1;
+        this.render();
+      });
+      const grid = el("div", "", frame);
+      grid.className = "placement-grid";
+      grid.style.gridTemplateColumns = `repeat(${HOME.w}, 1fr)`;
+      for (let y = HOME.y; y < HOME.y + HOME.h; y++)
+        for (let x = HOME.x; x < HOME.x + HOME.w; x++) {
+          const b = this.button(solid(x, y) ? "■" : "·", grid, () => {
+            this.message = this.act({
+              type: "place",
+              id: this.selected!,
+              position: { x: x + 0.5, y: y + 0.5 },
+              rotation: this.rotation,
+            });
+            if (!this.message) {
+              this.message = "Sistemato.";
+              this.kind = "inventory";
+            }
+            this.render();
+          });
+          b.setAttribute("aria-label", `Place at ${x}, ${y}`);
+          b.disabled = solid(x, y);
+        }
+      el("p", this.message, frame).setAttribute("role", "status");
+      return;
+    }
     if (this.kind === "map") {
+      this.mapView ||= {
+        zoom: 5,
+        center: { ...this.player() },
+        angle: this.facing(),
+      };
+      this.mapView.angle = this.facing();
+      el("h2", LEVELS[state.chapter.level].name, frame);
+      const controls = el("div", "", frame);
+      controls.className = "map-controls";
+      const adjust = (zoom: number, dx = 0, dy = 0) => {
+        this.mapView!.zoom = Math.max(
+          2,
+          Math.min(16, this.mapView!.zoom * zoom),
+        );
+        this.mapView!.center.x += dx;
+        this.mapView!.center.y += dy;
+        this.render();
+      };
+      this.button("Zoom +", controls, () => adjust(1.5));
+      this.button("Zoom −", controls, () => adjust(1 / 1.5));
+      for (const [label, dx, dy] of [
+        ["←", -8, 0],
+        ["→", 8, 0],
+        ["↑", 0, -8],
+        ["↓", 0, 8],
+      ] as const)
+        this.button(label, controls, () => adjust(1, dx, dy));
+      this.button("Recenter", controls, () => {
+        this.mapView!.center = { ...this.player() };
+        this.render();
+      });
       const c = el("canvas", "", frame);
       c.className = "exploration-map";
       c.setAttribute("aria-label", "Explored map");
-      const zones = state.exploration.draw(c, this.player());
-      el("p", "Pale square: you · Green: lit rooms · Black: unknown", frame);
+      const redraw = () =>
+        state.exploration.draw(c, this.player(), this.mapView!);
+      const zones = redraw();
+      let drag: { x: number; y: number } | null = null;
+      c.addEventListener("pointerdown", (e) => {
+        drag = { x: e.clientX, y: e.clientY };
+        c.setPointerCapture(e.pointerId);
+      });
+      c.addEventListener("pointermove", (e) => {
+        if (!drag) return;
+        const r = c.getBoundingClientRect();
+        this.mapView!.center.x -=
+          ((e.clientX - drag.x) * c.width) / r.width / this.mapView!.zoom;
+        this.mapView!.center.y -=
+          ((e.clientY - drag.y) * c.height) / r.height / this.mapView!.zoom;
+        drag = { x: e.clientX, y: e.clientY };
+        redraw();
+      });
+      c.addEventListener("pointerup", () => (drag = null));
+      c.addEventListener("pointercancel", () => (drag = null));
+      c.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          this.mapView!.zoom = Math.max(
+            2,
+            Math.min(16, this.mapView!.zoom * (e.deltaY < 0 ? 1.2 : 1 / 1.2)),
+          );
+          redraw();
+        },
+        { passive: false },
+      );
+      el(
+        "p",
+        "Pale square: you · Green: protected rooms · Black: unknown",
+        frame,
+      );
       el("p", zones.map((z) => ZONES[z].name).join(" / "), frame);
       el(
         "p",
-        "Only nearby, visible space is remembered. Fixed lighting keeps these rooms empty of creatures. Unvisited passages remain unknown.",
+        "Only architecture actually seen is remembered. Drag to pan; scroll to zoom. The map never shows enemies.",
         frame,
       );
       return;
@@ -182,7 +366,7 @@ export class Menu {
         }
       el(
         "p",
-        "Two occupied hands need a body-mounted lamp. Cargo slows walking. Menus pause the world and its sounds. The inventory Map records visited space. Progress is stored on this browser.",
+        "Two occupied hands need a body-mounted lamp. Cargo slows walking. Menus pause the world and its sounds. The inventory Map records observed space; drag to pan and scroll to zoom. CTRL silences both brothers. The two small health bars represent the older and younger brother. Progress is stored on this browser.",
         frame,
       );
       return;
@@ -205,6 +389,11 @@ export class Menu {
     const layout = el("div", "", frame);
     layout.className = "menu-columns";
     if (this.kind === "character") {
+      el(
+        "p",
+        `Salute · Fratello maggiore ${Math.round(state.chapter.health)}/100 · Fratello minore ${Math.round(state.chapter.childHealth)}/100`,
+        frame,
+      );
       const figure = el("div", "", layout);
       figure.className = "character-view";
       const c = el("canvas", "", figure);
@@ -268,6 +457,23 @@ export class Menu {
         owned(i) ||
         (i.location.kind === "storage" && i.location.target === this.storage),
     );
+    if (this.storage) {
+      const furniture = state.item(this.storage);
+      if (furniture && ITEMS[furniture.def].furniture) {
+        el("h2", ITEMS[furniture.def].name, list);
+        this.button("Sposta mobile", list, () =>
+          this.run({ type: "take", id: furniture.id }),
+        );
+        if (furniture.def === "generator")
+          this.button(
+            state.chapter.generatorOn
+              ? "Spegni generatore"
+              : "Accendi generatore",
+            list,
+            () => this.run({ type: "generator", id: furniture.id }),
+          );
+      }
+    }
     if (this.storage)
       el(
         "h2",
@@ -299,6 +505,17 @@ export class Menu {
       const d = ITEMS[i.def];
       el("h2", d.name, detail);
       el("p", d.description, detail);
+      if (i.def === "crate" && owned(i))
+        this.button("Apri cassetta", detail, () => {
+          this.storage = i.id;
+          this.selected = undefined;
+          this.render();
+        });
+      if (d.furniture && owned(i) && inHome(this.player()))
+        this.button("Sistema in casa", detail, () => {
+          this.kind = "placement";
+          this.render();
+        });
       el(
         "p",
         `${d.category} · ${d.weight} kg · Bulk ${d.bulk} · Quantity 1`,
@@ -322,7 +539,11 @@ export class Menu {
           this.button("Drop", detail, () =>
             this.run({ type: "drop", id: i.id }),
           );
-        if (d.actions.includes("store") && this.storage)
+        if (
+          d.actions.includes("store") &&
+          this.storage &&
+          state.storageAvailable(this.storage, this.player())
+        )
           this.button("Store", detail, () =>
             this.run({ type: "store", id: i.id, target: this.storage }),
           );

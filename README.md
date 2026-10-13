@@ -1,6 +1,6 @@
-# LIMINAL
+# LIMINAL — The Layers of Memory
 
-A small human in unfamiliar architecture. A flashlight, a heartbeat, and something moving beyond the beam. Objects now have a physical cost: what you carry changes your stride, your available hands, and your ability to see.
+Two brothers explore empty architecture, recover memories, and bring useful objects home. The existing Canvas pixel renderer, isometric camera, flashlight, cargo, heartbeat and stealth systems remain the foundation.
 
 ## Run
 
@@ -14,78 +14,72 @@ npm run build
 npm run test:browser
 ```
 
-`npm run preview` serves the production build. Browser acceptance tests start their own Vite server on port 5174. They use `/usr/bin/chromium`, `CHROMIUM_PATH`, or Playwright's installed Chromium (`npx playwright install chromium`). No backend, runtime network requests, secrets, or downloaded game assets are required.
+`npm run preview` serves `dist`. Browser tests start servers on ports 5174 and 5176 and use `CHROMIUM_PATH`, `/usr/bin/chromium`, or installed Playwright Chromium. No backend, secrets, runtime network requests or downloaded game assets are required.
 
 ## Controls
 
-Press **H** for the in-game reference, generated from the same control configuration as input.
+The **H** screen is generated from the input configuration.
 
 - WASD / arrows: move relative to the screen
-- Mouse: aim
+- Mouse: aim and face a direction
 - Space: toggle requested flashlight state
-- E: pick up / interact / use a compatible carried item
-- I / Tab: inventory
+- E: interact, pick up or use
+- I / Tab: inventory, storage and explored map
 - C: character and equipment
-- Shift: faster movement when the load and hands permit
+- Shift: run when the load permits
+- Ctrl: silent movement; overrides Shift
 - H: toggle Help
-- Escape: close the current screen
+- Escape: close the current menu
 
-Keyboard or pointer interaction enables audio. Menus pause player movement, creature AI, heartbeat simulation, and audio together. Click an item to inspect it and use its contextual actions. A close-by illuminated object gets one small E hint; darkness does not reveal object names or the creature.
+Menus suspend movement, hostile AI, health changes and audio consistently. Map controls support zoom, dragging, directional buttons and recentering. Keyboard/pointer interaction enables browser audio.
 
-## Playable transport route
+## Playable first layer
 
-The arrival area contains a service key, transfer slip, backpack, battery, and water. The slip describes the route. Look around with the flashlight to discover them.
+The brothers start at their protected home. Connected yellow rooms, service areas, underground parking and hotel corridors surround a dark passage network. The empty mall, abandoned playground and waiting annex remain accessible. Domestic rooms contain authored furniture, figures and restrained Italian dialogue. Nine authored architectural anomalies include intersecting, sunken and floating furnishings.
 
-Travel through the long eastern gallery into the **Service Areas**. Tools and a self-contained clip lamp are on the service-room floor. Equip the lamp in **Utility** to keep the flashlight available with both hands occupied. A battery opens the service cabinet; its cargo harness supports a compact equipment case. An equipped maintenance tool opens the maintenance compartment.
+Discover the kitchen in the north and the living room in the west. Recover the cup and photograph, bring them home and deliver both to the archive. The home computer records progress and unlocks **Layer 02 — Unknown**. This destination is deliberately not yet playable; the first layer remains explorable after delivery.
 
-Use the service key at **S-04**, then carry the electrical module out of the store. It cannot go in a bag. It occupies both hands, appears on the character, reduces walking speed, and prevents faster movement. Without a clip lamp, the handheld beam is unavailable; drop the module through inventory to free your hands. Space preserves the requested light state, so freeing a hand restores a requested beam. Dark-adapted vision reveals only nearby large architecture, never the creature.
+The younger brother follows traversable routes, runs more slowly, matches silent movement and seeks nearby shared cover when exposed to a perceived threat. The nineteen-pixel older brother and twelve-pixel child have distinct proportions and restrained directional animations.
 
-Carry the module through the connecting rooms to the **Underground**. Install it in the inactive drive machine beside the southern shutter. The module moves into the machine's ownership and the shutter opens into another underground chamber. This is a transport example, not a final story objective.
+The original Pursuer patrols the connected dark network and reacts to flashlight exposure. Blind Clickers track audible events; Zombies combine directional sight and hearing. Protected home, memory rooms, mall, playground and annex exclude hostiles. Dim lamps elsewhere do not imply safety. Enemies do not appear on the map, and ambient darkness never reveals the Pursuer outside the beam.
 
-The original light-driven stealth loop remains: expose the creature, break the beam, leave the last observed position, and let its search expire. Cargo is not a new detection channel. Capture returns the player to arrival while preserving items, equipment, and mechanism progress.
+Both brothers have health. Home restores health gradually. Capture or incapacitation returns both home without deleting collected objects or completed mechanisms. Enemy pursuit is not persisted; loading gives a short grace period. Original synthesized ambience, spatial footsteps, creature voices and heartbeat are retained, with restrained chase audio following confirmed pursuit.
 
-## Inventory and persistence
+## Cargo, equipment and home
 
-One stable-ID item record owns exactly one location: world, inventory, equipment slot, storage, or installed/consumed target. Transfers validate weight, bulk, hands, slot compatibility, and capacity before committing. Equipment remains part of carried weight. Backpacks add capacity only while equipped; removing one is rejected if its contents would exceed the remaining capacity. Large cargo is always visibly carried, stored, installed, or on the floor.
+Items have one authoritative stable-ID location: floor, inventory, equipment, storage or an installed/consumed target. Weight, bulk, hand occupancy and storage capacities are checked before transfers. Large cargo is visibly carried and slows movement. Two-handed cargo prevents handheld flashlight use; the utility clip lamp restores lighting. Space retains the requested light state.
 
-Dropped cargo and fixtures share the collision/occlusion grid used by the player, flashlight, and creature. Dropping checks actor collision radii; a box cannot be placed inside the player or creature. Geometry changes invalidate AI routes. If a remembered location becomes inaccessible, the creature performs a bounded search rather than pursuing forever.
+The original transport example remains playable: collect the service key, unlock S-04, carry its electrical module through the service rooms into the underground and install it in the inactive machine to open the shutter. Tools, batteries, backpack, harness and storage retain their functional interactions.
 
-Local saves use `liminal.transport.v1`, a versioned format with a map revision. Position, requested light state, every item's location, storage, equipment, and activated mechanisms are saved after interactions, on menu entry, periodically while moving, and on page exit. Loading validates known IDs, definitions, ownership, equipment, capacities, positions, and consumption/mechanism consistency. Incompatible or damaged data falls back to a clean session. Storage denial/quota failure leaves the session playable and is reported in the management interface. No AI pursuit or search state is saved; reloading initializes a safe patrol location.
+Recover cabinets, shelves, a desk, crate, generator and lamp. Carry them home and use **Sistema in casa** to choose a grid position and rotation. Placement checks collisions, actor overlap and access to the entrance, computer and archive. Installed containers provide finite storage. Most furniture must be emptied before moving; the portable crate can carry its contents, whose weight contributes to the load. Switch on an installed generator to power the home lamp. Baseline home safety does not depend on power.
+
+## Vision, map and persistence
+
+Directional 120-degree vision is separate from flashlight illumination. Geometry blocks sight; nearby architecture remains faintly readable in darkness. The map records observed floor, wall and obstruction cells per layer, with undiscovered space black. Remembered architecture does not reveal moving actors or undiscovered items.
+
+Save format **3** retains the `liminal.transport.v1` localStorage key. It stores both brothers, health, facing, items, equipment, furniture rotation, mechanisms, explored maps, dialogue events and generator state. Valid older saves migrate with stable item ownership. Validation rejects inconsistent ownership, invalid positions, capacities or mechanism consumption; incompatible data starts a clean session. Storage failures leave the current session playable.
+
+The computer's confirmed new-game action backs up the previous save. A confirmed restore action validates and restores that backup, retaining another copy of the current session. Saves are local to this browser, not cloud accounts.
 
 ## Architecture
 
-The existing TypeScript/Vite Canvas renderer, 2:1 projection, logical pixel scale, handcrafted map, collision system, camera, heartbeat, and procedural audio are retained.
+- `levels.ts`, `world.ts`, `zones.ts`, `environments.ts`: authored connected architecture, layer metadata, protected regions and dark network.
+- `vision.ts`, `light.ts`, `exploration.ts`: field of view, occlusion, illumination and persistent map memory.
+- `movement.ts`, `companion.ts`, `player-sprite.ts`: normalized movement, follower navigation and shared pixel character rendering.
+- `creature.ts`, `enemies.ts`, `sound-events.ts`: Pursuer, hearing/vision inhabitants and bounded sound observations.
+- `items.ts`, `possessions.ts`, `base.ts`: item data, authoritative ownership, save validation and furniture footprints/placement.
+- `controls.ts`, `menu.ts`: centralized keys, inventory, equipment, Help, map, computer and placement panels.
+- `dialogue.ts`, `pixel-text.ts`, `scenery.ts`: contextual dialogue, original bitmap lettering and authored furnishings/anomalies.
+- `audio.ts`, `heart.ts`, `hud.ts`, `main.ts`: sound, perceived danger, health and scene integration.
 
-- `world.ts`, `zones.ts`: connected floor modules, zone palettes, dynamic obstruction revision, projection and collision.
-- `light.ts`: directional, geometry-aware beam plus faint short-range, occluded architectural ambient shading. Creature rendering and detection use only the beam.
-- `items.ts`: definitions, capabilities, equipment compatibility, stable instances, fixtures, and item-to-target rules.
-- `possessions.ts`: authoritative ownership, transactional transfers, weight/bulk/hand constraints, interaction eligibility, serialization and validation.
-- `controls.ts`, `menu.ts`: shared keyboard configuration and Help; inventory, categories, contextual actions, storage, and equipment panels.
-- `player-sprite.ts`: the same nineteen-pixel character in the world and enlarged equipment view, with breathing, turning, restrained walking, lifting posture, and visible equipment/cargo.
-- `navigation.ts`, `creature.ts`: layout-aware patrol, exposure reaction, pursuit, last-known navigation, search, and forgetting.
-- `heart.ts`, `audio.ts`, `hud.ts`: perceived-danger BPM, synchronized audio/trace, spatial creature voices, surface-dependent footsteps, object handling, and mechanical sounds. Sounds queued by paused inventory actions play when the menu closes.
-- `main.ts`: integration and depth-ordered scene rendering.
+## Validation and remaining scope
 
-## Validation and scope
+Unit coverage includes item conservation, cargo constraints, complete transport routes, save migration/rejection, storage, portable crate weight, home placement, memory delivery, companion movement/cover, directional discovery, enemy perception and dark-network connectivity.
 
-Unit tests cover existing stealth behavior plus item conservation, rollback, storage, equipment conflicts, weight penalties, body lighting, dark interaction rules, the complete collision-checked module route, opened passage connectivity, corrupted save rejection, blocked AI memories, and safe drops near actor boundaries.
+Chromium acceptance suites exercise real controls, pause/resume, silent movement, audio, inventory, equipment, map controls, module installation, memory dialogue/delivery, computer unlock, furniture placement/storage, power, damage/capture, reload, new-game backup/restore and narrow viewports. Browser scenarios use development-only staging hooks; collision-checked route tests separately traverse the level. These hooks are absent from production.
 
-Chromium acceptance tests exercise the real controls and menus: Help freezes/resumes gameplay; pickups disappear into inventory; dropping/retrieving works; equipment renders; two-handed cargo disables the handheld beam; the clip lamp restores it; key unlocking, installation, and reload preserve progress. They also retain the earlier audio signal, footstep, pursuit, dark escape, capture/reset, and narrow-viewport checks. Development-only placement tools stage browser scenarios; the unit transport test physically traverses the complete route using the game's movement and collision code. These tools are absent from production builds.
-
-Phases 1–4 are implemented for this representative vertical slice: inventory/equipment, physical cargo, three connected zones and a complete delivery, followed by animation/audio polish and local persistence. Further content, broader equipment choices, touch controls, drag-and-drop, stack merging, and a final narrative/objective remain future work. Items currently use individual stable instances (quantity one); click-based actions are the supported interface. Geometry and sound occlusion remain conservative 2.5D approximations; hearing balance and cargo difficulty benefit from manual headphone playtesting.
+Foundation, cargo, world expansion and persistence phases are implemented for this first-layer vertical slice. Layer 02 and the wider campaign remain future content. Furniture uses validated grid placement, not free physics; items use individual instances rather than stack merging. Collision, sight and sound use conservative 2.5D approximations. Broader manual playtesting should refine navigation, difficulty and art. Touch movement and drag-and-drop inventory are not implemented; click actions are supported.
 
 ## Vercel
 
-`vercel.json` retains the static Vite configuration: build with `npm run build`, serve `dist`, repository root as project root. Successful local tests/builds do not establish the status of a Vercel deployment.
-
-## Explored map and illuminated stages
-
-Open **I / Tab → Map** to consult a persistent plan of nearby space already seen while walking. Unknown rooms and passages stay black; the map shows your position and marks discovered lit cells in green. It never displays creatures, loot, or undiscovered zone names. Map, inventory, equipment, and Help share the same pause/resume behavior.
-
-The western atrium is now **The Empty Mall**, with closed shop shutters, a vacant kiosk, dry fountain, benches, and dead planters. Its northern corridor leads to **The Forgotten Playground**, an empty indoor play hall with swings, a slide, and a roundabout. A smaller lit **Waiting Annex** branches from the west side of arrival. These spaces are connected to the existing yellow rooms, service areas, and underground without loading screens. Fixed overhead lighting reveals their muted materials even with the flashlight off; adjoining corridors retain the original darkness.
-
-For now, lit rooms are safe from creatures. `environments.ts` supplies the shared room bounds for lighting and AI exclusion. Patrol, chase, search, physical movement, and capture all respect those bounds; safe rooms provide no player observation to the creature. This rule concerns fixed environmental lighting, not the handheld flashlight. Furniture footprints participate in player collision, beam occlusion, and navigation. `scenery.ts` draws the authored furnishings using the existing pixel projection.
-
-`exploration.ts` records nearby, unobstructed floor cells and renders only remembered space. Save format **2** adds explored cells while retaining the existing `liminal.transport.v1` storage key. Valid version-1 saves migrate with inventory, equipment, mechanisms, and cargo intact; old floor items overlapped by new furniture move to the nearest free floor cell. A previously unexplored map starts empty. Invalid new exploration data is rejected transactionally.
-
-Added acceptance coverage checks progressive discovery, map persistence and old-save migration, furniture collision, connected routes, fixed lighting without creature exposure, and creature exclusion over pursuit/search/patrol. Browser checks cover Map navigation, pause/resume, new-stage rendering with the torch off, safe-room behavior, and reload. This adds two environmental stages and one smaller lit room; further liminal settings and interactions remain content work.
+`vercel.json` builds with `npm run build` and serves `dist` from the repository root. A successful local production build does not establish the status of a Vercel deployment.

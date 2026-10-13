@@ -152,7 +152,16 @@ test("save/load preserves dropped cargo, equipment, consumed module and mechanis
 test("darkness does not advertise items and moving cargo invalidates creature navigation safely", () => {
   const c = create(),
     p = { x: 53.5, y: 53.5 };
-  assert.equal(c.nearby(p, { ...p, angle: 0, on: false }), undefined);
+  const dark = { x: 53.5, y: 43.5 };
+  c.item("key-01")!.location = {
+    kind: "world",
+    position: { x: 54.5, y: 43.5 },
+  };
+  assert.equal(c.nearby(dark, { ...dark, angle: 0, on: false }), undefined);
+  c.item("key-01")!.location = {
+    kind: "world",
+    position: { x: 54.5, y: 53.5 },
+  };
   assert.equal(c.nearby(p, { ...p, angle: 0, on: true })?.id, "key-01");
   const creature = new Creature(() => 0.35);
   creature.position = { x: 91.5, y: 45.5 };

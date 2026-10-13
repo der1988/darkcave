@@ -1,3 +1,4 @@
+import { HOME, MEMORY_ROOMS, DARK_PASSAGES } from "./levels";
 import { furnitureSolid } from "./environments";
 /** Hand-authored modules. Empty space is intentional; no random maze generation. */
 export const SIZE = 112;
@@ -69,6 +70,19 @@ room(71, 101, 1, 2, 0);
 room(8, 3, 29, 17, 3);
 room(37, 44, 6, 6, 2);
 room(43, 47, 2, 2, 1);
+// Chapter one additions preserve the original routes and transport example.
+room(HOME.x, HOME.y, HOME.w, HOME.h, 2);
+for (const r of MEMORY_ROOMS) room(r.x, r.y, r.w, r.h, 2);
+room(43, 18, 3, 6, 2);
+room(10, 52, 3, 40, 1);
+for (const y of [60, 70, 80]) {
+  room(3, y, 7, 6, 1);
+  room(13, y, 7, 6, 1);
+}
+room(13, 88, 7, 4, 1);
+room(19, 64, 6, 3, 1);
+room(20, 84, 3, 3, 1);
+for (const r of DARK_PASSAGES) room(r.x, r.y, r.w, r.h, 2);
 export let geometryRevision = 0;
 const obstacles = new Set<number>();
 export function setObstacles(points: { x: number; y: number }[]) {

@@ -79,7 +79,7 @@ let browser;
       }),
   );
   assert.ok(peak > 0.001, "Heartbeat must produce a non-silent audio signal");
-  await place({ x: 53.5, y: 53.5 }, { x: 88.5, y: 80.5 }, 0);
+  await place({ x: 53.5, y: 43.5 }, { x: 71.5, y: 70.5 }, 0);
   await page.waitForTimeout(150);
   const bodyBrightness = () =>
     page.evaluate(() => {
@@ -109,7 +109,10 @@ let browser;
   assert.equal(moving.beats, moving.audioBeats);
   assert.ok(moving.steps > 1);
   await page.waitForTimeout(350);
-  assert.equal((await state()).steps, moving.steps);
+  assert.ok(
+    (await state()).steps >= moving.steps,
+    "The child may finish catching up after the older brother stops",
+  );
   assert.ok((await state()).bpm < 71);
   await page.keyboard.press("Space");
   assert.equal((await state()).lightOn, false);
@@ -119,7 +122,7 @@ let browser;
   await page.keyboard.up("Space");
   await page.keyboard.press("f");
   assert.equal((await state()).lightOn, true);
-  await place({ x: 53.5, y: 53.5 }, { x: 53.5, y: 49.5 }, -Math.PI / 2);
+  await place({ x: 53.5, y: 43.5 }, { x: 53.5, y: 40.5 }, -Math.PI / 2);
   await page.waitForTimeout(250);
   assert.equal((await state()).state, "reacting");
 
@@ -143,21 +146,21 @@ let browser;
   const searched = await state();
   assert.equal(searched.capture, null);
   assert.equal(searched.state, "wandering");
-  await place({ x: 53.5, y: 53.5 }, { x: 53.5, y: 53.15 }, -Math.PI / 2);
+  await place({ x: 53.5, y: 43.5 }, { x: 53.5, y: 43.15 }, -Math.PI / 2);
   await page.waitForTimeout(900);
   const caught = await state();
   assert.notEqual(caught.capture, null);
   await page.waitForTimeout(2700);
   const reset = await state();
   assert.equal(reset.capture, null);
-  assert.deepEqual(reset.player, { x: 53.5, y: 53.5 });
+  assert.deepEqual(reset.player, { x: 40.5, y: 50.5 });
   assert.equal(reset.lightOn, true);
   await place({ x: 48.5, y: 49.5 }, { x: 50.5, y: 49.5 }, 0);
   await page.waitForTimeout(900);
   const blocked = await state();
   assert.equal(blocked.state, "wandering");
   assert.equal(blocked.creatureLight, 0);
-  await place({ x: 53.5, y: 53.5 }, { x: 55.5, y: 53.5 }, Math.PI, false);
+  await place({ x: 53.5, y: 43.5 }, { x: 55.5, y: 43.5 }, Math.PI, false);
   await page.waitForTimeout(4300);
   const heard = await state();
   assert.ok(heard.audible > 0.015);

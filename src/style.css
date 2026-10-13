@@ -177,3 +177,21 @@ canvas {
   margin: 16px auto;
   border: 1px solid #343b32;
 }
+
+.placement-grid {
+  display: grid;
+  gap: 3px;
+  max-width: 500px;
+  margin: 16px auto;
+}
+.placement-grid button {
+  padding: 8px 3px;
+}
+.map-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.exploration-map {
+  touch-action: none;
+}

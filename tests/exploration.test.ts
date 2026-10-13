@@ -50,7 +50,7 @@ test("all new stages remain reachable; furniture shares collision and sightlines
     { x: 23.5, y: 12.5 },
   ])
     assert.ok(pathfind(spawn, p).length);
-  for (const f of FURNITURE) {
+  for (const f of FURNITURE.filter((f) => f.collision !== false)) {
     assert.equal(canStand(f.x + 0.5, f.y + 0.5), false);
     assert.ok(furnitureSolid(f.x, f.y));
   }
@@ -60,14 +60,14 @@ test("all new stages remain reachable; furniture shares collision and sightlines
   assert.ok(canStand(p.x, p.y));
 });
 test("fixed light remains visible with torch off and never adds creature exposure", () => {
-  for (const r of LIT_ROOMS) {
+  for (const r of LIT_ROOMS.filter((r) => r.safe)) {
     const p = { x: r.x + 2.5, y: r.y + 2.5 },
       lamp = { ...p, angle: 0, on: false };
     assert.ok(roomLight(p.x, p.y) > 0.2);
     assert.ok(surfaceLight(lamp, p.x, p.y, 0) > 0.2);
     assert.equal(beam(lamp, p.x + 0.1, p.y), 0);
   }
-  assert.equal(roomLight(53.5, 53.5), 0);
+  assert.equal(roomLight(53.5, 43.5), 0);
   const state = new Possessions();
   assert.ok(
     state.exposure(
@@ -107,15 +107,31 @@ test("map progress survives save and reload; v1 saves migrate without changing o
   const loaded = new Possessions();
   assert.ok(loaded.load(JSON.stringify(encoded)));
   assert.deepEqual(loaded.encode(spawn, false), encoded);
-  const legacy = { ...encoded, version: 1, explored: undefined };
+  const legacy = {
+    ...encoded,
+    version: 1,
+    explored: undefined,
+    items: encoded.items.filter(
+      (i) => !i.id.startsWith("memory-") && !i.id.startsWith("f-"),
+    ),
+  };
   const migrated = new Possessions();
   assert.ok(migrated.load(JSON.stringify(legacy)));
-  assert.deepEqual(migrated.items, encoded.items);
+  for (const item of encoded.items)
+    assert.deepEqual(migrated.item(item.id), item);
   assert.equal(migrated.exploration.cells.size, 0);
-  assert.equal(migrated.encode(spawn, false).version, 2);
+  assert.equal(migrated.encode(spawn, false).version, 3);
   const before = [...loaded.exploration.cells];
   assert.equal(
-    loaded.load(JSON.stringify({ ...encoded, explored: [-1] })),
+    loaded.load(
+      JSON.stringify({
+        ...encoded,
+        maps: {
+          ...encoded.maps,
+          surface: { floor: [-1], walls: [], blocked: [] },
+        },
+      }),
+    ),
     null,
   );
   assert.deepEqual([...loaded.exploration.cells], before);
@@ -126,6 +142,10 @@ test("legacy floor objects displaced by new furniture retain their unique owners
   state.sync();
   const save = state.encode(spawn, true);
   save.version = 1;
+  const count = save.items.length;
+  save.items = save.items.filter(
+    (i) => !i.id.startsWith("memory-") && !i.id.startsWith("f-"),
+  );
   delete save.explored;
   const key = save.items.find((i) => i.id === "key-01")!;
   key.location = { kind: "world", position: { x: 22.5, y: 32.5 } };
@@ -142,9 +162,6 @@ test("legacy floor objects displaced by new furniture retain their unique owners
       ) < 3,
     );
   }
-  assert.equal(migrated.items.length, save.items.length);
-  assert.equal(
-    new Set(migrated.items.map((i) => i.id)).size,
-    save.items.length,
-  );
+  assert.equal(migrated.items.length, count);
+  assert.equal(new Set(migrated.items.map((i) => i.id)).size, count);
 });

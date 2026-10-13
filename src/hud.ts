@@ -14,7 +14,13 @@ export class Hud {
     this.samples.fill(0);
     this.elapsed = 0;
   }
-  draw(ctx: CanvasRenderingContext2D, heart: Heart, height: number) {
+  draw(
+    ctx: CanvasRenderingContext2D,
+    heart: Heart,
+    height: number,
+    health = 100,
+    childHealth = 100,
+  ) {
     const x = 10,
       y = height - 31;
     ctx.fillStyle = "#060807";
@@ -44,6 +50,9 @@ export class Hud {
     ctx.font = "8px monospace";
     ctx.textBaseline = "top";
     ctx.fillText(`${Math.round(heart.bpm)} BPM`, x + 17, y);
+    ctx.fillStyle = health < 35 || childHealth < 35 ? "#875c48" : "#565f4a";
+    ctx.fillRect(x + 80, y, Math.round(health / 10), 2);
+    ctx.fillRect(x + 80, y + 4, Math.round(childHealth / 10), 2);
     ctx.fillStyle = "#4b5546";
     this.samples.forEach((v, i) =>
       ctx.fillRect(x + 17 + i, y + 17 - Math.round(v * 6), 1, 1),

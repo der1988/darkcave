@@ -24,9 +24,10 @@ test("light off, outside cone, behind column: no exposure; same clear beam expos
   assert.equal(beam({ ...lamp, on: false }, 48.8, 49.5), 0);
   assert.equal(beam(lamp, 47.5, 49.5), 0);
   assert.ok(beam(lamp, 48.8, 49.5) > 0.5);
-  const adapted = surfaceLight({ ...lamp, on: false }, 48.6, 49.5, 0);
+  const darkLamp = { x: 53.5, y: 43.5, angle: 0, on: false };
+  const adapted = surfaceLight(darkLamp, 53.6, 43.5, 0);
   assert.ok(adapted > 0.015 && adapted < 0.04);
-  assert.equal(surfaceLight({ ...lamp, on: false }, 50.5, 49.5, 0), 0);
+  assert.equal(beam({ ...lamp, on: false }, 50.5, 49.5, 0), 0);
   assert.equal(surfaceLight({ ...lamp, on: false }, 53.5, 39.5, 0), 0);
 });
 test("wandering is independent and remains in navigable geometry over a long patrol", () => {

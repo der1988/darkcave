@@ -1,9 +1,19 @@
 import "./style.css";
+import { HOME, MEMORY_ROOMS, inHome, inDarkNetwork } from "./levels";
+import { Companion } from "./companion";
+import { Dialogue } from "./dialogue";
+import { pixelText, speechLines } from "./pixel-text";
+import { motionInput, type Gait } from "./movement";
+import { SoundEvents } from "./sound-events";
+import { createInhabitants, type Inhabitant } from "./enemies";
+import { perceived, inView } from "./vision";
+import { footprintRegion } from "./base";
+import { pursuerForbidden, homeEquipmentLight } from "./environments";
 import { actionFor, held } from "./controls";
 import { Possessions, SAVE_KEY, owned } from "./possessions";
 import { ITEMS, TARGETS, type Item, type Target } from "./items";
 import { Menu, appearance, type MenuAction } from "./menu";
-import { drawPlayer } from "./player-sprite";
+import { drawPlayer, drawChild } from "./player-sprite";
 import { FURNITURE, isSafe, roomLight, type Furniture } from "./environments";
 import { drawFurniture } from "./scenery";
 import { ZONES, zoneAt } from "./zones";
@@ -25,7 +35,7 @@ import {
 
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const ctx = canvas.getContext("2d", { alpha: false })!;
-const player = { ...spawn };
+const player = { ...HOME.spawn };
 const cargo = new Possessions();
 cargo.sync();
 let restored: ReturnType<Possessions["load"]> = null;
@@ -35,24 +45,33 @@ try {
   cargo.saveWarning = "Local storage unavailable.";
 }
 if (restored) Object.assign(player, restored.player);
-cargo.exploration.visit(player);
+if (!restored) cargo.exploration.revealHome();
+const companion = new Companion(cargo.chapter.companion);
+let inhabitants = createInhabitants();
+const noises = new SoundEvents();
+const dialogue = new Dialogue();
+let gait: Gait = "walk",
+  grace = 2,
+  inhabitantAudible = 0,
+  confirmedPursuer = false,
+  generatorClock = 0;
 const camera = { ...player };
 const keys = new Set<string>();
 function freshCreature(avoidNearby = false) {
-  const c = new Creature();
+  const c = new Creature(Math.random, pursuerForbidden);
   if (
-    isSafe(c.position.x, c.position.y) ||
+    pursuerForbidden(c.position.x, c.position.y) ||
     !canStand(c.position.x, c.position.y) ||
     (avoidNearby &&
       Math.hypot(c.position.x - player.x, c.position.y - player.y) < 12)
   ) {
     const safe = [
-      { x: 53.5, y: 30.5 },
-      { x: 80.5, y: 52.5 },
-      { x: 23.5, y: 80.5 },
+      { x: 41.5, y: 30.5 },
+      { x: 71.5, y: 63.5 },
+      { x: 32.5, y: 75.5 },
     ].find(
       (p) =>
-        !isSafe(p.x, p.y) &&
+        !pursuerForbidden(p.x, p.y) &&
         canStand(p.x, p.y) &&
         Math.hypot(p.x - player.x, p.y - player.y) > 15,
     );
@@ -81,7 +100,7 @@ window.addEventListener("keydown", unlockAudio);
 window.addEventListener("pointerdown", unlockAudio);
 let width = 0,
   height = 0,
-  angle = -Math.PI / 2,
+  angle = cargo.chapter.facing,
   targetAngle = angle;
 let bodyAngle = angle;
 let lightOn = restored?.lightRequested ?? true,
@@ -105,7 +124,11 @@ let interactionTime = 0,
   feedbackTime = 0,
   saveClock = 0;
 let pendingSound: "cloth" | "drop" | "mechanism" | undefined;
-const save = () => cargo.save(player, lightOn);
+const save = () => {
+  cargo.chapter.facing = angle;
+  cargo.chapter.companion = { ...companion.position };
+  cargo.save(player, lightOn);
+};
 const menu = new Menu(
   () => cargo,
   performAction,
@@ -134,9 +157,12 @@ const menu = new Menu(
     TARGETS.filter(
       (t) =>
         cargo.reachable(t.position, player, true) &&
-        cargo.exposure(t.position, lamp(), true) > 0.035,
+        cargo.exposure(t.position, lamp(), true) > 0.035 &&
+        inView(player, angle, t.position) &&
+        perceived(player, angle, lamp(), cargo.face(t.position, player, true)),
     ).map((t) => t.id),
   () => player,
+  () => angle,
 );
 function say(text: string) {
   feedback = text;
@@ -144,9 +170,87 @@ function say(text: string) {
 }
 function performAction(a: MenuAction): string {
   let error = "";
+  if (a.type === "place")
+    error = inHome(player)
+      ? cargo.placeFurniture(a.id, a.position!, a.rotation || 0, [
+          player,
+          companion.position,
+        ])
+      : "Torna a casa per sistemare i mobili.";
+  if (a.type === "generator") {
+    const i = cargo.item(a.id);
+    if (
+      i?.def === "generator" &&
+      i.location.kind === "world" &&
+      inHome(i.location.position) &&
+      cargo.reachable(i.location.position, player, true)
+    )
+      cargo.chapter.generatorOn = !cargo.chapter.generatorOn;
+    else error = "Avvicinati al generatore sistemato in casa.";
+  }
+  if (a.type === "restore") {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY + ".backup");
+      if (!raw) return "Nessuna copia precedente disponibile.";
+      const candidate = new Possessions(),
+        restored = candidate.load(raw);
+      cargo.sync();
+      if (!restored)
+        return "La copia non è compatibile. La partita attuale resta intatta.";
+      localStorage.setItem(
+        SAVE_KEY + ".before-restore",
+        JSON.stringify(cargo.encode(player, lightOn)),
+      );
+      const result = cargo.load(raw);
+      if (!result) return "Ripristino non riuscito.";
+      Object.assign(player, result.player);
+      Object.assign(camera, result.player);
+      companion.reset(cargo.chapter.companion);
+      angle = targetAngle = bodyAngle = cargo.chapter.facing;
+      lightOn = result.lightRequested;
+      creature = freshCreature(true);
+      inhabitants = createInhabitants();
+      grace = 2;
+      heart = new Heart();
+      capture = new Capture();
+      sound.reset();
+      hud.reset();
+      dialogue.clear();
+      noises.events = [];
+      confirmedPursuer = false;
+      mouse = null;
+      save();
+      menu.close();
+      return "";
+    } catch {
+      return "Ripristino non disponibile. Nessun progresso è stato cancellato.";
+    }
+  }
+  if (a.type === "reset") {
+    try {
+      localStorage.setItem(
+        SAVE_KEY + ".backup",
+        JSON.stringify(cargo.encode(player, lightOn)),
+      );
+    } catch {
+      return "Impossibile conservare la partita attuale. Nessun progresso è stato cancellato.";
+    }
+    const fresh = new Possessions();
+    fresh.exploration.revealHome();
+    if (!cargo.load(JSON.stringify(fresh.encode(HOME.spawn, true))))
+      return "Ripristino non riuscito.";
+    restart();
+    menu.close();
+    return "";
+  }
   if (a.type === "equip") error = cargo.equip(a.id, a.slot!);
   if (a.type === "unequip") error = cargo.unequip(a.id);
-  if (a.type === "drop") error = cargo.drop(a.id, player, [creature.position]);
+  if (a.type === "drop")
+    error = cargo.drop(a.id, player, [
+      creature.position,
+      companion.position,
+      ...inhabitants.map((e) => e.ai.position),
+    ]);
   if (a.type === "store") error = cargo.store(a.id, a.target!, player);
   if (a.type === "take") error = cargo.take(a.id, player, a.target);
   if (a.type === "use") {
@@ -154,7 +258,15 @@ function performAction(a: MenuAction): string {
       a.target !== "drink" &&
       !TARGETS.some(
         (t) =>
-          t.id === a.target && cargo.exposure(t.position, lamp(), true) > 0.035,
+          t.id === a.target &&
+          cargo.exposure(t.position, lamp(), true) > 0.035 &&
+          inView(player, angle, t.position) &&
+          perceived(
+            player,
+            angle,
+            lamp(),
+            cargo.face(t.position, player, true),
+          ),
       )
     )
       return "Illuminate the target first.";
@@ -163,8 +275,25 @@ function performAction(a: MenuAction): string {
   }
   if (!error) {
     interactionTime = 0.38;
+    if (a.type === "drop" || a.type === "use" || a.type === "place")
+      noises.emit(
+        "older",
+        player,
+        a.type === "drop"
+          ? "drop"
+          : a.type === "place"
+            ? "furniture"
+            : "mechanism",
+        1,
+        a.type === "drop" ? 12 : 7,
+        time,
+      );
     const cue =
-      a.type === "drop" ? "drop" : a.type === "use" ? "mechanism" : "cloth";
+      a.type === "drop" || a.type === "place"
+        ? "drop"
+        : a.type === "use" || a.type === "generator"
+          ? "mechanism"
+          : "cloth";
     if (menu.kind) pendingSound = cue;
     else sound.object(cue);
     save();
@@ -176,6 +305,14 @@ function interact() {
   const e = cargo.nearby(player, lamp());
   if (!e) return;
   if ("def" in e) {
+    if (
+      ITEMS[e.def].furniture &&
+      e.location.kind === "world" &&
+      inHome(e.location.position)
+    ) {
+      menu.toggle("inventory", e.id);
+      return;
+    }
     const error = cargo.take(e.id, player);
     say(
       error ||
@@ -186,6 +323,27 @@ function interact() {
       sound.object("cloth");
       save();
     }
+    return;
+  }
+  if (e.kind === "computer") {
+    menu.toggle("computer");
+    return;
+  }
+  if (e.kind === "archive") {
+    const memory = cargo.items.find(
+      (i) => owned(i) && ITEMS[i.def].capability === "memory",
+    );
+    if (memory) {
+      const error = cargo.use(memory.id, e.id, player);
+      say(error || "Il ricordo resta qui.");
+      if (!error) {
+        sound.object("cloth");
+        save();
+      }
+    } else
+      say(
+        `Ricordi riportati: ${cargo.delivered.length}/2.${cargo.complete ? " Il computer ha una nuova destinazione." : ""}`,
+      );
     return;
   }
   if (e.rule && !cargo.active.has(e.id)) {
@@ -204,6 +362,7 @@ function interact() {
     if (!error) {
       interactionTime = 0.3;
       sound.object("mechanism");
+      noises.emit("older", player, "mechanism", 0.8, 9, time);
       save();
     }
   }
@@ -274,7 +433,16 @@ const lamp = (): Lamp => ({
   on: lightOn && cargo.canLight,
 });
 function illumination(x: number, y: number, z: number, nx = 0, ny = 0) {
-  return surfaceLight(lamp(), x, y, z, nx, ny);
+  const sample = { x: x + nx * 0.012, y: y + ny * 0.012 };
+  const live =
+    inView(player, angle, sample) &&
+    visible(player.x, player.y, sample.x, sample.y);
+  const remembered = cargo.exploration.cells.has(
+    Math.floor(y) * 112 + Math.floor(x),
+  );
+  return (
+    surfaceLight(lamp(), x, y, z, nx, ny) * (live ? 1 : remembered ? 0.18 : 0)
+  );
 }
 function polygon(points: number[][], color: number[], intensity: number) {
   ctx.fillStyle = `rgb(${Math.round(color[0] * intensity)},${Math.round(color[1] * intensity)},${Math.round(color[2] * intensity)})`;
@@ -379,7 +547,7 @@ function wall(x: number, y: number) {
             [a, b, z + 0.16],
           ],
           color,
-          fixture ? 0.8 : intensity,
+          fixture ? Math.min(0.8, intensity * 1.4) : intensity,
         );
       }
   }
@@ -457,6 +625,8 @@ function character() {
     x,
     y,
     {
+      facing: bodyAngle,
+      gait,
       stride,
       walking,
       motion: motionBlend,
@@ -482,6 +652,28 @@ function drawObject(e: Item | Target) {
   if (!position) return;
   const large = item ? !!ITEMS[e.def].large : true;
   const face = cargo.face(position, lamp(), large);
+  if (
+    !inView(player, angle, position) ||
+    !perceived(player, angle, lamp(), face)
+  )
+    return;
+  if (item && ITEMS[e.def].furniture) {
+    const r = footprintRegion(e)!;
+    drawFurniture(
+      {
+        id: e.id,
+        kind: ITEMS[e.def].furniture!,
+        x: r.x,
+        y: r.y,
+        w: r.w,
+        d: r.h,
+        h: e.def === "standlamp" ? 1 : e.def === "shelf" ? 0.8 : 0.65,
+      },
+      polygon,
+      lamp(),
+    );
+    return;
+  }
   const intensity = item
     ? cargo.exposure(position, lamp(), large)
     : surfaceLight(lamp(), face.x, face.y, 0.5);
@@ -579,8 +771,126 @@ function drawObject(e: Item | Target) {
   }
 }
 
+const emptyAppearance = {
+  backpack: false,
+  bodyLight: false,
+  harness: false,
+  cargo: false,
+  twoHanded: false,
+  attached: false,
+  tool: false,
+};
+function personShade(p: { x: number; y: number }) {
+  const light = Math.min(
+    0.9,
+    roomLight(p.x, p.y, 0.5) + beam(lamp(), p.x, p.y, 0.5) * 0.6 + 0.025,
+  );
+  return (tone: number) =>
+    `rgb(${Math.round(tone * light)},${Math.round(tone * light * 0.94)},${Math.round(tone * light * 0.79)})`;
+}
+function drawCompanion() {
+  const p = companion.position;
+  if (!perceived(player, angle, lamp(), p)) return;
+  const screen = project(p.x, p.y);
+  drawChild(
+    ctx,
+    Math.round(screen.x + offsetX),
+    Math.round(screen.y + offsetY),
+    companion.heading,
+    companion.stride,
+    companion.walking,
+    time,
+    gait,
+    personShade(p),
+  );
+}
+function drawMemory(room: (typeof MEMORY_ROOMS)[number]) {
+  const p = room.person;
+  if (!perceived(player, angle, lamp(), p)) return;
+  const q = project(p.x, p.y),
+    x = Math.round(q.x + offsetX),
+    y = Math.round(q.y + offsetY);
+  drawPlayer(
+    ctx,
+    x,
+    y,
+    {
+      facing: Math.PI / 2,
+      stride: 0,
+      walking: false,
+      motion: 0,
+      time: time + (room.id === "kitchen" ? 2 : 5),
+      side: 1,
+      back: false,
+      profile: false,
+      load: 0,
+      action: 0,
+      light: false,
+    },
+    emptyAppearance,
+    personShade(p),
+  );
+  ctx.fillStyle = personShade(p)(room.id === "kitchen" ? 180 : 110);
+  ctx.fillRect(x - 1, y - 12, 3, 5);
+}
+function drawInhabitant(e: Inhabitant) {
+  const p = e.ai.position;
+  if (!perceived(player, angle, lamp(), p) || isSafe(p.x, p.y)) return;
+  const q = project(p.x, p.y),
+    x = Math.round(q.x + offsetX),
+    y = Math.round(q.y + offsetY),
+    shade = personShade(p);
+  const step = Math.round(
+    Math.sin(e.ai.stride) * (e.kind === "clicker" ? 1 : 2),
+  );
+  const rect = (a: number, b: number, w: number, h: number, t: number) => {
+    ctx.fillStyle = shade(t);
+    ctx.fillRect(x + a, y + b, w, h);
+  };
+  ctx.fillStyle = "#020302";
+  ctx.fillRect(x - 4, y, 8, 1);
+  rect(-2 + step, -7, 1, 7, 100);
+  rect(2 - step, -8, 1, 8, 110);
+  rect(-2, -15, 5, 8, e.kind === "clicker" ? 92 : 125);
+  rect(-4, -13, 1, 8, 112);
+  rect(4, -12, 1, 9, 108);
+  if (e.kind === "clicker") {
+    rect(-4, -17, 7, 4, 121);
+    rect(-3, -19, 2, 3, 145);
+    rect(1, -18, 3, 3, 103);
+  } else {
+    rect(-1, -20, 3, 5, 153);
+    rect(-2, -20, 4, 1, 86);
+  }
+}
+function drawDialogue() {
+  const speech = dialogue.current;
+  if (!speech || gait === "silent" || menu.kind) return;
+  const p =
+    speech.position ||
+    (speech.speaker === "older" ? player : companion.position);
+  if (speech.speaker !== "older" && !perceived(player, angle, lamp(), p))
+    return;
+  const q = project(p.x, p.y),
+    lines = speechLines(
+      speech.text,
+      Math.min(45, Math.floor((width - 16) / 4)),
+    ),
+    length = Math.max(...lines.map((l) => l.length)) * 4;
+  const x = Math.round(
+      Math.max(5, Math.min(width - length - 5, q.x + offsetX - length / 2)),
+    ),
+    y = Math.round(Math.max(12, q.y + offsetY - 29 - lines.length * 9));
+  ctx.fillStyle = "rgba(5,8,6,.88)";
+  ctx.fillRect(x - 3, y - 4, length + 6, lines.length * 9 + 3);
+  lines.forEach((line, i) => pixelText(ctx, line, x, y + i * 9));
+}
 function drawCreature() {
-  if (isSafe(creature.position.x, creature.position.y)) return;
+  if (
+    pursuerForbidden(creature.position.x, creature.position.y) ||
+    !perceived(player, angle, lamp(), creature.position)
+  )
+    return;
   if (beam(lamp(), creature.position.x, creature.position.y, 0.7) < 0.018)
     return;
   const p = project(creature.position.x, creature.position.y);
@@ -620,8 +930,16 @@ function drawCreature() {
   rect(-1 + sway + turn, -38, profile ? 2 : 3, 4, facing.y < 0 ? 55 : 70);
 }
 function restart() {
-  Object.assign(player, spawn);
-  Object.assign(camera, spawn);
+  Object.assign(player, HOME.spawn);
+  Object.assign(camera, HOME.spawn);
+  companion.reset(HOME.child);
+  cargo.chapter.health = 100;
+  cargo.chapter.childHealth = 100;
+  inhabitants = createInhabitants();
+  noises.events = [];
+  dialogue.clear();
+  grace = 2;
+  confirmedPursuer = false;
   creature = freshCreature();
   heart = new Heart();
   capture = new Capture();
@@ -636,30 +954,131 @@ function restart() {
   save();
 }
 function updateSurvival(dt: number) {
+  grace = Math.max(0, grace - dt);
+  noises.prune(time);
   creatureLight = beam(lamp(), creature.position.x, creature.position.y, 0.7);
-  const seen = creatureLight > 0.055;
-  const vocal = creature.update(dt, seen ? player : null);
+  const seen =
+    creatureLight > 0.055 &&
+    perceived(player, angle, lamp(), creature.position);
+  const brothers = [player, companion.position];
+  // Illumination exposes the source only with actual reciprocal line of sight.
+  const observation =
+    creatureLight > 0.055
+      ? brothers.find(
+          (p) =>
+            !pursuerForbidden(p.x, p.y) &&
+            visible(creature.position.x, creature.position.y, p.x, p.y),
+        )
+      : undefined;
+  const vocal = creature.update(dt, grace === 0 ? observation || null : null);
   if (vocal) sound.vocalize();
   audible = sound.spatial(player, creature.position);
-  heart.perceive(
-    creatureLight > 0.018,
-    seen && creature.state === "pursuing",
-    audible,
-  );
+  inhabitantAudible *= Math.exp(-dt * 3);
+  let visibleHostile = seen,
+    visiblePursuit = seen && creature.state === "pursuing";
+  for (const enemy of inhabitants) {
+    const struck = enemy.update(
+      dt,
+      grace === 0 ? brothers : [],
+      lamp(),
+      noises,
+      time,
+    );
+    if (struck >= 0 && grace === 0) {
+      if (struck === 0)
+        cargo.chapter.health = Math.max(
+          0,
+          cargo.chapter.health - (enemy.kind === "clicker" ? 45 : 18),
+        );
+      else
+        cargo.chapter.childHealth = Math.max(
+          0,
+          cargo.chapter.childHealth - (enemy.kind === "clicker" ? 45 : 18),
+        );
+      heart.perceive(true, true, 0);
+    }
+    if (enemy.voiceIn <= 0) {
+      enemy.voiceIn = 6 + Math.random() * 10;
+      inhabitantAudible = Math.max(
+        inhabitantAudible,
+        sound.inhabitant(enemy.kind, player, enemy.ai.position),
+      );
+    }
+    const visible = perceived(player, angle, lamp(), enemy.ai.position);
+    if (visible) {
+      visibleHostile = true;
+      visiblePursuit ||= enemy.ai.state === "pursuing";
+    }
+  }
+  if (isSafe(player.x, player.y)) heart.settle();
+  else
+    heart.perceive(
+      visibleHostile,
+      visiblePursuit,
+      Math.max(audible, inhabitantAudible),
+    );
+  if (inHome(player))
+    cargo.chapter.health = Math.min(100, cargo.chapter.health + dt * 3);
+  if (inHome(companion.position))
+    cargo.chapter.childHealth = Math.min(
+      100,
+      cargo.chapter.childHealth + dt * 3,
+    );
   if (heart.update(dt)) sound.heartbeat(heart.bpm);
   hud.update(dt, heart);
-  if (creature.canCapture(player)) {
+  const caught = grace === 0 && brothers.some((p) => creature.canCapture(p));
+  if (caught || cargo.chapter.health <= 0 || cargo.chapter.childHealth <= 0) {
     capture.start();
     sound.stopSteps();
     heart.bpm = 160;
-    heart.phase = 0;
-    heart.beatAge = 0;
-    heart.beats++;
-    sound.heartbeat(heart.bpm);
   }
-  // Re-evaluate after movement so rendering never uses yesterday's visibility.
+  if (seen && (creature.state === "pursuing" || creature.state === "reacting"))
+    confirmedPursuer = true;
+  if (
+    creature.state === "wandering" ||
+    creature.state === "searching" ||
+    isSafe(player.x, player.y)
+  )
+    confirmedPursuer = false;
+  sound.music(dt, confirmedPursuer);
+  sound.ambience(dt, zoneAt(player.x, player.y), cargo.generatorPowered);
+  const danger =
+    visiblePursuit ||
+    Math.max(audible, inhabitantAudible) > 0.12 ||
+    inhabitants.some(
+      (e) =>
+        ["pursuing", "remembering"].includes(e.ai.state) &&
+        Math.hypot(e.ai.position.x - player.x, e.ai.position.y - player.y) < 8,
+    );
+  dialogue.update(
+    dt,
+    player,
+    companion.position,
+    gait === "silent",
+    danger,
+    cargo.chapter.events,
+    (p) => perceived(player, angle, lamp(), p),
+  );
+  homeEquipmentLight(cargo.lampPowered);
+  generatorClock -= dt;
+  if (cargo.generatorPowered && generatorClock <= 0) {
+    generatorClock = 3;
+    const gen = cargo.items.find(
+      (i) => i.def === "generator" && i.location.kind === "world",
+    );
+    if (gen?.location.kind === "world")
+      noises.emit(
+        "generator",
+        gen.location.position,
+        "generator",
+        0.3,
+        4,
+        time,
+      );
+  }
   creatureLight = beam(lamp(), creature.position.x, creature.position.y, 0.7);
 }
+
 function update(dt: number) {
   interactionTime = Math.max(0, interactionTime - dt);
   feedbackTime = Math.max(0, feedbackTime - dt);
@@ -681,7 +1100,16 @@ function update(dt: number) {
   }
   const sx = Number(held(keys, "right")) - Number(held(keys, "left"));
   const sy = Number(held(keys, "down")) - Number(held(keys, "up"));
-  const direction = screenToWorld(sx, sy);
+  const motion = motionInput(
+    sx,
+    sy,
+    held(keys, "silent"),
+    held(keys, "fast"),
+    cargo.speed,
+    cargo.canRush,
+  );
+  gait = motion.gait;
+  const direction = { x: motion.x, y: motion.y };
   const length = Math.hypot(direction.x, direction.y);
   const beforeX = player.x,
     beforeY = player.y;
@@ -693,10 +1121,7 @@ function update(dt: number) {
     bodyAngle +=
       Math.atan2(Math.sin(desired - bodyAngle), Math.cos(desired - bodyAngle)) *
       (1 - Math.exp(-dt * 12));
-    const speed =
-      (held(keys, "fast") && cargo.canRush ? 2.6 : 1.65) *
-      cargo.speed *
-      (interactionTime > 0 ? 0.25 : 1);
+    const speed = motion.speed * (interactionTime > 0 ? 0.25 : 1);
     move(
       player,
       (direction.x / length) * speed * dt,
@@ -708,11 +1133,20 @@ function update(dt: number) {
   motionBlend += (Number(walking) - motionBlend) * (1 - Math.exp(-dt * 12));
   stride += Math.hypot(player.x - beforeX, player.y - beforeY) * 5;
   const phase = Math.floor(stride / Math.PI);
-  if (walking && phase !== footPhase) {
-    sound.step(player);
+  if (walking && phase !== footPhase && gait !== "silent") {
+    const running = gait === "run";
+    sound.step(player, running ? 1.3 : 0.7);
+    noises.emit(
+      "older",
+      player,
+      "step",
+      running ? 1 : 0.3,
+      running ? 11 : 3.5,
+      time,
+    );
     if (cargo.cargo && phase % 3 === 0) sound.object("cloth");
   }
-  if (!walking) sound.stopSteps();
+  if (!walking || gait === "silent") sound.stopSteps(gait === "silent");
   footPhase = phase;
   const follow = 1 - Math.exp(-dt * 5);
   camera.x += (player.x - camera.x) * follow;
@@ -746,7 +1180,32 @@ function update(dt: number) {
     lampX = player.x;
     lampY = player.y;
   }
-  cargo.exploration.visit(player);
+  if (mouse)
+    bodyAngle +=
+      Math.atan2(Math.sin(angle - bodyAngle), Math.cos(angle - bodyAngle)) *
+      (1 - Math.exp(-dt * 12));
+  const threats = [
+    creature.position,
+    ...inhabitants.map((e) => e.ai.position),
+  ].filter(
+    (p) =>
+      perceived(player, angle, lamp(), p) ||
+      perceived(companion.position, companion.heading, lamp(), p),
+  );
+  const childStep = companion.update(dt, player, gait, walking, threats);
+  if (childStep && gait !== "silent") {
+    const running = gait === "run";
+    sound.step(companion.position, running ? 0.7 : 0.4, true, player);
+    noises.emit(
+      "child",
+      companion.position,
+      "step",
+      running ? 0.7 : 0.25,
+      running ? 9 : 3,
+      time,
+    );
+  }
+  cargo.exploration.visit(player, angle, lamp());
   updateSurvival(dt);
 }
 function render() {
@@ -762,6 +1221,9 @@ function render() {
     creature?: boolean;
     object?: Item | Target;
     furniture?: Furniture;
+    child?: boolean;
+    inhabitant?: Inhabitant;
+    memory?: (typeof MEMORY_ROOMS)[number];
   }[] = [];
   for (
     let y = Math.floor(player.y - viewRadius);
@@ -829,15 +1291,83 @@ function render() {
         furniture: f,
       });
   }
+  drawables.push({
+    x: companion.position.x,
+    y: companion.position.y,
+    depth: companion.position.x + companion.position.y,
+    child: true,
+  });
+  for (const e of inhabitants)
+    drawables.push({
+      x: e.ai.position.x,
+      y: e.ai.position.y,
+      depth: e.ai.position.x + e.ai.position.y,
+      inhabitant: e,
+    });
+  for (const r of MEMORY_ROOMS)
+    drawables.push({
+      x: r.person.x,
+      y: r.person.y,
+      depth: r.person.x + r.person.y,
+      memory: r,
+    });
   drawables.sort((a, b) => a.depth - b.depth);
   for (const d of drawables) {
     if (d.player) character();
     else if (d.creature) drawCreature();
-    else if (d.object) drawObject(d.object);
-    else if (d.furniture) drawFurniture(d.furniture, polygon, lamp());
-    else wall(d.x, d.y);
+    else if (d.object) {
+      drawObject(d.object);
+      if (
+        !("def" in d.object) &&
+        (d.object.kind === "computer" || d.object.kind === "archive")
+      ) {
+        const t = d.object,
+          p = project(t.position.x, t.position.y, 0.95),
+          face = cargo.face(t.position, player, true);
+        if (
+          inView(player, angle, t.position) &&
+          perceived(player, angle, lamp(), face)
+        ) {
+          const x = Math.round(p.x + offsetX),
+            y = Math.round(p.y + offsetY);
+          ctx.fillStyle = "#15251f";
+          ctx.fillRect(x - 5, y - 7, 10, 6);
+          ctx.fillStyle = "#778774";
+          if (t.kind === "computer") {
+            ctx.fillRect(x - 3, y - 5, 5, 1);
+            ctx.fillRect(x - 3, y - 3, 2, 1);
+          } else
+            cargo.delivered.forEach((_, i) =>
+              ctx.fillRect(x - 3 + i * 5, y - 5, 3, 3),
+            );
+        }
+      }
+    } else if (d.child) drawCompanion();
+    else if (d.inhabitant) drawInhabitant(d.inhabitant);
+    else if (d.memory) drawMemory(d.memory);
+    else if (d.furniture) {
+      const face = cargo.face(
+        { x: d.furniture.x + 0.5, y: d.furniture.y + 0.5 },
+        player,
+        true,
+      );
+      if (perceived(player, angle, lamp(), face)) {
+        drawFurniture(d.furniture, polygon, lamp());
+        if (d.furniture.kind === "hotel-door") {
+          const p = project(d.furniture.x + 0.5, d.furniture.y + 0.3, 0.9);
+          pixelText(
+            ctx,
+            String(101 + Math.floor((d.furniture.y - 61) / 10)),
+            p.x + offsetX - 6,
+            p.y + offsetY,
+            "#797463",
+          );
+        }
+      }
+    } else wall(d.x, d.y);
   }
-  hud.draw(ctx, heart, height);
+  hud.draw(ctx, heart, height, cargo.chapter.health, cargo.chapter.childHealth);
+  drawDialogue();
   const nearby = cargo.nearby(player, lamp());
   const hint =
     feedbackTime > 0
@@ -894,8 +1424,34 @@ if (import.meta.env.DEV)
         speed: cargo.speed,
         canLight: cargo.canLight,
         zone: zoneAt(player.x, player.y),
+        companion: { ...companion.position },
+        gait,
+        childGait: companion.gait,
+        health: cargo.chapter.health,
+        childHealth: cargo.chapter.childHealth,
+        enemies: inhabitants.map((e) => ({
+          id: e.id,
+          kind: e.kind,
+          position: { ...e.ai.position },
+          state: e.ai.state,
+          lastKnown: e.ai.lastKnown,
+        })),
+        dialogue: dialogue.current,
+        music: sound.musicLevel,
+        noises: noises.events,
+        complete: cargo.complete,
+        power: cargo.lampPowered,
       }),
       cargo,
+      setInhabitant: (id: string, p: { x: number; y: number }) => {
+        const enemy = inhabitants.find((e) => e.id === id);
+        if (enemy) {
+          enemy.ai.position = { ...p };
+          enemy.ai.state = "pursuing";
+          enemy.ai.lastKnown = { ...player };
+          grace = 0;
+        }
+      },
       save,
       place: (
         p: { x: number; y: number },
@@ -906,6 +1462,8 @@ if (import.meta.env.DEV)
         restart();
         Object.assign(player, p);
         Object.assign(camera, p);
+        companion.reset(Companion.validNear(p));
+        grace = 0;
         Object.assign(creature.position, c);
         angle = targetAngle = a;
         lightOn = on;

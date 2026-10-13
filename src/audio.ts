@@ -15,6 +15,7 @@ export class Sound {
   private master: GainNode | null = null;
   private voices = new Set<Voice>();
   private foot: Voice | null = null;
+  private childFoot: Voice | null = null;
   private creature: Voice | null = null;
   heartbeatCount = 0;
   footstepCount = 0;
@@ -67,6 +68,7 @@ export class Sound {
       pan.disconnect();
       this.voices.delete(voice);
       if (this.foot === voice) this.foot = null;
+      if (this.childFoot === voice) this.childFoot = null;
       if (this.creature === voice) this.creature = null;
     };
     source.start();
@@ -89,15 +91,18 @@ export class Sound {
     );
     this.heartbeatCount++;
   }
-  step(position: Point) {
+  step(position: Point, loudness = 1, child = false, listener?: Point) {
     if (!this.active) return;
-    this.stopSteps();
+    if (child) {
+      this.childFoot?.source.stop();
+      this.childFoot = null;
+    } else this.stopSteps(false);
     const concrete =
       material(position.x, position.y) === 2 ||
       zoneAt(position.x, position.y) !== "yellow";
     const pitch = 0.92 + Math.random() * 0.16;
     let colored = 0;
-    this.foot = this.play(
+    const voice = this.play(
       0.105,
       (t) => {
         colored = colored * 0.76 + (Math.random() * 2 - 1) * 0.24;
@@ -107,9 +112,16 @@ export class Sound {
           Math.exp(-t * 24)
         );
       },
-      (0.18 + Math.random() * 0.035) * (concrete ? 1 : 0.7),
+      (0.18 + Math.random() * 0.035) *
+        (concrete ? 1 : 0.7) *
+        loudness *
+        (listener ? acoustics(listener, position).gain : 1),
       concrete ? 1100 : 470,
     );
+    if (child) this.childFoot = voice;
+    else this.foot = voice;
+    if (voice && listener)
+      voice.pan.pan.value = acoustics(listener, position).pan;
     this.footstepCount++;
   }
   object(kind: "cloth" | "drop" | "mechanism") {
@@ -130,7 +142,88 @@ export class Sound {
       kind === "mechanism" ? 900 : 400,
     );
   }
-  stopSteps() {
+  musicLevel = 0;
+  private musicClock = 0;
+  private droneClock = 0;
+  private ambienceClock = 0;
+  music(dt: number, confirmed: boolean) {
+    this.musicLevel +=
+      (Number(confirmed) - this.musicLevel) *
+      (1 - Math.exp(-dt * (confirmed ? 3 : 0.6)));
+    this.musicClock -= dt;
+    this.droneClock -= dt;
+    if (this.musicLevel > 0.015 && this.musicClock <= 0) {
+      this.musicClock = 0.23;
+      this.play(
+        0.12,
+        (t) =>
+          Math.tanh(
+            Math.sin(2 * Math.PI * (62 * t - 60 * t * t)) * 2 +
+              (Math.random() * 2 - 1) * 0.15,
+          ) * Math.exp(-t * 35),
+        0.043 * this.musicLevel,
+        390,
+      );
+    }
+    if (this.musicLevel > 0.015 && this.droneClock <= 0) {
+      this.droneClock = 0.65;
+      this.play(
+        0.8,
+        (t) =>
+          (Math.sin(t * 2 * Math.PI * 38) +
+            0.3 * Math.sin(t * 2 * Math.PI * 57)) *
+          Math.sin((Math.PI * t) / 0.8),
+        0.022 * this.musicLevel,
+        110,
+      );
+    }
+  }
+  inhabitant(kind: "clicker" | "zombie", listener: Point, position: Point) {
+    const a = acoustics(listener, position);
+    if (a.gain < 0.004) return 0;
+    const v = this.play(
+      kind === "clicker" ? 0.3 : 0.8,
+      (t) =>
+        kind === "clicker"
+          ? (Math.sin(t * 2 * Math.PI * 540) + (Math.random() * 2 - 1) * 0.6) *
+            Math.exp(-((t * 17) % 1) * 15) *
+            Math.exp(-t * 6)
+          : Math.sin(t * 2 * Math.PI * 76 + Math.sin(t * 12)) *
+            Math.sin((Math.PI * t) / 0.8),
+      a.gain * 0.2,
+      kind === "clicker" ? 1200 : a.cutoff,
+    );
+    if (v) v.pan.pan.value = a.pan;
+    return this.active ? a.gain * 0.45 : 0;
+  }
+  ambience(dt: number, zone: string, powered: boolean) {
+    this.ambienceClock -= dt;
+    if (this.ambienceClock > 0) return;
+    this.ambienceClock = 6 + Math.random() * 5;
+    const f =
+      zone === "service"
+        ? 98
+        : zone === "hotel"
+          ? 71
+          : zone === "underground"
+            ? 43
+            : powered
+              ? 62
+              : 117;
+    this.play(
+      1.4,
+      (t) =>
+        (Math.sin(t * 2 * Math.PI * f) * 0.3 + (Math.random() * 2 - 1) * 0.08) *
+        Math.sin((Math.PI * t) / 1.4),
+      0.017,
+      240,
+    );
+  }
+  stopSteps(all = true) {
+    if (all && this.childFoot) {
+      this.childFoot.source.stop();
+      this.childFoot = null;
+    }
     if (this.foot) {
       this.foot.source.stop();
       this.foot = null;
@@ -173,11 +266,15 @@ export class Sound {
     this.muted = true;
     for (const voice of this.voices) voice.source.stop();
     this.foot = null;
+    this.childFoot = null;
     this.creature = null;
   }
   reset() {
     this.silence();
     this.muted = false;
+    this.musicLevel = 0;
+    this.musicClock = 0;
+    this.droneClock = 0;
     this.heartbeatCount = 0;
     this.footstepCount = 0;
   }

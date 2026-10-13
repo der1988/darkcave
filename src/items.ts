@@ -15,6 +15,7 @@ export const CATEGORIES = [
   "Documents",
   "Equipment",
   "Cargo",
+  "Memories",
 ] as const;
 export type ItemDef = {
   name: string;
@@ -29,6 +30,9 @@ export type ItemDef = {
   bulkCapacity?: number;
   capability?: string;
   large?: boolean;
+  furniture?: "cabinet" | "shelf" | "desk" | "crate" | "generator" | "lamp";
+  storageCapacity?: number;
+  footprint?: [number, number];
   actions: ("inspect" | "drop" | "store" | "equip" | "use")[];
 };
 const icons = {
@@ -160,25 +164,102 @@ export const ITEMS: Record<string, ItemDef> = {
     actions: ["inspect", "drop", "store", "use"],
   },
 };
+for (const [id, name, kind, weight, capacity, footprint] of [
+  ["cabinet", "Mobiletto recuperabile", "cabinet", 6, 12, [1, 1]],
+  ["shelf", "Scaffale basso", "shelf", 5, 8, [2, 1]],
+  ["desk", "Piccola scrivania", "desk", 5, 2, [2, 1]],
+  ["crate", "Cassetta di legno", "crate", 3, 6, [1, 1]],
+  ["generator", "Generatore portatile", "generator", 7, 0, [1, 1]],
+  ["standlamp", "Lampada da terra", "lamp", 3, 0, [1, 1]],
+] as const)
+  ITEMS[id] = {
+    name,
+    category: "Cargo",
+    description: capacity
+      ? kind==='crate' ? `Cassetta trasportabile: ${capacity} spazi. Il contenuto pesa mentre la porti.` : `Trasporta a casa e sistema sul pavimento. Contiene fino a ${capacity} spazi. Svuota prima di spostare.`
+      : kind === "generator"
+        ? "Alimenta le lampade recuperate. La luce di casa non dipende da questo generatore."
+        : "Una lampada recuperata. Il generatore le restituisce luce.",
+    weight,
+    bulk: 10,
+    icon: icons.box,
+    slots: ["Left hand"],
+    hands: 2,
+    large: true,
+    furniture: kind,
+    storageCapacity: capacity,
+    footprint: [...footprint],
+    actions: ["inspect", "drop", "equip"],
+  };
+ITEMS.cup = {
+  name: "Una tazza",
+  category: "Memories",
+  description: "Il bordo è scheggiato da una parte.",
+  weight: 0.2,
+  bulk: 1,
+  icon: ["        ", " #####  ", " #   ## ", " #   ## ", " #####  "],
+  capability: "memory",
+  actions: ["inspect", "drop", "store", "use"],
+};
+ITEMS.photo = {
+  name: "Una fotografia",
+  category: "Memories",
+  description: "Due figure davanti a una casa. Il resto è sfocato.",
+  weight: 0.01,
+  bulk: 1,
+  icon: icons.note,
+  capability: "memory",
+  actions: ["inspect", "drop", "store", "use"],
+};
 export type Location =
   | { kind: "world"; position: Point }
   | { kind: "inventory" }
   | { kind: "equipped"; slot: Slot }
   | { kind: "storage"; target: string }
   | { kind: "used"; target: string };
-export type Item = { id: string; def: string; location: Location };
+export type Item = {
+  id: string;
+  def: string;
+  location: Location;
+  rotation?: 0 | 1;
+};
 export type Target = {
   id: string;
   name: string;
   position: Point;
-  kind: "door" | "machine" | "cabinet" | "panel";
+  kind: "door" | "machine" | "cabinet" | "panel" | "computer" | "archive";
   description: string;
   cells?: Point[];
   storage?: boolean;
+  capacity?: number;
   rule?: { capability: string; consume: boolean; equipped?: boolean };
   opens?: string;
 };
 export const TARGETS: Target[] = [
+  {
+    id: "home-computer",
+    name: "Computer",
+    position: { x: 36.5, y: 45.5 },
+    kind: "computer",
+    description: "LIMINAL — MEMORY ARCHIVE",
+  },
+  {
+    id: "archive",
+    name: "Archivio dei ricordi",
+    position: { x: 34.5, y: 45.5 },
+    kind: "archive",
+    description: "Riportiamo qui le cose che ricordiamo.",
+    rule: { capability: "memory", consume: true },
+  },
+  {
+    id: "home-storage",
+    name: "Armadio di casa",
+    position: { x: 34.5, y: 49.5 },
+    kind: "cabinet",
+    storage: true,
+    capacity: 12,
+    description: "Le cose lasciate qui restano al sicuro.",
+  },
   {
     id: "store-door",
     name: "S-04 service door",
@@ -246,6 +327,14 @@ export function seedItems(): Item[] {
     location: { kind: "world", position: { x, y } },
   });
   return [
+    world("memory-cup", "cup", 44.5, 12.5),
+    world("memory-photo", "photo", 8.5, 49.5),
+    world("f-cabinet", "cabinet", 79.5, 43.5),
+    world("f-shelf", "shelf", 5.5, 63.5),
+    world("f-desk", "desk", 15.5, 89.5),
+    world("f-crate", "crate", 82.5, 25.5),
+    world("f-generator", "generator", 88.5, 66.5),
+    world("f-lamp", "standlamp", 90.5, 67.5),
     world("key-01", "key", 54.5, 53.5),
     world("note-01", "note", 52.5, 52.5),
     world("pack-01", "backpack", 56.5, 53.5),

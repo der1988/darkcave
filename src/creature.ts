@@ -22,7 +22,11 @@ export class Creature {
   private repath = 0;
   private pause = 2;
   private soundIn = 2.5;
-  constructor(private random = Math.random) {}
+  constructor(
+    private random = Math.random,
+    private forbidden = isSafe,
+    private chaseSpeed = 2.05,
+  ) {}
   private enter(state: CreatureState) {
     this.state = state;
     this.stateTime = 0;
@@ -35,11 +39,11 @@ export class Creature {
       const target = choices[Math.floor(this.random() * choices.length)];
       if (
         !target ||
-        isSafe(target.x, target.y) ||
+        this.forbidden(target.x, target.y) ||
         Math.hypot(target.x - this.position.x, target.y - this.position.y) < 1.5
       )
         continue;
-      const route = pathfind(this.position, target, isSafe);
+      const route = pathfind(this.position, target, this.forbidden);
       if (route.length) {
         this.route = route;
         return;
@@ -48,7 +52,8 @@ export class Creature {
   }
   /** The only player information accepted is a currently visible observation. */
   update(dt: number, observation: Point | null): boolean {
-    if (observation && isSafe(observation.x, observation.y)) observation = null;
+    if (observation && this.forbidden(observation.x, observation.y))
+      observation = null;
     if (this.geometry !== geometryRevision) {
       this.geometry = geometryRevision;
       this.route = [];
@@ -100,7 +105,7 @@ export class Creature {
           Math.floor(end.x) !== Math.floor(this.lastKnown.x) ||
           Math.floor(end.y) !== Math.floor(this.lastKnown.y)
         )
-          this.route = pathfind(this.position, this.lastKnown, isSafe);
+          this.route = pathfind(this.position, this.lastKnown, this.forbidden);
         else this.route[this.route.length - 1] = { ...this.lastKnown };
         this.repath = 0.6;
         if (
@@ -138,7 +143,7 @@ export class Creature {
     }
     const targetSpeed = this.route.length
       ? this.state === "pursuing" || this.state === "remembering"
-        ? 2.05
+        ? this.chaseSpeed
         : this.state === "searching"
           ? 0.85
           : 0.65
@@ -158,7 +163,7 @@ export class Creature {
           this.position,
           (dx / distance) * amount,
           (dy / distance) * amount,
-          isSafe,
+          this.forbidden,
         );
         this.stride += Math.hypot(this.position.x - x, this.position.y - y) * 5;
         this.heading = Math.atan2(dy, dx);
@@ -168,8 +173,8 @@ export class Creature {
   }
   canCapture(player: Point): boolean {
     return (
-      !isSafe(player.x, player.y) &&
-      !isSafe(this.position.x, this.position.y) &&
+      !this.forbidden(player.x, player.y) &&
+      !this.forbidden(this.position.x, this.position.y) &&
       (this.state === "pursuing" || this.state === "remembering") &&
       Math.hypot(player.x - this.position.x, player.y - this.position.y) <
         0.36 &&

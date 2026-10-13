@@ -4,7 +4,10 @@ type Vertex = [number, number, number];
 type Polygon = (points: Vertex[], color: number[], light: number) => void;
 /** Low, authored pixel geometry. All footprints are shared with collision/LOS. */
 export function drawFurniture(f: Furniture, polygon: Polygon, lamp: Lamp) {
-  const { x, y, w, d, h } = f;
+  const { w, d, h } = f;
+  const x = f.x + (f.visualOffset?.[0] || 0),
+    y = f.y + (f.visualOffset?.[1] || 0),
+    oz = f.visualOffset?.[2] || 0;
   const light = Math.max(
     roomLight(x + w / 2, y + d / 2, 0.4),
     surfaceLight(lamp, x + w / 2, y + d + 0.01, 0.3, 0, 1),
@@ -14,8 +17,49 @@ export function drawFurniture(f: Furniture, polygon: Polygon, lamp: Lamp) {
     wood = [128, 117, 94],
     dark = [49, 56, 50],
     rust = [125, 99, 81];
-  const face = (v: Vertex[], c: number[], shade = 1) =>
-    polygon(v, c, light * shade);
+  const clip = (
+    points: Vertex[],
+    axis: 0 | 1,
+    boundary: number,
+    greater: boolean,
+  ): Vertex[] => {
+    const result: Vertex[] = [];
+    for (let i = 0; i < points.length; i++) {
+      const a = points[i],
+        b = points[(i + 1) % points.length],
+        insideA = greater ? a[axis] >= boundary : a[axis] <= boundary,
+        insideB = greater ? b[axis] >= boundary : b[axis] <= boundary;
+      if (insideA) result.push(a);
+      if (insideA !== insideB) {
+        const t = (boundary - a[axis]) / (b[axis] - a[axis]);
+        result.push([
+          a[0] + (b[0] - a[0]) * t,
+          a[1] + (b[1] - a[1]) * t,
+          a[2] + (b[2] - a[2]) * t,
+        ]);
+      }
+    }
+    return result;
+  };
+  const face = (v: Vertex[], c: number[], shade = 1) => {
+    let points: Vertex[] = v.map((p) => [
+      p[0],
+      p[1],
+      Math.max(0.005, p[2] + oz),
+    ]);
+    if (f.clip) points = clip(points, f.clip.axis, f.clip.minimum, true);
+    if (f.cutout) {
+      const r = f.cutout,
+        middle = clip(clip(points, 0, r.x, true), 0, r.x + r.w, false);
+      for (const part of [
+        clip(points, 0, r.x, false),
+        clip(points, 0, r.x + r.w, true),
+        clip(middle, 1, r.y, false),
+        clip(middle, 1, r.y + r.h, true),
+      ])
+        if (part.length >= 3) polygon(part, c, light * shade);
+    } else if (points.length >= 3) polygon(points, c, light * shade);
+  };
   const box = (
     a: number,
     b: number,
@@ -204,6 +248,72 @@ export function drawFurniture(f: Furniture, polygon: Polygon, lamp: Lamp) {
         ],
         rust,
       );
+  } else if (f.kind === "armchair" || f.kind === "sofa") {
+    box(x + 0.12, y + 0.14, w - 0.24, d - 0.25, 0, 0.22, wood);
+    box(x + 0.12, y + 0.12, w - 0.24, 0.22, 0.2, h - 0.2, rust);
+    box(x + 0.1, y + 0.15, 0.18, d - 0.25, 0.2, 0.3, rust);
+    box(x + w - 0.28, y + 0.15, 0.18, d - 0.25, 0.2, 0.3, rust);
+    const count = f.kind === "sofa" ? 3 : 1;
+    for (let i = 0; i < count; i++)
+      box(
+        x + 0.3 + (i * (w - 0.6)) / count,
+        y + 0.38,
+        (w - 0.6) / count - 0.03,
+        d - 0.53,
+        0.2,
+        0.13,
+        [137, 121, 104],
+      );
+  } else if (f.kind === "desk") {
+    for (const a of [0.15, w - 0.22])
+      for (const b of [0.15, d - 0.22]) post(x + a, y + b, 0, h, wood);
+    box(x + 0.06, y + 0.06, w - 0.12, d - 0.12, h, 0.065, wood);
+  } else if (f.kind === "cabinet" || f.kind === "shelf" || f.kind === "crate") {
+    box(x + 0.1, y + 0.1, w - 0.2, d - 0.2, 0, h, wood);
+    if (f.kind === "shelf") {
+      for (const z of [0.2, 0.45, 0.7])
+        if (z < h) box(x + 0.2, y + d - 0.09, w - 0.4, 0.015, z, 0.08, dark);
+    } else
+      for (let i = 0.5; i < w; i++)
+        box(x + i, y + d - 0.09, 0.04, 0.02, 0.3, h * 0.5, dark);
+  } else if (f.kind === "generator") {
+    box(x + 0.15, y + 0.15, w - 0.3, d - 0.3, 0, 0.45, metal);
+    for (let i = 0.3; i < 0.8; i += 0.12)
+      box(x + i, y + d - 0.14, 0.045, 0.02, 0.12, 0.22, dark);
+    box(x + 0.25, y + 0.25, 0.45, 0.4, 0.45, 0.08, rust);
+  } else if (f.kind === "lamp") {
+    box(x + 0.25, y + 0.25, 0.5, 0.5, 0, 0.05, metal);
+    post(x + 0.48, y + 0.48, 0.05, h - 0.05, metal);
+    box(x + 0.22, y + 0.22, 0.56, 0.56, h - 0.2, 0.25, stone);
+  } else if (f.kind === "television") {
+    box(x + 0.12, y + 0.17, w - 0.24, d - 0.34, 0, h, wood);
+    box(
+      x + 0.2,
+      y + d - 0.16,
+      w - 0.4,
+      0.02,
+      0.12,
+      Math.max(0.12, h - 0.24),
+      [82, 94, 83],
+    );
+    box(x + w - 0.24, y + d - 0.14, 0.05, 0.02, 0.16, 0.05, stone);
+  } else if (
+    f.kind === "window" ||
+    f.kind === "curtain" ||
+    f.kind === "hotel-door"
+  ) {
+    box(x + 0.05, y + 0.05, w - 0.1, 0.12, 0.05, h, wood);
+    if (f.kind === "curtain")
+      for (let i = 0.1; i < w; i += 0.14)
+        box(x + i, y + 0.17, 0.08, 0.06, 0.1, h - 0.1, rust);
+    else if (f.kind === "window") {
+      box(x + 0.15, y + 0.18, w - 0.3, 0.02, 0.35, h - 0.45, [167, 163, 119]);
+      box(x + w / 2, y + 0.2, 0.04, 0.02, 0.3, h - 0.4, wood);
+    } else {
+      box(x + 0.2, y + 0.18, 0.55, 0.02, 0.08, h - 0.14, rust);
+      box(x + 0.3, y + 0.21, 0.25, 0.015, 0.8, 0.1, stone);
+      box(x + 0.66, y + 0.21, 0.06, 0.03, 0.5, 0.05, metal);
+    }
   } else if (f.kind === "roundabout") {
     const cx = x + w / 2,
       cy = y + d / 2,

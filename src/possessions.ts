@@ -17,10 +17,14 @@ import {
   visible,
 } from "./world";
 import { beam, type Point, type Lamp } from "./light";
+import { perceived, inView } from "./vision";
 import { Exploration } from "./exploration";
 import { roomLight, furnitureSolid } from "./environments";
+import { HOME, LEVELS, freshChapter, inHome, type ChapterSave } from "./levels";
+import { itemCells, protectedBaseCell } from "./base";
+import { pathfind } from "./navigation";
 export const SAVE_KEY = "liminal.transport.v1";
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 export type Save = {
   version: number;
   map: string;
@@ -29,17 +33,62 @@ export type Save = {
   active: string[];
   lightRequested: boolean;
   explored?: number[];
+  maps?: ReturnType<Exploration["encode"]>;
+  chapter?: ChapterSave;
 };
 export const owned = (i: Item) =>
   i.location.kind === "inventory" || i.location.kind === "equipped";
 export class Possessions {
   items = seedItems();
   exploration = new Exploration();
+  chapter = freshChapter();
+  get delivered() {
+    return this.items
+      .filter(
+        (i) => i.location.kind === "used" && i.location.target === "archive",
+      )
+      .map((i) => i.id);
+  }
+  get complete() {
+    return LEVELS.surface.required.every((id) => this.delivered.includes(id));
+  }
+  get generatorPowered() {
+    return (
+      this.chapter.generatorOn &&
+      this.items.some(
+        (i) =>
+          i.def === "generator" &&
+          i.location.kind === "world" &&
+          inHome(i.location.position),
+      )
+    );
+  }
+  get lampPowered() {
+    return (
+      this.generatorPowered &&
+      this.items.some(
+        (i) =>
+          i.def === "standlamp" &&
+          i.location.kind === "world" &&
+          inHome(i.location.position),
+      )
+    );
+  }
   active = new Set<string>();
   saveWarning = "";
   get weight() {
     return this.items
-      .filter(owned)
+      .filter(
+        (i) =>
+          owned(i) ||
+          (i.location.kind === "storage" &&
+            this.items.some(
+              (c) =>
+                c.id === (i.location as { target: string }).target &&
+                c.def === "crate" &&
+                owned(c),
+            )),
+      )
       .reduce((n, i) => n + ITEMS[i.def].weight, 0);
   }
   get equipment() {
@@ -96,7 +145,7 @@ export class Possessions {
         points.push(...(t.cells || [t.position]));
     for (const i of this.items)
       if (i.location.kind === "world" && ITEMS[i.def].large)
-        points.push(i.location.position);
+        points.push(...itemCells(i));
     setObstacles(points);
   }
   private check(): string | null {
@@ -148,6 +197,13 @@ export class Possessions {
   take(id: string, player: Point, storage?: string): string {
     const i = this.item(id);
     if (!i) return "Missing item.";
+    if (
+      i.def !== "crate" &&
+      this.items.some(
+        (j) => j.location.kind === "storage" && j.location.target === id,
+      )
+    )
+      return "Svuota il contenitore prima di spostarlo.";
     if (i.location.kind === "world") {
       if (!this.reachable(i.location.position, player, !!ITEMS[i.def].large))
         return "Move closer.";
@@ -175,6 +231,8 @@ export class Possessions {
   drop(id: string, player: Point, occupied: Point[] = []): string {
     const i = this.item(id);
     if (!i || !owned(i)) return "Not carried.";
+    if (ITEMS[i.def].furniture && inHome(player))
+      return "Usa Sistema in casa per scegliere una posizione libera.";
     const options: Point[] = [];
     for (let y = -1; y <= 1; y++)
       for (let x = -1; x <= 1; x++) {
@@ -188,7 +246,31 @@ export class Possessions {
             Math.floor(p.y) === Math.floor(player.y))
         )
           continue;
+        const footprint = itemCells({
+          ...i,
+          location: { kind: "world", position: p },
+        });
         if (
+          ITEMS[i.def].large &&
+          footprint.some(
+            (cell) =>
+              !canStand(cell.x, cell.y) ||
+              protectedBaseCell(cell) ||
+              [player, ...occupied].some(
+                (a) =>
+                  Math.abs(a.x - cell.x) < 0.7 && Math.abs(a.y - cell.y) < 0.7,
+              ) ||
+              this.items.some(
+                (j) =>
+                  j.location.kind === "world" &&
+                  Math.floor(j.location.position.x) === Math.floor(cell.x) &&
+                  Math.floor(j.location.position.y) === Math.floor(cell.y),
+              ),
+          )
+        )
+          continue;
+        if (
+          !(ITEMS[i.def].large && protectedBaseCell(p)) &&
           canStand(p.x, p.y) &&
           visible(player.x, player.y, p.x, p.y) &&
           !(
@@ -229,9 +311,33 @@ export class Possessions {
     if (!i || !owned(i)) return "Not carried.";
     if (!this.storageAvailable(target, player))
       return "Open a nearby cabinet first.";
+    const limit =
+      TARGETS.find((t) => t.id === target)?.capacity ||
+      ITEMS[this.item(target)?.def || ""]?.storageCapacity ||
+      24;
+    if (
+      ITEMS[i.def].large ||
+      this.items
+        .filter(
+          (j) => j.location.kind === "storage" && j.location.target === target,
+        )
+        .reduce((n, j) => n + ITEMS[j.def].bulk, 0) +
+        ITEMS[i.def].bulk >
+        limit
+    )
+      return "Il contenitore è pieno o l’oggetto è troppo ingombrante.";
     return this.transfer(i, { kind: "storage", target });
   }
   storageAvailable(id: string, player: Point) {
+    const furniture = this.item(id);
+    if (furniture && ITEMS[furniture.def].storageCapacity) {
+      if (furniture.def === "crate" && owned(furniture)) return true;
+      if (furniture.location.kind === "world")
+        return (
+          (furniture.def === "crate" || inHome(furniture.location.position)) &&
+          this.reachable(furniture.location.position, player, true)
+        );
+    }
     const t = TARGETS.find((t) => t.id === id);
     return (
       !!t?.storage &&
@@ -248,6 +354,11 @@ export class Possessions {
     }
     if (!t || !this.reachable(t.position, player, true))
       return "No compatible target within reach.";
+    if (t.id === "archive" && ITEMS[i.def].capability === "memory") {
+      const error = this.transfer(i, { kind: "used", target: "archive" });
+      if (!error) this.active.add("archive");
+      return error;
+    }
     if (this.active.has(t.id)) return "Already working.";
     if (!t.rule || ITEMS[i.def].capability !== t.rule.capability)
       return "This item does not fit.";
@@ -302,7 +413,9 @@ export class Possessions {
         const block = "def" in e ? !!ITEMS[e.def].large : true;
         return (
           this.reachable(p, player, block) &&
-          this.exposure(p, lamp, block) > 0.035
+          this.exposure(p, lamp, block) > 0.035 &&
+          inView(player, lamp.angle, p) &&
+          perceived(player, lamp.angle, lamp, this.face(p, player, block))
         );
       })
       .sort((a, b) => {
@@ -316,6 +429,58 @@ export class Possessions {
         );
       })[0];
   }
+  placeFurniture(
+    id: string,
+    position: Point,
+    rotation: 0 | 1,
+    actors: Point[],
+  ): string {
+    const item = this.item(id);
+    if (!item || !ITEMS[item.def].furniture || !owned(item))
+      return "Trasporta prima il mobile.";
+    const previous = item.location,
+      oldRotation = item.rotation;
+    item.location = {
+      kind: "world",
+      position: {
+        x: Math.floor(position.x) + 0.5,
+        y: Math.floor(position.y) + 0.5,
+      },
+    };
+    item.rotation = rotation;
+    const cells = itemCells(item);
+    const invalid = cells.some(
+      (p) =>
+        !inHome(p) ||
+        protectedBaseCell(p) ||
+        !canStand(p.x, p.y) ||
+        actors.some(
+          (a) => Math.abs(a.x - p.x) < 0.7 && Math.abs(a.y - p.y) < 0.7,
+        ),
+    );
+    if (invalid) {
+      item.location = previous;
+      item.rotation = oldRotation;
+      return "Serve pavimento libero, lontano dall’ingresso e dai fratelli.";
+    }
+    this.sync();
+    const checkpoints = [
+      HOME.spawn,
+      HOME.entrance,
+      { x: 35.5, y: 46.5 },
+      { x: 36.5, y: 46.5 },
+      { x: 35.5, y: 49.5 },
+      ...actors.filter(inHome),
+    ];
+    const blocked = checkpoints.some((p) => !pathfind(HOME.spawn, p).length);
+    if (blocked) {
+      item.location = previous;
+      item.rotation = oldRotation;
+      this.sync();
+      return "Questa posizione blocca un passaggio.";
+    }
+    return "";
+  }
   encode(player: Point, lightRequested: boolean): Save {
     return {
       version: SAVE_VERSION,
@@ -325,6 +490,8 @@ export class Possessions {
       active: [...this.active],
       lightRequested,
       explored: [...this.exploration.cells].sort((a, b) => a - b),
+      maps: this.exploration.encode(),
+      chapter: structuredClone(this.chapter),
     };
   }
   save(player: Point, lightRequested: boolean) {
@@ -346,7 +513,9 @@ export class Possessions {
     try {
       const data = JSON.parse(raw) as Save;
       if (
-        (data.version !== SAVE_VERSION && data.version !== 1) ||
+        (data.version !== SAVE_VERSION &&
+          data.version !== 1 &&
+          data.version !== 2) ||
         data.map !== "transport-1" ||
         !Array.isArray(data.items) ||
         !Array.isArray(data.active) ||
@@ -354,9 +523,38 @@ export class Possessions {
       )
         throw Error();
       const explored = new Exploration();
-      explored.load(data.version === 1 ? [] : data.explored);
+      if (data.version === SAVE_VERSION) explored.loadMaps(data.maps);
+      else explored.load(data.version === 1 ? [] : data.explored);
+      const chapter =
+        data.version === SAVE_VERSION ? data.chapter : freshChapter();
+      if (
+        !chapter ||
+        chapter.level !== "surface" ||
+        !Number.isFinite(chapter.facing) ||
+        !Number.isFinite(chapter.health) ||
+        chapter.health < 0 ||
+        chapter.health > 100 ||
+        !Number.isFinite(chapter.childHealth) ||
+        chapter.childHealth < 0 ||
+        chapter.childHealth > 100 ||
+        typeof chapter.generatorOn !== "boolean" ||
+        !Array.isArray(chapter.events) ||
+        chapter.events.some((e) => typeof e !== "string" || e.length > 80) ||
+        !chapter.companion ||
+        !Number.isFinite(chapter.companion.x) ||
+        !Number.isFinite(chapter.companion.y)
+      )
+        throw Error();
       const seed = seedItems(),
         ids = new Set<string>();
+      if (data.version < 3) {
+        const additions = seed.filter(
+          (i) => i.id.startsWith("memory-") || i.id.startsWith("f-"),
+        );
+        if (data.items.some((i) => additions.some((a) => a.id === i.id)))
+          throw Error();
+        data.items.push(...additions);
+      }
       if (data.items.length !== seed.length) throw Error();
       const point = (p: Point) =>
         p &&
@@ -368,7 +566,8 @@ export class Possessions {
           !i ||
           ids.has(i.id) ||
           !seed.some((s) => s.id === i.id && s.def === i.def) ||
-          !i.location
+          !i.location ||
+          (i.rotation !== undefined && i.rotation !== 0 && i.rotation !== 1)
         )
           throw Error();
         ids.add(i.id);
@@ -378,7 +577,10 @@ export class Possessions {
         } else if (l.kind === "equipped") {
           if (!SLOTS.includes(l.slot)) throw Error();
         } else if (l.kind === "storage") {
-          if (!TARGETS.some((t) => t.id === l.target && t.storage))
+          if (
+            !TARGETS.some((t) => t.id === l.target && t.storage) &&
+            !seed.some((s) => s.id === l.target && ITEMS[s.def].storageCapacity)
+          )
             throw Error();
         } else if (l.kind === "used") {
           if (l.target === "drink") {
@@ -414,7 +616,7 @@ export class Possessions {
         throw Error();
       // Additive map update: move legacy floor items off newly placed furniture.
       // Preserve their IDs and ownership instead of discarding the whole old save.
-      if (data.version === 1) {
+      if (data.version < 3) {
         const occupied = new Set<string>();
         const key = (p: Point) => `${Math.floor(p.x)},${Math.floor(p.y)}`;
         for (const t of TARGETS)
@@ -468,9 +670,45 @@ export class Possessions {
           const p = i.location.position,
             key = `${Math.floor(p.x)},${Math.floor(p.y)}`;
           if (cells.has(key) || furnitureSolid(p.x, p.y)) throw Error();
-          if (ITEMS[i.def].large) cells.add(key);
+          if (ITEMS[i.def].large)
+            for (const cell of itemCells(i)) {
+              const k = `${Math.floor(cell.x)},${Math.floor(cell.y)}`;
+              if (
+                cells.has(k) ||
+                !material(cell.x, cell.y) ||
+                furnitureSolid(cell.x, cell.y)
+              )
+                throw Error();
+              cells.add(k);
+            }
         }
+      for (const container of this.items.filter(
+        (i) => ITEMS[i.def].storageCapacity,
+      )) {
+        const contents = this.items.filter(
+          (i) =>
+            i.location.kind === "storage" && i.location.target === container.id,
+        );
+        if (
+          contents.length &&
+          (container.def === "crate"
+            ? !(owned(container) || container.location.kind === "world")
+            : container.location.kind !== "world" ||
+              !inHome(container.location.position))
+        )
+          throw Error();
+        if (
+          contents.reduce((n, i) => n + ITEMS[i.def].bulk, 0) >
+          ITEMS[container.def].storageCapacity!
+        )
+          throw Error();
+      }
       this.exploration = explored;
+      this.chapter = chapter;
+      if (data.version < 3)
+        chapter.companion = { x: data.player.x - 0.8, y: data.player.y };
+      if (!canStand(chapter.companion.x, chapter.companion.y))
+        chapter.companion = { ...HOME.child };
       return {
         player: canStand(data.player.x, data.player.y)
           ? data.player
