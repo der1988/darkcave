@@ -1,42 +1,75 @@
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import { SIZE, tiles, spawn, solid, visible, canStand, move, project, screenToWorld } from '../src/world.ts';
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { beam } from "../src/light.ts";
+import { Companion } from "../src/companion.ts";
+import { movementSpeed, movementVector } from "../src/movement.ts";
+import {
+  BROTHER_START,
+  PLAYER_START,
+  ROOM,
+  inside,
+  move,
+  project,
+  screenToWorld,
+} from "../src/world.ts";
 
-test('every authored floor cell is reachable from arrival', () => {
-  const queue = [[Math.floor(spawn.x), Math.floor(spawn.y)]];
-  const seen = new Set<number>();
-  for (let i = 0; i < queue.length; i++) {
-    const [x, y] = queue[i];
-    const key = y * SIZE + x;
-    if (solid(x,y) || seen.has(key)) continue;
-    seen.add(key);
-    queue.push([x-1,y],[x+1,y],[x,y-1],[x,y+1]);
+test("all eight movement directions have equal speed", () => {
+  for (const [x, y] of [
+    [1, 0],
+    [-1, 0],
+    [0, 1],
+    [0, -1],
+    [1, 1],
+    [-1, 1],
+    [1, -1],
+    [-1, -1],
+  ]) {
+    const p = movementVector(x, y);
+    assert.ok(Math.abs(Math.hypot(p.x, p.y) - 1) < 1e-9);
   }
-  assert.equal(seen.size, [...tiles].filter((v,i)=>v && !solid(i%SIZE,Math.floor(i/SIZE))).length);
-  assert.ok(seen.size > 2000);
+  assert.ok(movementSpeed(true) > movementSpeed(false));
 });
-test('flashlight reaches open floors and stops at structural columns and walls', () => {
-  assert.equal(visible(53.5,53.5,57.5,53.5),true);
-  assert.equal(visible(48.5,49.5,50.5,49.5),false);
-  assert.equal(visible(53.5,53.5,53.5,20.5),false);
-  assert.equal(visible(48.5,48.5,50.5,50.5),false);
-  assert.equal(visible(53.5,53.5,49.5,49.5),false);
+
+test("movement cannot leave the room, even with a large frame", () => {
+  const p = { ...PLAYER_START };
+  move(p, -100, -100);
+  assert.equal(inside(p.x, p.y), true);
+  assert.ok(p.x >= ROOM.x && p.y >= ROOM.y);
+  move(p, 100, 100);
+  assert.equal(inside(p.x, p.y), true);
+  assert.ok(p.x <= ROOM.w && p.y <= ROOM.h);
 });
-test('movement cannot tunnel into walls, including a large frame step', () => {
-  const p = {x:46.5,y:53.5};
-  move(p,-100,0);
-  assert.ok(canStand(p.x,p.y));
-  assert.ok(p.x >= 12);
-  const column = {x:48.5,y:49.5};
-  move(column,5,0);
-  assert.ok(column.x < 49);
-  assert.ok(canStand(column.x,column.y));
-});
-test('projection round-trips and screen-up movement travels upward', () => {
-  for (const [x,y] of [[1,0],[0,1],[-2,5]]) {
-    const p = project(x,y); const q = screenToWorld(p.x,p.y);
-    assert.equal(q.x,x); assert.equal(q.y,y);
+
+test("isometric projection round-trips", () => {
+  for (const [x, y] of [
+    [1, 0],
+    [0, 1],
+    [-2, 5],
+  ]) {
+    const p = project(x, y);
+    assert.deepEqual(screenToWorld(p.x, p.y), { x, y });
   }
-  const up=screenToWorld(0,-1);
-  assert.ok(up.x<0 && up.y<0);
+});
+
+test("the flashlight is directional and has a finite range", () => {
+  const lamp = { x: 6, y: 5, angle: 0, on: true };
+  assert.ok(beam(lamp, { x: 8, y: 5 }) > 0.5);
+  assert.equal(beam(lamp, { x: 4, y: 5 }), 0);
+  assert.equal(beam({ ...lamp, on: false }, { x: 8, y: 5 }), 0);
+  assert.equal(beam(lamp, { x: 14, y: 5 }), 0);
+});
+
+test("the younger brother follows closely and is slightly faster", () => {
+  const child = new Companion(BROTHER_START);
+  const leader = { ...PLAYER_START };
+  for (let i = 0; i < 180; i++) {
+    move(leader, movementSpeed(false) / 60, 0);
+    child.update(1 / 60, leader, false);
+  }
+  const gap = Math.hypot(
+    child.position.x - leader.x,
+    child.position.y - leader.y,
+  );
+  assert.ok(gap >= 0.48 && gap < 0.58, `unexpected gap ${gap}`);
+  assert.equal(inside(child.position.x, child.position.y), true);
 });
