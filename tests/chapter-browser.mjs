@@ -44,7 +44,7 @@ try {
     await page.waitForTimeout(80);
   };
   assert.deepEqual((await state()).player, { x: 40.5, y: 50.5 });
-  assert.deepEqual((await state()).companion, { x: 40.6, y: 49.8 });
+  assert.deepEqual((await state()).companion, { x: 40.6, y: 49.95 });
   assert.equal((await state()).enemies.length, 8);
   await page.screenshot({ path: "/tmp/liminal-chapter-home.png" });
   const before = await state();
@@ -234,7 +234,7 @@ try {
   assert.notEqual((await state()).capture, null);
   await page.waitForTimeout(2700);
   assert.deepEqual((await state()).player, { x: 40.5, y: 50.5 });
-  assert.deepEqual((await state()).companion, { x: 40.6, y: 49.8 });
+  assert.deepEqual((await state()).companion, { x: 40.6, y: 49.95 });
   await place({ x: 11.5, y: 73.5 }, Math.PI);
   await page.screenshot({ path: "/tmp/liminal-chapter-hotel.png" });
   await place({ x: 49.5, y: 31.5 }, -Math.PI / 2);

@@ -30,7 +30,7 @@ export class Companion {
     threats: Point[] = [],
   ) {
     const last = this.history.at(-1);
-    if (!last || Math.hypot(last.x - leader.x, last.y - leader.y) > 0.24) {
+    if (!last || Math.hypot(last.x - leader.x, last.y - leader.y) > 0.18) {
       this.history.push({ ...leader });
       if (this.history.length > 180) this.history.shift();
     }
@@ -38,7 +38,7 @@ export class Companion {
         this.position.x - leader.x,
         this.position.y - leader.y,
       ),
-      gap = gait === "silent" ? 0.55 : 0.85;
+      gap = gait === "silent" ? 0.4 : 0.58;
     this.gait = gait;
     this.walking = false;
     this.repath -= dt;

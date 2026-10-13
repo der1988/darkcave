@@ -3,6 +3,16 @@ import { visible } from "./world";
 export type Point = { x: number; y: number };
 export type Lamp = Point & { angle: number; on: boolean };
 export const RANGE = 9.5;
+export function architecturalAwareness(
+  live: boolean,
+  clear: boolean,
+  distance: number,
+  remembered: boolean,
+) {
+  if (live) return 1;
+  if (clear && distance <= 4.5) return 0.42;
+  return remembered ? 0.26 : 0;
+}
 export function smooth(a: number, b: number, n: number) {
   const t = Math.max(0, Math.min(1, (n - a) / (b - a)));
   return t * t * (3 - 2 * t);

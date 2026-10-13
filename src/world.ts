@@ -2,6 +2,9 @@ import { HOME, MEMORY_ROOMS, DARK_PASSAGES } from "./levels";
 import { furnitureSolid } from "./environments";
 /** Hand-authored modules. Empty space is intentional; no random maze generation. */
 export const SIZE = 112;
+export const TILE_X = 28;
+export const TILE_Y = 14;
+export const TILE_Z = 28;
 export const tiles = new Uint8Array(SIZE * SIZE);
 function room(x: number, y: number, w: number, h: number, material = 1) {
   for (let j = y; j < y + h; j++)
@@ -176,8 +179,11 @@ export function move(
   }
 }
 export function screenToWorld(x: number, y: number) {
-  return { x: x / 48 + y / 24, y: y / 24 - x / 48 };
+  return {
+    x: x / (TILE_X * 2) + y / (TILE_Y * 2),
+    y: y / (TILE_Y * 2) - x / (TILE_X * 2),
+  };
 }
 export function project(x: number, y: number, z = 0) {
-  return { x: (x - y) * 24, y: (x + y) * 12 - z * 24 };
+  return { x: (x - y) * TILE_X, y: (x + y) * TILE_Y - z * TILE_Z };
 }

@@ -127,6 +127,13 @@ test("child running is slower, silent following generates no ordinary footstep n
   );
   assert.equal(c.gait, "silent");
 });
+test("the child keeps a close following distance without overlapping the leader", () => {
+  const c = new Companion({ x: 51.5, y: 53.5 }),
+    p = { x: 53.5, y: 53.5 };
+  for (let i = 0; i < 180; i++) c.update(1 / 60, p, "walk", false);
+  const gap = Math.hypot(c.position.x - p.x, c.position.y - p.y);
+  assert.ok(gap >= 0.45 && gap < 0.7, `unexpected following gap ${gap}`);
+});
 test("one connected dark network supports the pursuer while forbidding every main and protected room", () => {
   const origin = { x: 53.5, y: 43.5 };
   for (const r of DARK_PASSAGES)

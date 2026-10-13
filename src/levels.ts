@@ -10,7 +10,7 @@ export const HOME = {
   w: 10,
   h: 8,
   spawn: { x: 40.5, y: 50.5 },
-  child: { x: 40.6, y: 49.8 },
+  child: { x: 40.6, y: 49.95 },
   entrance: { x: 43.5, y: 47.5 },
 };
 export const MEMORY_ROOMS = [

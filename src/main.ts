@@ -17,7 +17,13 @@ import { drawPlayer, drawChild } from "./player-sprite";
 import { FURNITURE, isSafe, roomLight, type Furniture } from "./environments";
 import { drawFurniture } from "./scenery";
 import { ZONES, zoneAt } from "./zones";
-import { beam, surfaceLight, RANGE, type Lamp } from "./light";
+import {
+  architecturalAwareness,
+  beam,
+  surfaceLight,
+  RANGE,
+  type Lamp,
+} from "./light";
 import { Creature } from "./creature";
 import { Heart, Capture } from "./heart";
 import { Sound } from "./audio";
@@ -31,6 +37,9 @@ import {
   move,
   project,
   screenToWorld,
+  TILE_X,
+  TILE_Y,
+  TILE_Z,
 } from "./world";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
@@ -434,14 +443,19 @@ const lamp = (): Lamp => ({
 });
 function illumination(x: number, y: number, z: number, nx = 0, ny = 0) {
   const sample = { x: x + nx * 0.012, y: y + ny * 0.012 };
-  const live =
-    inView(player, angle, sample) &&
-    visible(player.x, player.y, sample.x, sample.y);
+  const clear = visible(player.x, player.y, sample.x, sample.y);
+  const live = inView(player, angle, sample) && clear;
   const remembered = cargo.exploration.cells.has(
     Math.floor(y) * 112 + Math.floor(x),
   );
   return (
-    surfaceLight(lamp(), x, y, z, nx, ny) * (live ? 1 : remembered ? 0.18 : 0)
+    surfaceLight(lamp(), x, y, z, nx, ny) *
+    architecturalAwareness(
+      live,
+      clear,
+      Math.hypot(sample.x - player.x, sample.y - player.y),
+      remembered,
+    )
   );
 }
 function polygon(points: number[][], color: number[], intensity: number) {
@@ -1212,7 +1226,9 @@ function render() {
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, width, height);
   // Lit rooms remain visible across the whole viewport, beyond the torch radius.
-  const viewRadius = Math.ceil(width / 48 + height / 24 + WALL_HEIGHT + 2);
+  const viewRadius = Math.ceil(
+    width / (TILE_X * 2) + height / (TILE_Y * 2) + WALL_HEIGHT + 2,
+  );
   const drawables: {
     x: number;
     y: number;
@@ -1240,7 +1256,7 @@ function render() {
         screen.x + offsetX < -26 ||
         screen.x + offsetX > width + 26 ||
         screen.y + offsetY < -14 ||
-        screen.y + offsetY > height + WALL_HEIGHT * 24 + 14
+        screen.y + offsetY > height + WALL_HEIGHT * TILE_Z + TILE_Y + 2
       )
         continue;
       if (
