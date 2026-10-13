@@ -11,7 +11,7 @@ export class Dialogue {
   current: Speech | null = null;
   private queue: Speech[] = [];
   private age = 0;
-  private cooldown = 4;
+  private cooldown = 0.8;
   private afterDanger = false;
   update(
     dt: number,
@@ -105,7 +105,20 @@ export class Dialogue {
       ]);
       return;
     }
-    this.cooldown = 35;
+    this.say(
+      inHome(p)
+        ? [
+            {
+              speaker: "child",
+              text: "Qui almeno possiamo chiudere la porta.",
+            },
+            { speaker: "older", text: "Restiamo solo il necessario." },
+          ]
+        : [
+            { speaker: "child", text: "Resta vicino." },
+            { speaker: "older", text: "Sono qui." },
+          ],
+    );
   }
   private say(lines: Speech[]) {
     this.current = lines[0];

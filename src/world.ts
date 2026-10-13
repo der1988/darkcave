@@ -71,12 +71,12 @@ room(61, 101, 1, 2, 0);
 room(71, 101, 1, 2, 0);
 // A vacant shopping concourse leads through a dark passage to an abandoned play hall.
 room(8, 3, 29, 17, 3);
-room(37, 44, 6, 6, 2);
-room(43, 47, 2, 2, 1);
+room(41, 47, 5, 3, 2);
 // Chapter one additions preserve the original routes and transport example.
 room(HOME.x, HOME.y, HOME.w, HOME.h, 2);
 for (const r of MEMORY_ROOMS) room(r.x, r.y, r.w, r.h, 2);
-room(43, 18, 3, 6, 2);
+room(43, 14, 3, 10, 2);
+room(9, 49, 4, 3, 1);
 room(10, 52, 3, 40, 1);
 for (const y of [60, 70, 80]) {
   room(3, y, 7, 6, 1);

@@ -54,9 +54,9 @@ test("all new stages remain reachable; furniture shares collision and sightlines
     assert.equal(canStand(f.x + 0.5, f.y + 0.5), false);
     assert.ok(furnitureSolid(f.x, f.y));
   }
-  const p = { x: 19.5, y: 37.5 };
-  move(p, 4, 0);
-  assert.ok(p.x < 20);
+  const p = { x: 12.5, y: 26.5 };
+  move(p, 2, 0);
+  assert.ok(p.x < 13);
   assert.ok(canStand(p.x, p.y));
 });
 test("fixed light remains visible with torch off and never adds creature exposure", () => {
@@ -78,13 +78,13 @@ test("fixed light remains visible with torch off and never adds creature exposur
   );
 });
 test("creature routes, pursuit, search and physical movement cannot enter lit rooms", () => {
-  const outside = { x: 44.5, y: 47.5 },
-    inside = { x: 42.5, y: 47.5 };
+  const outside = { x: 44.5, y: 48.5 },
+    inside = { x: 41.5, y: 48.5 };
   assert.ok(pathfind(outside, inside).length);
   assert.equal(pathfind(outside, inside, isSafe).length, 0);
   const c = new Creature(() => 0.48);
   c.position = { ...outside };
-  for (let i = 0; i < 25; i++) c.update(1 / 30, { x: 43.5, y: 47.5 });
+  for (let i = 0; i < 25; i++) c.update(1 / 30, { x: 43.5, y: 48.5 });
   assert.equal(c.state, "pursuing");
   const remembered = { ...c.lastKnown };
   for (let i = 0; i < 6000; i++) {
@@ -96,7 +96,7 @@ test("creature routes, pursuit, search and physical movement cannot enter lit ro
   assert.equal(c.lastKnown, null);
   const p = { ...outside };
   move(p, -6, 0, isSafe);
-  assert.ok(p.x >= 43.19);
+  assert.ok(p.x >= 42.19);
 });
 test("map progress survives save and reload; v1 saves migrate without changing ownership", () => {
   const state = new Possessions();
@@ -120,7 +120,7 @@ test("map progress survives save and reload; v1 saves migrate without changing o
   for (const item of encoded.items)
     assert.deepEqual(migrated.item(item.id), item);
   assert.equal(migrated.exploration.cells.size, 0);
-  assert.equal(migrated.encode(spawn, false).version, 3);
+  assert.equal(migrated.encode(spawn, false).version, 4);
   const before = [...loaded.exploration.cells];
   assert.equal(
     loaded.load(

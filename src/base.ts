@@ -16,7 +16,8 @@ export function itemCells(item: Item): Point[] {
   return result;
 }
 export const protectedBaseCell = (p: Point) =>
-  contains(HOME, p.x, p.y) && (p.x >= 41 || p.y < 47 || p.x < 35);
+  contains(HOME, p.x, p.y) &&
+  (p.x < HOME.x + 2 || p.x >= HOME.x + HOME.w - 2 || p.y < HOME.y + 2);
 export const footprintRegion = (i: Item): Region | null => {
   if (i.location.kind !== "world") return null;
   let [w, h] = ITEMS[i.def].footprint || [1, 1];

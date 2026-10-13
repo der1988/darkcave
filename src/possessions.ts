@@ -8,14 +8,7 @@ import {
   type Target,
   type Location,
 } from "./items";
-import {
-  RADIUS,
-  material,
-  canStand,
-  setObstacles,
-  spawn,
-  visible,
-} from "./world";
+import { RADIUS, material, canStand, setObstacles, visible } from "./world";
 import { beam, type Point, type Lamp } from "./light";
 import { perceived, inView } from "./vision";
 import { Exploration } from "./exploration";
@@ -24,7 +17,7 @@ import { HOME, LEVELS, freshChapter, inHome, type ChapterSave } from "./levels";
 import { itemCells, protectedBaseCell } from "./base";
 import { pathfind } from "./navigation";
 export const SAVE_KEY = "liminal.transport.v1";
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 export type Save = {
   version: number;
   map: string;
@@ -513,9 +506,7 @@ export class Possessions {
     try {
       const data = JSON.parse(raw) as Save;
       if (
-        (data.version !== SAVE_VERSION &&
-          data.version !== 1 &&
-          data.version !== 2) ||
+        ![1, 2, 3, SAVE_VERSION].includes(data.version) ||
         data.map !== "transport-1" ||
         !Array.isArray(data.items) ||
         !Array.isArray(data.active) ||
@@ -523,10 +514,9 @@ export class Possessions {
       )
         throw Error();
       const explored = new Exploration();
-      if (data.version === SAVE_VERSION) explored.loadMaps(data.maps);
+      if (data.version >= 3) explored.loadMaps(data.maps);
       else explored.load(data.version === 1 ? [] : data.explored);
-      const chapter =
-        data.version === SAVE_VERSION ? data.chapter : freshChapter();
+      const chapter = data.version >= 3 ? data.chapter : freshChapter();
       if (
         !chapter ||
         chapter.level !== "surface" ||
@@ -560,7 +550,12 @@ export class Possessions {
         p &&
         Number.isFinite(p.x) &&
         Number.isFinite(p.y) &&
-        material(p.x, p.y) !== 0;
+        (material(p.x, p.y) !== 0 ||
+          (data.version === 3 &&
+            p.x >= 33 &&
+            p.x < 43 &&
+            p.y >= 44 &&
+            p.y < 52));
       for (const i of data.items) {
         if (
           !i ||
@@ -616,7 +611,7 @@ export class Possessions {
         throw Error();
       // Additive map update: move legacy floor items off newly placed furniture.
       // Preserve their IDs and ownership instead of discarding the whole old save.
-      if (data.version < 3) {
+      if (data.version < SAVE_VERSION) {
         const occupied = new Set<string>();
         const key = (p: Point) => `${Math.floor(p.x)},${Math.floor(p.y)}`;
         for (const t of TARGETS)
@@ -628,7 +623,8 @@ export class Possessions {
         for (const i of data.items)
           if (
             i.location.kind === "world" &&
-            furnitureSolid(i.location.position.x, i.location.position.y)
+            (!material(i.location.position.x, i.location.position.y) ||
+              furnitureSolid(i.location.position.x, i.location.position.y))
           ) {
             const old = i.location.position,
               options: Point[] = [];
@@ -712,7 +708,7 @@ export class Possessions {
       return {
         player: canStand(data.player.x, data.player.y)
           ? data.player
-          : { ...spawn },
+          : { ...HOME.spawn },
         lightRequested: data.lightRequested,
       };
     } catch {

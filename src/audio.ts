@@ -107,16 +107,16 @@ export class Sound {
       (t) => {
         colored = colored * 0.76 + (Math.random() * 2 - 1) * 0.24;
         return (
-          (colored * 0.7 + Math.sin(t * 2 * Math.PI * 95 * pitch) * 0.18) *
+          (colored * 0.62 + Math.sin(t * 2 * Math.PI * 68 * pitch) * 0.16) *
           Math.sin((Math.PI * t) / 0.105) *
           Math.exp(-t * 24)
         );
       },
-      (0.18 + Math.random() * 0.035) *
+      (0.105 + Math.random() * 0.025) *
         (concrete ? 1 : 0.7) *
         loudness *
         (listener ? acoustics(listener, position).gain : 1),
-      concrete ? 1100 : 470,
+      concrete ? 780 : 360,
     );
     if (child) this.childFoot = voice;
     else this.foot = voice;

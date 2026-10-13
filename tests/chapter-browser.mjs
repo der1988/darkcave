@@ -43,8 +43,8 @@ try {
     await page.keyboard.press(key);
     await page.waitForTimeout(80);
   };
-  assert.deepEqual((await state()).player, { x: 40.5, y: 50.5 });
-  assert.deepEqual((await state()).companion, { x: 40.6, y: 49.95 });
+  assert.deepEqual((await state()).player, { x: 39.5, y: 49.5 });
+  assert.deepEqual((await state()).companion, { x: 39.6, y: 49.07 });
   assert.equal((await state()).enemies.length, 8);
   await page.screenshot({ path: "/tmp/liminal-chapter-home.png" });
   const before = await state();
@@ -233,8 +233,8 @@ try {
   await page.waitForTimeout(950);
   assert.notEqual((await state()).capture, null);
   await page.waitForTimeout(2700);
-  assert.deepEqual((await state()).player, { x: 40.5, y: 50.5 });
-  assert.deepEqual((await state()).companion, { x: 40.6, y: 49.95 });
+  assert.deepEqual((await state()).player, { x: 39.5, y: 49.5 });
+  assert.deepEqual((await state()).companion, { x: 39.6, y: 49.07 });
   await place({ x: 11.5, y: 73.5 }, Math.PI);
   await page.screenshot({ path: "/tmp/liminal-chapter-hotel.png" });
   await place({ x: 49.5, y: 31.5 }, -Math.PI / 2);
@@ -258,17 +258,41 @@ try {
       }),
   );
   assert.ok(timing.medianMs < 35);
-  await place({x:36.5,y:46.5},-Math.PI/2);await press('e');
-  await page.getByRole('button',{name:'Nuova partita',exact:true}).click();
-  assert.equal((await state()).complete,true,'First click must not reset progress');
-  await page.getByRole('button',{name:'Conferma nuova partita',exact:true}).click();
-  assert.equal((await state()).complete,false);assert.equal((await item('memory-cup')).location.kind,'world');
-  assert.ok(await page.evaluate(()=>localStorage.getItem('liminal.transport.v1.backup')));
-  await place({x:36.5,y:46.5},-Math.PI/2);await press('e');
-  await page.getByRole('button',{name:'Ripristina copia precedente',exact:true}).click();
-  await page.getByRole('button',{name:'Conferma ripristino',exact:true}).click();
-  assert.equal((await state()).complete,true);assert.equal((await state()).power,true);
-  assert.ok(await page.evaluate(()=>localStorage.getItem('liminal.transport.v1.before-restore')));
+  await place({ x: 36.5, y: 46.5 }, -Math.PI / 2);
+  await press("e");
+  await page
+    .getByRole("button", { name: "Nuova partita", exact: true })
+    .click();
+  assert.equal(
+    (await state()).complete,
+    true,
+    "First click must not reset progress",
+  );
+  await page
+    .getByRole("button", { name: "Conferma nuova partita", exact: true })
+    .click();
+  assert.equal((await state()).complete, false);
+  assert.equal((await item("memory-cup")).location.kind, "world");
+  assert.ok(
+    await page.evaluate(() =>
+      localStorage.getItem("liminal.transport.v1.backup"),
+    ),
+  );
+  await place({ x: 36.5, y: 46.5 }, -Math.PI / 2);
+  await press("e");
+  await page
+    .getByRole("button", { name: "Ripristina copia precedente", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Conferma ripristino", exact: true })
+    .click();
+  assert.equal((await state()).complete, true);
+  assert.equal((await state()).power, true);
+  assert.ok(
+    await page.evaluate(() =>
+      localStorage.getItem("liminal.transport.v1.before-restore"),
+    ),
+  );
   await page.setViewportSize({ width: 390, height: 844 });
   await press("i");
   await page.getByRole("button", { name: "Map", exact: true }).click();
@@ -288,7 +312,7 @@ try {
         memoryDelivery: "passed",
         furnitureAndPower: "passed",
         mapControls: "passed",
-      newGameAndRestore: "passed",
+        newGameAndRestore: "passed",
         persistence: "passed",
         damagePauseAndChildCapture: "passed",
         timing,

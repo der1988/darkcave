@@ -149,6 +149,7 @@ export type FurnitureKind =
   | "television"
   | "curtain"
   | "window"
+  | "bed"
   | "hotel-door";
 export type Furniture = {
   visualOffset?: [number, number, number];
@@ -167,33 +168,13 @@ export type Furniture = {
   h: number;
 };
 export const FURNITURE: Furniture[] = [
-  { id: "annex-chairs", kind: "chair", x: 38, y: 45, w: 1, d: 2, h: 0.45 },
-  { id: "annex-table", kind: "kiosk", x: 40, y: 47, w: 1, d: 1, h: 0.42 },
   { id: "mall-shutter-a", kind: "shutter", x: 13, y: 26, w: 4, d: 1, h: 1.15 },
   { id: "mall-shutter-b", kind: "shutter", x: 21, y: 26, w: 4, d: 1, h: 1.15 },
   { id: "mall-shutter-c", kind: "shutter", x: 29, y: 26, w: 3, d: 1, h: 1.15 },
-  { id: "mall-bench-a", kind: "bench", x: 20, y: 37, w: 3, d: 1, h: 0.27 },
-  { id: "mall-bench-b", kind: "bench", x: 29, y: 35, w: 1, d: 3, h: 0.27 },
-  { id: "mall-planter-a", kind: "planter", x: 14, y: 34, w: 1, d: 1, h: 0.42 },
-  { id: "mall-planter-b", kind: "planter", x: 31, y: 30, w: 1, d: 1, h: 0.42 },
-  { id: "mall-fountain", kind: "fountain", x: 22, y: 32, w: 3, d: 3, h: 0.28 },
-  { id: "mall-kiosk", kind: "kiosk", x: 14, y: 30, w: 2, d: 2, h: 0.65 },
-  { id: "play-swing", kind: "swing", x: 13, y: 8, w: 4, d: 2, h: 1.25 },
-  { id: "play-slide", kind: "slide", x: 26, y: 10, w: 2, d: 4, h: 1 },
-  {
-    id: "play-roundabout",
-    kind: "roundabout",
-    x: 20,
-    y: 6,
-    w: 3,
-    d: 3,
-    h: 0.35,
-  },
-  { id: "play-bench-a", kind: "bench", x: 10, y: 16, w: 4, d: 1, h: 0.27 },
-  { id: "play-bench-b", kind: "bench", x: 31, y: 5, w: 1, d: 3, h: 0.27 },
 ];
 // Ordinary domestic props, distinct from collectible furniture instances.
 FURNITURE.push(
+  { id: "home-bed", kind: "bed", x: 38, y: 46, w: 1, d: 2, h: 0.36 },
   { id: "kitchen-table", kind: "desk", x: 42, y: 13, w: 2, d: 1, h: 0.5 },
   { id: "kitchen-chair", kind: "chair", x: 42, y: 14, w: 1, d: 1, h: 0.27 },
   { id: "kitchen-cupboard", kind: "cabinet", x: 38, y: 9, w: 1, d: 3, h: 1 },

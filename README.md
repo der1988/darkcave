@@ -57,7 +57,7 @@ Recover cabinets, shelves, a desk, crate, generator and lamp. Carry them home an
 
 Directional 120-degree vision is separate from flashlight illumination. Geometry blocks sight; nearby architecture remains faintly readable in darkness. The map records observed floor, wall and obstruction cells per layer, with undiscovered space black. Remembered architecture does not reveal moving actors or undiscovered items.
 
-Save format **3** retains the `liminal.transport.v1` localStorage key. It stores both brothers, health, facing, items, equipment, furniture rotation, mechanisms, explored maps, dialogue events and generator state. Valid older saves migrate with stable item ownership. Validation rejects inconsistent ownership, invalid positions, capacities or mechanism consumption; incompatible data starts a clean session. Storage failures leave the current session playable.
+Save format **4** retains the `liminal.transport.v1` localStorage key. It stores both brothers, health, facing, items, equipment, furniture rotation, mechanisms, explored maps, dialogue events and generator state. Valid older saves migrate with stable item ownership; objects left in the former safe-room footprint move to nearby valid floor. Validation rejects inconsistent ownership, invalid positions, capacities or mechanism consumption; incompatible data starts a clean session. Storage failures leave the current session playable.
 
 The computer's confirmed new-game action backs up the previous save. A confirmed restore action validates and restores that backup, retaining another copy of the current session. Saves are local to this browser, not cloud accounts.
 

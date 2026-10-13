@@ -38,7 +38,7 @@ export class Companion {
         this.position.x - leader.x,
         this.position.y - leader.y,
       ),
-      gap = gait === "silent" ? 0.4 : 0.58;
+      gap = gait === "silent" ? 0.34 : 0.46;
     this.gait = gait;
     this.walking = false;
     this.repath -= dt;
@@ -136,12 +136,12 @@ export class Companion {
       n = Math.hypot(dx, dy);
     const speed =
       gait === "silent"
-        ? 0.66
+        ? 0.72
         : gait === "run"
-          ? 2.48
+          ? 2.58
           : distance > 2
-            ? 2.2
-            : 1.9;
+            ? 2.35
+            : 2.05;
     const step = Math.min(
       n,
       speed * dt,

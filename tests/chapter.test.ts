@@ -30,6 +30,7 @@ import {
   move,
   canStand,
   solid,
+  material,
   setObstacles,
   visible,
 } from "../src/world.ts";
@@ -119,11 +120,11 @@ test("child running is slower, silent following generates no ordinary footstep n
     move(p, 2.64 / 30, 0);
     c.update(1 / 30, p, "run", true);
   }
-  assert.ok(p.x - c.position.x > 1.3);
+  assert.ok(p.x - c.position.x > 0.4);
   const before = { ...c.position };
   c.update(1, p, "silent", true);
   assert.ok(
-    Math.hypot(c.position.x - before.x, c.position.y - before.y) <= 0.661,
+    Math.hypot(c.position.x - before.x, c.position.y - before.y) <= 0.721,
   );
   assert.equal(c.gait, "silent");
 });
@@ -132,7 +133,7 @@ test("the child keeps a close following distance without overlapping the leader"
     p = { x: 53.5, y: 53.5 };
   for (let i = 0; i < 180; i++) c.update(1 / 60, p, "walk", false);
   const gap = Math.hypot(c.position.x - p.x, c.position.y - p.y);
-  assert.ok(gap >= 0.45 && gap < 0.7, `unexpected following gap ${gap}`);
+  assert.ok(gap >= 0.38 && gap < 0.55, `unexpected following gap ${gap}`);
 });
 test("one connected dark network supports the pursuer while forbidding every main and protected room", () => {
   const origin = { x: 53.5, y: 43.5 };
@@ -188,9 +189,9 @@ test("zombie vision is directional, occluded, and cannot attack a protected room
   assert.equal(e.ai.lastKnown, null);
   e.update(0.1, [{ x: 56.5, y: 53.5 }], lamp, events, 2);
   assert.deepEqual(e.ai.lastKnown, { x: 56.5, y: 53.5 });
-  e.ai.position = { x: 43.2, y: 47.5 };
+  e.ai.position = { x: 42.2, y: 48.5 };
   e.ai.state = "pursuing";
-  assert.equal(e.ai.canCapture({ x: 42.95, y: 47.5 }), false);
+  assert.equal(e.ai.canCapture({ x: 41.95, y: 48.5 }), false);
 });
 test("observed geometry depends on facing, light and walls; separate level memories persist", () => {
   const map = new Exploration(),
@@ -368,4 +369,22 @@ test("a portable crate retains contents and adds their weight when lifted, dropp
     kind: "storage",
     target: "f-crate",
   });
+});
+test("version 3 saves relocate the brothers and furniture from the old safe room", () => {
+  const old = state().encode({ x: 42.5, y: 51.5 }, true);
+  old.version = 3;
+  const cabinet = old.items.find((i) => i.id === "f-cabinet")!;
+  cabinet.location = {
+    kind: "world",
+    position: { x: 42.5, y: 51.5 },
+  };
+  const loaded = new Possessions(),
+    restored = loaded.load(JSON.stringify(old));
+  assert.deepEqual(restored?.player, HOME.spawn);
+  const location = loaded.item("f-cabinet")!.location;
+  assert.equal(location.kind, "world");
+  if (location.kind !== "world") throw Error("cabinet was not relocated");
+  const position = location.position;
+  assert.ok(material(position.x, position.y));
+  assert.equal(position.x === 42.5 && position.y === 51.5, false);
 });

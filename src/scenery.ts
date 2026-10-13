@@ -130,6 +130,11 @@ export function drawFurniture(f: Furniture, polygon: Polygon, lamp: Lamp) {
     for (let i = 0.5; i < w - 0.4; i += 0.53)
       box(x + i, y + 0.825, 0.19, 0.015, h + 0.04, 0.035, stone);
     box(x + w / 2 - 0.1, y + 0.79, 0.2, 0.02, 0.08, 0.05, dark);
+  } else if (f.kind === "bed") {
+    box(x + 0.08, y + 0.08, w - 0.16, d - 0.16, 0.12, 0.16, wood);
+    box(x + 0.12, y + 0.12, w - 0.24, d - 0.24, 0.28, 0.1, stone);
+    box(x + 0.15, y + 0.18, w - 0.3, 0.48, 0.38, 0.12, [136, 128, 104]);
+    box(x + 0.08, y + 0.05, w - 0.16, 0.08, 0.1, 0.58, dark);
   } else if (f.kind === "bench" || f.kind === "chair") {
     const along = w >= d,
       length = along ? w : d;

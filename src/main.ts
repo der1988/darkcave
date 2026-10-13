@@ -883,7 +883,15 @@ function drawDialogue() {
   const p =
     speech.position ||
     (speech.speaker === "older" ? player : companion.position);
-  if (speech.speaker !== "older" && !perceived(player, angle, lamp(), p))
+  if (
+    speech.speaker !== "older" &&
+    !perceived(player, angle, lamp(), p) &&
+    !(
+      speech.speaker === "child" &&
+      Math.hypot(p.x - player.x, p.y - player.y) < 1.5 &&
+      visible(player.x, player.y, p.x, p.y)
+    )
+  )
     return;
   const q = project(p.x, p.y),
     lines = speechLines(
@@ -1149,13 +1157,13 @@ function update(dt: number) {
   const phase = Math.floor(stride / Math.PI);
   if (walking && phase !== footPhase && gait !== "silent") {
     const running = gait === "run";
-    sound.step(player, running ? 1.3 : 0.7);
+    sound.step(player, running ? 0.95 : 0.52);
     noises.emit(
       "older",
       player,
       "step",
-      running ? 1 : 0.3,
-      running ? 11 : 3.5,
+      running ? 0.8 : 0.2,
+      running ? 9.5 : 2.8,
       time,
     );
     if (cargo.cargo && phase % 3 === 0) sound.object("cloth");
@@ -1209,13 +1217,13 @@ function update(dt: number) {
   const childStep = companion.update(dt, player, gait, walking, threats);
   if (childStep && gait !== "silent") {
     const running = gait === "run";
-    sound.step(companion.position, running ? 0.7 : 0.4, true, player);
+    sound.step(companion.position, running ? 0.58 : 0.32, true, player);
     noises.emit(
       "child",
       companion.position,
       "step",
-      running ? 0.7 : 0.25,
-      running ? 9 : 3,
+      running ? 0.55 : 0.16,
+      running ? 8 : 2.4,
       time,
     );
   }

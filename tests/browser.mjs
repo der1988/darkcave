@@ -153,7 +153,7 @@ let browser;
   await page.waitForTimeout(2700);
   const reset = await state();
   assert.equal(reset.capture, null);
-  assert.deepEqual(reset.player, { x: 40.5, y: 50.5 });
+  assert.deepEqual(reset.player, { x: 39.5, y: 49.5 });
   assert.equal(reset.lightOn, true);
   await place({ x: 48.5, y: 49.5 }, { x: 50.5, y: 49.5 }, 0);
   await page.waitForTimeout(900);
