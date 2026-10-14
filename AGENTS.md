@@ -13,6 +13,8 @@ Read only the files relevant to the requested change, then expand scope if a dep
 - Camera and frame composition: `src/scene-renderer.ts`
 - Startup and browser event wiring: `src/main.ts`
 - Flashlight switch audio: `src/switch-sound.ts`
+- Reusable furniture data and light occluders: `src/room-props.ts`
+- Furniture geometry, depth and shadows: `src/prop-renderer.ts`
 - WebAssembly bridge: `src/native.ts`
 - Native compiler pipeline: `scripts/build-native.mjs`
 

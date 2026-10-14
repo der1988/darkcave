@@ -35,9 +35,13 @@ try {
   const initial = await state();
   assert.equal(initial.torchOn, true);
   await page.keyboard.press("Space");
-  assert.equal((await state()).torchOn, false);
+  assert.equal((await state()).torchHeld, false);
+  await page.waitForTimeout(300);
+  assert.ok((await state()).holdProgress < 0.01);
   await page.keyboard.press("Space");
-  assert.equal((await state()).torchOn, true);
+  assert.equal((await state()).torchHeld, true);
+  await page.waitForTimeout(300);
+  assert.ok((await state()).holdProgress > 0.99);
   await page.keyboard.press("f");
   assert.equal((await state()).torchOn, false);
   await page.keyboard.press("f");
@@ -72,6 +76,7 @@ try {
     JSON.stringify({
       movement: "passed",
       flashlight: "passed",
+      flashlightStow: "passed",
       brother: "passed",
       errors,
     }),

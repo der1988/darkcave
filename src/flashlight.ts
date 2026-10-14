@@ -36,6 +36,8 @@ function rayBox(origin: Point, dx: number, dy: number, box: LightOccluder) {
 export class Flashlight {
   on = true;
   brightness = 1;
+  held = true;
+  holdProgress = 1;
   private baseAngle = LIGHT.initialAngle;
   private desiredAngle = LIGHT.initialAngle;
   private actualRange: number = LIGHT.initialRange;
@@ -63,8 +65,24 @@ export class Flashlight {
   }
 
   toggle() {
+    if (!this.held) return false;
     this.on = !this.on;
     return this.on;
+  }
+
+  toggleHeld() {
+    this.held = !this.held;
+    if (!this.held) this.on = false;
+    else this.on = true;
+    return this.held;
+  }
+
+  origin(actor: Point): Point {
+    const reach = LIGHT.lensForwardOffset * this.holdProgress;
+    return {
+      x: actor.x + Math.cos(this.angle) * reach,
+      y: actor.y + Math.sin(this.angle) * reach,
+    };
   }
 
   setOccluders(occluders: LightOccluder[]) {
@@ -82,6 +100,9 @@ export class Flashlight {
   }
 
   update(dt: number, motion: LightMotion, running: boolean, time: number) {
+    const heldTarget = this.held ? 1 : 0;
+    this.holdProgress += Math.sign(heldTarget - this.holdProgress) *
+      Math.min(Math.abs(heldTarget - this.holdProgress), dt / LIGHT.stowDuration);
     const angleDelta = Math.atan2(
       Math.sin(this.desiredAngle - this.baseAngle),
       Math.cos(this.desiredAngle - this.baseAngle),
@@ -101,7 +122,7 @@ export class Flashlight {
     const targetSway = movementSway + idleSway;
     this.motionAngle += (targetSway - this.motionAngle) * (1 - Math.exp(-8 * dt));
 
-    const targetBrightness = this.on ? 1 : 0;
+    const targetBrightness = this.on && this.held ? this.holdProgress : 0;
     const response = this.on ? 36 : 80;
     this.brightness +=
       (targetBrightness - this.brightness) * (1 - Math.exp(-response * dt));
@@ -116,7 +137,7 @@ export class Flashlight {
     return 0.08 + Math.tan((LIGHT.mainBeamDegrees * Math.PI) / 360) * distance;
   }
 
-  effectiveRange(origin: Point, bounds?: LightBounds) {
+  effectiveRange(origin: Point, bounds?: LightBounds, ignored?: LightOccluder) {
     const dx = Math.cos(this.angle);
     const dy = Math.sin(this.angle);
     let result = this.range;
@@ -127,8 +148,10 @@ export class Flashlight {
       ];
       result = Math.min(result, ...walls.filter((distance) => distance >= 0));
     }
-    for (const occluder of this.occluders)
+    for (const occluder of this.occluders) {
+      if (occluder === ignored) continue;
       result = Math.min(result, rayBox(origin, dx, dy, occluder));
+    }
     return result;
   }
 
@@ -144,12 +167,12 @@ export class Flashlight {
     return this.beamRadius(range) * LIGHT.coronaScale;
   }
 
-  at(point: Point, origin: Point, bounds?: LightBounds) {
+  at(point: Point, origin: Point, bounds?: LightBounds, ignored?: LightOccluder) {
     if (this.brightness < 0.01) return 0;
     const dx = point.x - origin.x;
     const dy = point.y - origin.y;
     const forward = dx * Math.cos(this.angle) + dy * Math.sin(this.angle);
-    const hitRange = this.effectiveRange(origin, bounds);
+    const hitRange = this.effectiveRange(origin, bounds, ignored);
     if (forward < 0 || forward > hitRange + 0.05) return 0;
     const lateral = Math.abs(-dx * Math.sin(this.angle) + dy * Math.cos(this.angle));
     const mainRadius = this.beamRadius(Math.max(0.1, forward));

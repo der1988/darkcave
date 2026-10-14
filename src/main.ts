@@ -10,7 +10,10 @@ import { playSwitchClick } from "./switch-sound";
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const game = await loadNativeGame();
 const flashlight = new Flashlight();
-const input = new InputState(() => playSwitchClick(flashlight.toggle()));
+const input = new InputState(
+  () => playSwitchClick(flashlight.toggle()),
+  () => playSwitchClick(flashlight.toggleHeld()),
+);
 const renderer = new SceneRenderer(canvas, game, flashlight);
 let lastFrame = performance.now();
 
@@ -45,6 +48,8 @@ if (import.meta.env.DEV)
       player: game.player(),
       brother: game.brother(),
       torchOn: flashlight.on,
+      torchHeld: flashlight.held,
+      holdProgress: flashlight.holdProgress,
       angle: flashlight.angle,
       lightRange: flashlight.range,
     }),

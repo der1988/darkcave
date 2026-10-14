@@ -13,10 +13,11 @@ function drawBrotherShadow(
   camera: Camera,
   room: Room,
 ) {
-  const illumination = flashlight.at(brother, player, room);
+  const origin = flashlight.origin(player);
+  const illumination = flashlight.at(brother, origin, room);
   if (illumination < 0.08) return;
-  const dx = brother.x - player.x;
-  const dy = brother.y - player.y;
+  const dx = brother.x - origin.x;
+  const dy = brother.y - origin.y;
   const magnitude = Math.hypot(dx, dy) || 1;
   const ux = dx / magnitude;
   const uy = dy / magnitude;
@@ -61,13 +62,17 @@ export function drawActors(
   now: number,
   room: Room,
 ) {
+  const lightOrigin = flashlight.origin(player);
   drawBrotherShadow(ctx, player, brother, flashlight, camera, room);
   const actors = [
     { actor: player, child: false, light: 0.58 + flashlight.power() * 0.24 },
-    { actor: brother, child: true, light: 0.3 + flashlight.at(brother, player, room) * 0.65 },
+    { actor: brother, child: true, light: 0.3 + flashlight.at(brother, lightOrigin, room) * 0.65 },
   ].sort((a, b) => a.actor.x + a.actor.y - b.actor.x - b.actor.y);
   for (const { actor, child, light } of actors) {
     const screen = project(actor.x, actor.y);
+    const lens = !child && flashlight.holdProgress > 0.02
+      ? project(lightOrigin.x, lightOrigin.y, 0.34)
+      : undefined;
     drawPerson(
       ctx,
       Math.round(screen.x + camera.x),
@@ -78,6 +83,8 @@ export function drawActors(
       Math.min(1.15, light),
       now / 1000,
       actor.moving,
+      lens ? { x: lens.x + camera.x, y: lens.y + camera.y } : undefined,
+      child ? 0 : flashlight.holdProgress,
     );
   }
 }

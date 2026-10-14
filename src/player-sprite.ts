@@ -15,6 +15,8 @@ export function drawPerson(
   brightness: number,
   time: number,
   moving: boolean,
+  lens?: { x: number; y: number },
+  torchAmount = 0,
 ) {
   const frame = directionFrame(heading);
   const back = frame >= 5;
@@ -97,14 +99,20 @@ export function drawPerson(
   if (!child) {
     rect(-3, -15, 1, 6, palette.accent);
     rect(2, -15, 1, 6, palette.accent);
-    rect(side > 0 ? 3 : -5, -11, 2, 1, palette.skin);
-    ctx.fillStyle = brightness > 0.3 ? "#c8bb78" : "#15140c";
-    ctx.fillRect(
-      Math.round(x + (side > 0 ? 5 : -6) * scale),
-      Math.round(y - (11 + bob) * scale),
-      Math.max(1, Math.round(2 * scale)),
-      1,
-    );
+    const armLift = Math.round(torchAmount * 3);
+    rect(side > 0 ? 3 : -5, -8 - armLift, 2, 1, palette.skin);
+    if (lens && torchAmount > 0.02) {
+      const handX = Math.round(x + (side > 0 ? 4 : -4) * scale);
+      const handY = Math.round(y - (8 + armLift + bob) * scale);
+      ctx.strokeStyle = "#242728";
+      ctx.lineWidth = Math.max(1, Math.round(scale));
+      ctx.beginPath();
+      ctx.moveTo(handX, handY);
+      ctx.lineTo(Math.round(lens.x), Math.round(lens.y));
+      ctx.stroke();
+      ctx.fillStyle = "#e6ce73";
+      ctx.fillRect(Math.round(lens.x) - 1, Math.round(lens.y), 2, 1);
+    }
   } else {
     rect(-1, -15, 2, 1, palette.accent);
     rect(-3, -13, 1, 4, palette.accent);

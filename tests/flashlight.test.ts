@@ -35,3 +35,15 @@ test("aim follows its target with smooth inertia", () => {
   flashlight.update(1 / 60, { stride: 0, moving: false }, false, 0);
   assert.ok(flashlight.angle > start && flashlight.angle < 0);
 });
+
+test("the light origin is the animated lens position", () => {
+  const flashlight = new Flashlight();
+  flashlight.angle = Math.PI / 2;
+  const lens = flashlight.origin({ x: 2, y: 3 });
+  assert.ok(Math.abs(lens.x - 2) < 0.0001);
+  assert.ok(lens.y > 3);
+  flashlight.toggleHeld();
+  flashlight.update(0.24, { stride: 0, moving: false }, false, 0);
+  assert.deepEqual(flashlight.origin({ x: 2, y: 3 }), { x: 2, y: 3 });
+  assert.ok(flashlight.brightness < 0.001);
+});

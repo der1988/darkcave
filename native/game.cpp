@@ -11,6 +11,13 @@ struct Actor {
   float moving;
 };
 
+struct Obstacle { float min_x, min_y, max_x, max_y; };
+constexpr Obstacle obstacles[] = {
+    {1.15f, 1.15f, 2.01f, 1.87f}, {3.02f, 1.30f, 3.94f, 1.88f},
+    {7.72f, 2.15f, 8.20f, 2.65f}, {0.18f, 4.34f, 0.90f, 5.36f},
+    {6.72f, 4.72f, 6.97f, 4.97f}, {5.16f, 1.02f, 5.78f, 1.54f},
+};
+
 Actor player{};
 Actor brother{};
 
@@ -44,9 +51,19 @@ float angle_of(float y, float x) {
   return y < 0.0f ? -result : result;
 }
 
+bool blocked(float x, float y) {
+  constexpr float radius = 0.17f;
+  for (const auto& box : obstacles)
+    if (x > box.min_x - radius && x < box.max_x + radius &&
+        y > box.min_y - radius && y < box.max_y + radius) return true;
+  return false;
+}
+
 void move(Actor& actor, float dx, float dy) {
-  actor.x = clamp(actor.x + dx, margin, room_width - margin);
-  actor.y = clamp(actor.y + dy, margin, room_height - margin);
+  const float next_x = clamp(actor.x + dx, margin, room_width - margin);
+  if (!blocked(next_x, actor.y)) actor.x = next_x;
+  const float next_y = clamp(actor.y + dy, margin, room_height - margin);
+  if (!blocked(actor.x, next_y)) actor.y = next_y;
 }
 }  // namespace
 

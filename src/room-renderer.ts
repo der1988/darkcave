@@ -24,7 +24,8 @@ function drawSurface(
   traceSurface(ctx, points, camera);
   ctx.clip();
 
-  const origin = project(player.x, player.y, 0.34);
+  const lightOrigin = flashlight.origin(player);
+  const origin = project(lightOrigin.x, lightOrigin.y, 0.34);
   const ox = origin.x + camera.x;
   const oy = origin.y + camera.y;
   const spillRadius = LIGHT.localSpillRadius * VIEW.isoX * 1.8;
@@ -36,15 +37,15 @@ function drawSurface(
   ctx.fillRect(0, 0, viewport.width, viewport.height);
 
   if (flashlight.brightness > 0.01) {
-    const range = flashlight.effectiveRange(player, viewport.room);
-    const target = flashlight.target(player, viewport.room);
+    const range = flashlight.effectiveRange(lightOrigin, viewport.room);
+    const target = flashlight.target(lightOrigin, viewport.room);
     const rgb = torchColor.join(",");
 
     for (let sample = 1; sample <= LIGHT.beamSamples; sample++) {
       const distance = (range * sample) / LIGHT.beamSamples;
       const position = project(
-        player.x + Math.cos(flashlight.angle) * distance,
-        player.y + Math.sin(flashlight.angle) * distance,
+        lightOrigin.x + Math.cos(flashlight.angle) * distance,
+        lightOrigin.y + Math.sin(flashlight.angle) * distance,
         0.015,
       );
       const px = position.x + camera.x;

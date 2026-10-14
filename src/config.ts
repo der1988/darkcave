@@ -23,6 +23,8 @@ export const LIGHT = {
   runSway: 0.022,
   idleSway: 0.0025,
   beamSamples: 7,
+  lensForwardOffset: 0.2,
+  stowDuration: 0.24,
 } as const;
 
 export const ROOM_STYLE = {
