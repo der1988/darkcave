@@ -29,4 +29,4 @@ The room has no ambient visibility. Floors and walls appear only inside the flas
 
 There are no enemies, dialogue, inventory, cargo, map, furniture, objectives, audio, persistence or menus in this version. Those systems can be reconsidered after movement and flashlight handling feel correct.
 
-The renderer keeps crisp logical pixels, a dense quarter-size floor grid and the fixed 2:1 isometric projection. Unit tests cover movement normalization, collision, projection, following distance and flashlight direction/range. The Chromium acceptance test exercises the real keyboard, mouse and canvas behavior.
+The renderer uses continuous floor and wall surfaces without visible tiles, while retaining the fixed 2:1 isometric projection. Unit tests cover movement normalization, collision, projection, following distance and flashlight direction/range. The Chromium acceptance test exercises the real keyboard, mouse and canvas behavior.

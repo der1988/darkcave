@@ -5,10 +5,8 @@ import { movementSpeed, movementVector } from "./movement";
 import { drawPerson } from "./player-sprite";
 import {
   BROTHER_START,
-  FLOOR_TILE_SIZE,
   PLAYER_START,
   ROOM,
-  WALL_TILE_SIZE,
   move,
   project,
   screenToWorld,
@@ -46,98 +44,100 @@ function lamp(): Lamp {
   return { ...player, angle, range: lightRange, on: torchOn };
 }
 
-function polygon(
-  points: [number, number, number][],
-  color: number[],
-  light: number,
-) {
-  if (light < 0.008) return;
-  ctx.fillStyle = `rgb(${color.map((n) => Math.round(n * light)).join(",")})`;
+type SurfacePoint = [number, number, number];
+
+function traceSurface(points: SurfacePoint[]) {
   ctx.beginPath();
   points.forEach(([x, y, z], index) => {
     const p = project(x, y, z);
-    if (index) ctx.lineTo(Math.round(p.x + offsetX), Math.round(p.y + offsetY));
-    else ctx.moveTo(Math.round(p.x + offsetX), Math.round(p.y + offsetY));
+    if (index) ctx.lineTo(p.x + offsetX, p.y + offsetY);
+    else ctx.moveTo(p.x + offsetX, p.y + offsetY);
   });
   ctx.closePath();
+}
+
+function drawLitSurface(
+  points: SurfacePoint[],
+  color: [number, number, number],
+  surfaceStrength: number,
+) {
+  traceSurface(points);
+  ctx.fillStyle = "#000";
   ctx.fill();
+  if (!torchOn) return;
+
+  ctx.save();
+  traceSurface(points);
+  ctx.clip();
+
+  const origin = project(player.x, player.y, 0.36);
+  const end = project(
+    player.x + Math.cos(angle) * lightRange,
+    player.y + Math.sin(angle) * lightRange,
+  );
+  const ox = origin.x + offsetX;
+  const oy = origin.y + offsetY;
+  const dx = end.x + offsetX - ox;
+  const dy = end.y + offsetY - oy;
+  const screenAngle = Math.atan2(dy, dx);
+  const radius = Math.max(1, Math.hypot(dx, dy));
+  const targetPower =
+    (1 - Math.min(1, Math.max(0, (lightRange - 1.2) / 16.8)) * 0.48) *
+    surfaceStrength;
+
+  for (let layer = 0; layer < 12; layer++) {
+    const halfAngle = 0.76 - layer * 0.047;
+    ctx.beginPath();
+    ctx.moveTo(ox, oy);
+    ctx.arc(ox, oy, radius, screenAngle - halfAngle, screenAngle + halfAngle);
+    ctx.closePath();
+    const gradient = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
+    const alpha = targetPower * 0.085;
+    gradient.addColorStop(0, `rgba(${color.join(",")},${alpha})`);
+    gradient.addColorStop(0.62, `rgba(${color.join(",")},${alpha * 0.78})`);
+    gradient.addColorStop(0.9, `rgba(${color.join(",")},${alpha * 0.35})`);
+    gradient.addColorStop(1, `rgba(${color.join(",")},0)`);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 function drawFloor() {
-  const activeLamp = lamp();
-  const columns = ROOM.w / FLOOR_TILE_SIZE;
-  const rows = ROOM.h / FLOOR_TILE_SIZE;
-  for (let row = 0; row < rows; row++)
-    for (let column = 0; column < columns; column++) {
-      const x = ROOM.x + column * FLOOR_TILE_SIZE;
-      const y = ROOM.y + row * FLOOR_TILE_SIZE;
-      const center = {
-        x: x + FLOOR_TILE_SIZE / 2,
-        y: y + FLOOR_TILE_SIZE / 2,
-      };
-      const light = beam(activeLamp, center, 0);
-      polygon(
-        [
-          [x, y, 0],
-          [x + FLOOR_TILE_SIZE, y, 0],
-          [x + FLOOR_TILE_SIZE, y + FLOOR_TILE_SIZE, 0],
-          [x, y + FLOOR_TILE_SIZE, 0],
-        ],
-        [102, 98, 78],
-        light * (0.94 + ((column * 17 + row * 31) % 7) * 0.008),
-      );
-    }
+  drawLitSurface(
+    [
+      [ROOM.x, ROOM.y, 0],
+      [ROOM.x + ROOM.w, ROOM.y, 0],
+      [ROOM.x + ROOM.w, ROOM.y + ROOM.h, 0],
+      [ROOM.x, ROOM.y + ROOM.h, 0],
+    ],
+    [112, 107, 84],
+    1,
+  );
 }
 
 function drawWalls() {
-  const activeLamp = lamp();
   const h = 1.3;
-  const layers = Math.ceil(h / WALL_TILE_SIZE);
-  const drawHorizontalWall = (y: number, color: number[], scale: number) => {
-    for (let column = 0; column < ROOM.w / WALL_TILE_SIZE; column++)
-      for (let layer = 0; layer < layers; layer++) {
-        const x = ROOM.x + column * WALL_TILE_SIZE;
-        const z = layer * WALL_TILE_SIZE;
-        const sample = { x: x + WALL_TILE_SIZE / 2, y };
-        polygon(
-          [
-            [x, y, z],
-            [x + WALL_TILE_SIZE, y, z],
-            [x + WALL_TILE_SIZE, y, z + WALL_TILE_SIZE],
-            [x, y, z + WALL_TILE_SIZE],
-          ],
-          color,
-          beam(activeLamp, sample, z + WALL_TILE_SIZE / 2) *
-            scale *
-            (0.96 + ((column * 11 + layer * 7) % 5) * 0.012),
-        );
-      }
-  };
-  const drawVerticalWall = (x: number, color: number[], scale: number) => {
-    for (let row = 0; row < ROOM.h / WALL_TILE_SIZE; row++)
-      for (let layer = 0; layer < layers; layer++) {
-        const y = ROOM.y + row * WALL_TILE_SIZE;
-        const z = layer * WALL_TILE_SIZE;
-        const sample = { x, y: y + WALL_TILE_SIZE / 2 };
-        polygon(
-          [
-            [x, y, z],
-            [x, y + WALL_TILE_SIZE, z],
-            [x, y + WALL_TILE_SIZE, z + WALL_TILE_SIZE],
-            [x, y, z + WALL_TILE_SIZE],
-          ],
-          color,
-          beam(activeLamp, sample, z + WALL_TILE_SIZE / 2) *
-            scale *
-            (0.96 + ((row * 13 + layer * 5) % 5) * 0.012),
-        );
-      }
-  };
-  drawHorizontalWall(0, [128, 122, 94], 0.8);
-  drawHorizontalWall(ROOM.h, [112, 108, 86], 0.68);
-  for (const x of [0, ROOM.w]) {
-    drawVerticalWall(x, [118, 113, 88], 0.72);
-  }
+  drawLitSurface(
+    [[0, 0, 0], [ROOM.w, 0, 0], [ROOM.w, 0, h], [0, 0, h]],
+    [134, 127, 98],
+    0.78,
+  );
+  drawLitSurface(
+    [[0, ROOM.h, 0], [ROOM.w, ROOM.h, 0], [ROOM.w, ROOM.h, h], [0, ROOM.h, h]],
+    [120, 115, 91],
+    0.67,
+  );
+  drawLitSurface(
+    [[0, 0, 0], [0, ROOM.h, 0], [0, ROOM.h, h], [0, 0, h]],
+    [126, 120, 94],
+    0.72,
+  );
+  drawLitSurface(
+    [[ROOM.w, 0, 0], [ROOM.w, ROOM.h, 0], [ROOM.w, ROOM.h, h], [ROOM.w, 0, h]],
+    [126, 120, 94],
+    0.72,
+  );
 }
 
 function characterLight(p: Point) {
