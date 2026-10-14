@@ -41,18 +41,29 @@ try {
   await page.keyboard.press("Space");
   assert.equal((await state()).torchOn, true);
   assert.ok(await page.locator(".controls").isVisible());
-  const stone=initial.objects[0];
-  const center=project(ROOM.width/2,ROOM.height/2),item=project(stone.x,stone.y);
-  const screenX=(item.x+320-center.x)*2,screenY=(item.y+200-center.y+25)*2;
-  await page.mouse.click(screenX,screenY);
-  assert.equal((await state()).heldObject?.id,stone.id);
-  assert.equal((await state()).objects.filter(item=>item.state==="held").length,1);
+  const stone = initial.objects[0];
+  const center = project(ROOM.width / 2, ROOM.height / 2),
+    item = project(stone.x, stone.y);
+  const screenX = (item.x + 320 - center.x) * 2,
+    screenY = (item.y + 200 - center.y + 25) * 2;
+  await page.mouse.click(screenX, screenY);
+  assert.equal((await state()).heldObject?.id, stone.id);
+  assert.equal(
+    (await state()).objects.filter((item) => item.state === "held").length,
+    1,
+  );
   await page.mouse.move(900, 500);
-  await page.mouse.down();await page.waitForTimeout(500);
-  assert.ok((await state()).chargePower!>.15);
+  await page.mouse.down();
+  await page.waitForTimeout(500);
+  assert.ok((await state()).chargePower! > 0.15);
   await page.mouse.up();
-  assert.equal((await state()).heldObject,null);
-  await page.waitForFunction(id=>window.__liminal!.snapshot().objects.find(item=>item.id===id)?.state==="ground",stone.id);
+  assert.equal((await state()).heldObject, null);
+  await page.waitForFunction(
+    (id) =>
+      window.__liminal!.snapshot().objects.find((item) => item.id === id)
+        ?.state === "ground",
+    stone.id,
+  );
   await page.mouse.move(900, 270);
   await page.keyboard.down("d");
   await page.waitForTimeout(700);
@@ -65,7 +76,9 @@ try {
       walked.player.y - walked.brother.y,
     ) < 0.65,
   );
-  await page.waitForFunction(() => window.__liminal?.snapshot().dialogue !== null);
+  await page.waitForFunction(
+    () => window.__liminal?.snapshot().dialogue !== null,
+  );
   assert.ok((await state()).dialogue?.text);
   await page.screenshot({ path: "/tmp/liminal-foundation.png" });
 

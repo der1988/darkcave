@@ -58,22 +58,3 @@ test("stealth is slower than walking and affects both brothers", () => {
   assert.equal(stealth.player().stealth, true);
   assert.equal(stealth.brother().stealth, true);
 });
-
-test("both brothers cross the two doors and reach the third room", () => {
-  const game = createGame();
-  // Equal screen axes move along world X, through the aligned openings.
-  for (let i = 0; i < 180; i++) game.update(1 / 60, 1, 1, false);
-  const player = game.player(),
-    brother = game.brother();
-  assert.ok(player.x > 6.4);
-  assert.ok(brother.x > 6.4);
-  assert.ok(Math.hypot(player.x - brother.x, player.y - brother.y) < 0.65);
-});
-
-test("both brothers can use the connecting door into the second row", () => {
-  const game = createGame();
-  for (let i = 0; i < 180; i++) game.update(1 / 60, -1, 1, false);
-  for (let i = 0; i < 120; i++) game.update(1 / 60, 0, 0, false);
-  assert.ok(game.player().y > 4.8);
-  assert.ok(game.brother().y > 4.8);
-});

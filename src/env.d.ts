@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import type { Progress } from "./mechanisms";
 import type { Throwable } from "./throwables";
 
 import type { ClickerState } from "./clicker";
@@ -13,6 +14,8 @@ declare global {
         brother: ActorState;
         torchOn: boolean;
         clicker: ClickerState;
+        clickers: ClickerState[];
+        progress: Progress;
         dialogue: DialogueLine | null;
         objects: Throwable[];
         heldObject: Throwable | null;

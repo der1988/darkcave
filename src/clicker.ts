@@ -9,23 +9,31 @@ export type ClickerState = ActorState & {
   mode: "wandering" | "investigating" | "searching";
   lastHeard: Point | null;
 };
-const PATROL = [
-  { x: 8.5, y: 7.7 },
-  { x: 7.4, y: 6.4 },
-  { x: 8.6, y: 5.5 },
-  { x: 7, y: 7.7 },
-];
 export class Clicker {
-  private actor: ClickerState = {
-    x: 8.5,
-    y: 7.7,
-    heading: 0,
-    stride: 0,
-    moving: false,
-    stealth: false,
-    mode: "wandering",
-    lastHeard: null,
-  };
+  private actor: ClickerState;
+  private patrolPoints: Point[];
+  constructor(
+    spawn: Point = { x: 13.5, y: 7.5 },
+    private unlocked: () => boolean = () => false,
+  ) {
+    this.actor = {
+      ...spawn,
+      heading: 0,
+      stride: 0,
+      moving: false,
+      stealth: false,
+      mode: "wandering",
+      lastHeard: null,
+    };
+    const x = Math.floor(spawn.x / 3) * 3,
+      y = Math.floor(spawn.y / 3) * 3;
+    this.patrolPoints = [
+      { x: x + 0.7, y: y + 0.7 },
+      { x: x + 2.3, y: y + 0.7 },
+      { x: x + 2.3, y: y + 2.3 },
+      { x: x + 0.7, y: y + 2.3 },
+    ];
+  }
   private route: Point[] = [];
   private patrol = 0;
   private wait = 1.5;
@@ -42,7 +50,7 @@ export class Clicker {
       7.5 * strength
     )
       return false;
-    const route = findPath(this.actor, step);
+    const route = findPath(this.actor, step, this.unlocked());
     let distance = 0,
       previous: Point = this.actor;
     for (const point of route) {
@@ -73,19 +81,23 @@ export class Clicker {
       const lastHeard = this.actor.lastHeard;
       this.actor.lastHeard = null;
       if (lastHeard) {
-        this.patrol = PATROL.reduce(
+        this.patrol = this.patrolPoints.reduce(
           (best, point, index) =>
             Math.hypot(point.x - lastHeard.x, point.y - lastHeard.y) >
             Math.hypot(
-              PATROL[best].x - lastHeard.x,
-              PATROL[best].y - lastHeard.y,
+              this.patrolPoints[best].x - lastHeard.x,
+              this.patrolPoints[best].y - lastHeard.y,
             )
               ? index
               : best,
           0,
         );
-      } else this.patrol = (this.patrol + 1) % PATROL.length;
-      this.route = findPath(this.actor, PATROL[this.patrol]);
+      } else this.patrol = (this.patrol + 1) % this.patrolPoints.length;
+      this.route = findPath(
+        this.actor,
+        this.patrolPoints[this.patrol],
+        this.unlocked(),
+      );
     }
     const target = this.route[0];
     if (!target) return;
@@ -104,6 +116,7 @@ export class Clicker {
       this.actor,
       (dx / distance) * step,
       (dy / distance) * step,
+      this.unlocked(),
     );
     this.actor.heading = Math.atan2(dy, dx);
     this.actor.stride += travel * 8;

@@ -8,7 +8,7 @@ test("walls block light but doorways transmit it", () => {
     false,
   );
   assert.equal(
-    visible({ x: 2, y: 1.5, z: 0.4 }, { x: 4, y: 1.5, z: 0.4 }),
+    visible({ x: 2, y: 7.5, z: 0.4 }, { x: 4, y: 7.5, z: 0.4 }),
     true,
   );
 });
@@ -22,7 +22,7 @@ test("torch illuminates walls, fades with distance, and stops behind walls", () 
   const torch = new Flashlight();
   torch.angle = 0;
   const actor = { x: 1, y: 0.5 };
-  assert.ok(torch.at({ x: 3.2, y: 0.5, z: 0.43 }, actor) > 0);
+  assert.ok(torch.at({ x: 3, y: 0.5, z: 0.43 }, actor) > 0);
   assert.equal(torch.at({ x: 4, y: 0.5, z: 0.43 }, actor), 0);
   assert.ok(
     torch.at({ x: 1.8, y: 0.5, z: 0.4 }, actor) >

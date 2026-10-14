@@ -17,15 +17,16 @@ export type Throwable = Point & {
   impacts: number;
 };
 const placements = [
-  { kind: "stone", x: 1.7, y: 2.1 },
+  { kind: "stone", x: 1.2, y: 1.8 },
   { kind: "stone", x: 1.2, y: 2.3 },
   { kind: "stone", x: 5.3, y: 2.8 },
-  { kind: "stone", x: 7.9, y: 6.1 },
-  { kind: "stone", x: 3.7, y: 7.9 },
+  { kind: "stone", x: 10.8, y: 5.2 },
+  { kind: "stone", x: 4.8, y: 7.9 },
   { kind: "bottle", x: 4.9, y: 2.2 },
-  { kind: "bottle", x: 8.6, y: 3.6 },
+  { kind: "bottle", x: 13.8, y: 2.2 },
 ] as const;
 export class Throwables {
+  constructor(private unlocked: () => boolean = () => false) {}
   private items: Throwable[] = placements.map((p, i) => ({
     ...p,
     id: `object-${i}`,
@@ -55,7 +56,8 @@ export class Throwables {
       Math.hypot(item.x - player.x, item.y - player.y) > 1
     )
       return false;
-    if (!visible({ ...player, z: 0.12 }, { ...item, z: 0.12 })) return false;
+    if (!visible({ ...player, z: 0.12 }, { ...item, z: 0.12 }, this.unlocked()))
+      return false;
     item.state = "held";
     return true;
   }
@@ -128,7 +130,7 @@ export class Throwables {
             next.y <= p.y + p.depth,
         );
         const hitWall =
-          !visible(previous, next) ||
+          !visible(previous, next, this.unlocked()) ||
           next.x < 0.12 ||
           next.y < 0.12 ||
           next.x > ROOM.width - 0.12 ||

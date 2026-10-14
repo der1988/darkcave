@@ -9,17 +9,19 @@ const GAME_KEYS = [
   "arrowright",
   " ",
   "f",
+  "e",
 ];
 
 export class InputState {
   private keys = new Set<string>();
 
-  constructor(toggleTorch: () => void) {
+  constructor(toggleTorch: () => void, interact: () => void = () => {}) {
     addEventListener("blur", () => this.keys.clear());
     addEventListener("keydown", (event) => {
       const key = event.key.toLowerCase();
       if (GAME_KEYS.includes(key)) event.preventDefault();
       if ((key === " " || key === "f") && !event.repeat) toggleTorch();
+      if (key === "e" && !event.repeat) interact();
       this.keys.add(key === "shift" ? "shift" : key);
     });
     addEventListener("keyup", (event) =>

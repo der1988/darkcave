@@ -1,14 +1,63 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ROOM, ROOMS, WALLS } from "../src/room.ts";
+import { ROOM, ROOMS, DOORS, CLICKER_SPAWNS, roomAt } from "../src/room.ts";
+import { findPath } from "../src/navigation.ts";
+import { blocked } from "../src/movement.ts";
+import { visible } from "../src/lighting.ts";
+import { createGame, type Game } from "../src/game.ts";
+import type { Point } from "../src/geometry.ts";
 
-test("the house contains six directly connected liminal rooms", () => {
-  assert.deepEqual(ROOM, { width: 9.6, height: 9.6, wallHeight: 1.4 });
-  assert.equal(ROOMS.length, 6);
-  assert.equal(new Set(ROOMS.map((room) => room.id)).size, 6);
-  assert.equal(
-    ROOMS.some((room) => room.id === "hall"),
-    false,
+test("the sketch has two six-room wings, a central memory bridge and seven clickers", () => {
+  assert.deepEqual(ROOM, { width: 15, height: 9, wallHeight: 1.4 });
+  assert.equal(ROOMS.length, 13);
+  assert.equal(CLICKER_SPAWNS.length, 7);
+  assert.equal(DOORS.length, 12);
+  assert.equal(roomAt(7.5, 1.5), undefined);
+  assert.equal(roomAt(7.5, 7.5), undefined);
+  assert.equal(roomAt(7.5, 4.5)?.id, "memory");
+  for (const spawn of CLICKER_SPAWNS)
+    assert.equal(blocked(spawn.x, spawn.y), false);
+});
+test("the memory gate blocks movement, sound paths and light until unlocked", () => {
+  const left = { x: 5.7, y: 4.5 },
+    right = { x: 6.3, y: 4.5 };
+  assert.equal(blocked(6, 4.5), true);
+  assert.equal(blocked(6, 4.5, true), false);
+  assert.equal(findPath(left, right).length, 0);
+  assert.ok(findPath(left, right, true).length > 0);
+  assert.equal(visible({ ...left, z: 0.4 }, { ...right, z: 0.4 }), false);
+  assert.equal(visible({ ...left, z: 0.4 }, { ...right, z: 0.4 }, true), true);
+});
+function go(game: Game, target: Point) {
+  const path = findPath(game.player(), target, game.progress().doorOpen);
+  assert.ok(path.length > 0);
+  for (const point of path) {
+    for (let i = 0; i < 90; i++) {
+      const player = game.player(),
+        dx = point.x - player.x,
+        dy = point.y - player.y;
+      if (Math.hypot(dx, dy) < 0.045) break;
+      game.update(1 / 60, (dx - dy) / 2, (dx + dy) / 2, true);
+    }
+  }
+  assert.ok(
+    Math.hypot(game.player().x - target.x, game.player().y - target.y) < 0.25,
   );
-  assert.ok(WALLS.length === 14);
+}
+test("playable route: reach computer, unlock bridge, collect memory, enter right wing and exit", () => {
+  const game = createGame();
+  assert.equal(game.interact(), false);
+  go(game, { x: 4.5, y: 1.4 });
+  assert.equal(game.interact(), true);
+  assert.equal(game.progress().doorOpen, true);
+  go(game, { x: 7.5, y: 4.5 });
+  assert.equal(game.interact(), true);
+  assert.equal(game.progress().memoryCollected, true);
+  go(game, { x: 10.8, y: 4.5 });
+  assert.equal(roomAt(game.player().x, game.player().y)?.id, "right-middle");
+  for (let i = 0; i < 240; i++) game.update(1 / 60, 0, 0, true);
+  assert.equal(roomAt(game.brother().x, game.brother().y)?.id, "right-middle");
+  go(game, { x: 10.5, y: 1.3 });
+  assert.equal(game.interact(), true);
+  assert.equal(game.progress().finished, true);
 });

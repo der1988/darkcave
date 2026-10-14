@@ -12,6 +12,8 @@ Read only the modules relevant to the requested change.
 - Isometric projection: `src/geometry.ts`
 - Camera, canvas sizing and frame composition: `src/scene-renderer.ts`
 - Visual tuning: `src/config.ts`
+- Computer lock, memory and exit state: `src/mechanisms.ts`
+- Terminal, memory, exit and interaction hints: `src/mechanism-renderer.ts`
 - Clicker hearing, investigation and wandering: `src/clicker.ts`
 - Grid navigation around walls and furniture: `src/navigation.ts`
 - Dialogue timing and text: `src/dialogue.ts`

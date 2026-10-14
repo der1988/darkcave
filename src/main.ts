@@ -7,7 +7,10 @@ import { SceneRenderer } from "./scene-renderer";
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const game = createGame();
 const renderer = new SceneRenderer(canvas, game);
-const input = new InputState(() => renderer.torch.toggle());
+const input = new InputState(
+  () => renderer.torch.toggle(),
+  () => game.interact(),
+);
 canvas.addEventListener("pointermove", (event) =>
   renderer.aim(event.clientX, event.clientY),
 );
@@ -38,7 +41,11 @@ function frame(now: number) {
   game.update(dt, movement.horizontal, movement.vertical, movement.stealth);
   footstepAudio.play(game.takeFootsteps());
   footstepAudio.impacts(game.takeImpacts(), game.player());
-  footstepAudio.clicker(dt, game.clicker(), game.player());
+  game
+    .clickers()
+    .forEach((clicker, index) =>
+      footstepAudio.clicker(dt, clicker, game.player(), index),
+    );
   renderer.render(now);
   requestAnimationFrame(frame);
 }
@@ -53,6 +60,8 @@ if (import.meta.env.DEV)
       brother: game.brother(),
       torchOn: renderer.torch.on,
       clicker: game.clicker(),
+      clickers: game.clickers(),
+      progress: game.progress(),
       dialogue: game.dialogue(),
       objects: game.objects(),
       heldObject: game.heldObject(),

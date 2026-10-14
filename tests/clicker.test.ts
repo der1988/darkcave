@@ -8,18 +8,18 @@ import { blocked } from "../src/movement.ts";
 test("clicker ignores distant sounds and investigates the last nearby footstep", () => {
   const clicker = new Clicker();
   assert.equal(clicker.hear({ x: 1, y: 1, source: "player" }), false);
-  assert.equal(clicker.hear({ x: 8, y: 6.4, source: "brother" }), true);
+  assert.equal(clicker.hear({ x: 13, y: 6.4, source: "brother" }), true);
   const start = clicker.snapshot();
   for (let i = 0; i < 60; i++) clicker.update(1 / 60);
   const state = clicker.snapshot();
   assert.equal(state.mode, "investigating");
-  assert.deepEqual(state.lastHeard, { x: 8, y: 6.4 });
+  assert.deepEqual(state.lastHeard, { x: 13, y: 6.4 });
   assert.notEqual(state.y, start.y);
   assert.equal(blocked(state.x, state.y), false);
 });
 test("clicker searches then resumes wandering without receiving more sound", () => {
   const clicker = new Clicker();
-  clicker.hear({ x: 8.5, y: 7.7, source: "player" });
+  clicker.hear({ x: 13.5, y: 7.5, source: "player" });
   for (let i = 0; i < 300; i++) clicker.update(1 / 60);
   assert.equal(clicker.snapshot().mode, "wandering");
   assert.equal(clicker.snapshot().lastHeard, null);

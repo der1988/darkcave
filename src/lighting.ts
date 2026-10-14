@@ -1,5 +1,5 @@
 import type { Point } from "./geometry";
-import { ROOM, WALLS } from "./room";
+import { ROOM, wallsFor } from "./room";
 
 export type Vec3 = { x: number; y: number; z: number };
 export const TORCH = { height: 0.43, range: 6, angle: 0.29, power: 1.8 };
@@ -9,8 +9,8 @@ const smooth = (x: number) => {
 };
 
 /** Segment occlusion uses the same walls and doorway gaps as movement. */
-export function visible(from: Vec3, to: Vec3) {
-  for (const wall of WALLS) {
+export function visible(from: Vec3, to: Vec3, unlocked = false) {
+  for (const wall of wallsFor(unlocked)) {
     const dx = wall.axis === "x" ? to.x - from.x : to.y - from.y;
     if (Math.abs(dx) < 1e-6) continue;
     const t = (wall.position - (wall.axis === "x" ? from.x : from.y)) / dx;
@@ -28,6 +28,7 @@ export function visible(from: Vec3, to: Vec3) {
 
 export class Flashlight {
   on = true;
+  unlocked = false;
   angle = -Math.PI / 4;
   toggle() {
     this.on = !this.on;
@@ -46,7 +47,11 @@ export class Flashlight {
       dy = point.y - origin.y,
       dz = point.z - origin.z;
     const distance = Math.hypot(dx, dy, dz);
-    if (distance < 0.015 || distance > TORCH.range || !visible(origin, point))
+    if (
+      distance < 0.015 ||
+      distance > TORCH.range ||
+      !visible(origin, point, this.unlocked)
+    )
       return 0;
     // A slight downward pitch puts the lower half of the beam on the floor.
     const dot =

@@ -4,7 +4,7 @@ import type { SoundEvent } from "./throwables";
 import type { Footstep } from "./clicker";
 /** Audio starts only after a browser-approved user gesture. */
 export class FootstepAudio {
-  private nextCall = 1;
+  private nextCalls = new Map<number, number>();
   private noise: AudioBuffer | null = null;
   private context: AudioContext | null = null;
   unlock() {
@@ -100,11 +100,12 @@ export class FootstepAudio {
       else this.burst(sound, listener, 1300, 0.04, 0.06);
     }
   }
-  clicker(dt: number, actor: ClickerState, listener: Point) {
+  clicker(dt: number, actor: ClickerState, listener: Point, id = 0) {
     if (!this.context || this.context.state !== "running") return;
-    this.nextCall -= dt;
-    if (this.nextCall > 0) return;
-    this.nextCall = actor.mode === "investigating" ? 1.3 : 2.8;
+    const next = (this.nextCalls.get(id) ?? 1 + id * 0.25) - dt;
+    this.nextCalls.set(id, next);
+    if (next > 0) return;
+    this.nextCalls.set(id, actor.mode === "investigating" ? 1.3 : 2.8);
     // Original synthetic dry clicks followed by a low rasp; no sampled game audio.
     for (let i = 0; i < 4; i++)
       this.burst(actor, listener, 1300 + i * 260, 0.025, 0.15, i * 0.085);

@@ -13,7 +13,7 @@ export function drawThrowables(
   const player = game.player();
   for (const item of game.objects()) {
     if (item.state === "held") continue;
-    if (actorOpacity(item) < 1) continue;
+    if (actorOpacity(item, game.progress().doorOpen) < 1) continue;
     const screen = project(item.x, item.y, item.z),
       x = Math.round(screen.x + camera.x),
       y = Math.round(screen.y + camera.y);
@@ -56,7 +56,7 @@ export function drawHeldObject(
     x = Math.round(p.x + camera.x - 5),
     y = Math.round(p.y + camera.y);
   ctx.save();
-  ctx.globalAlpha = actorOpacity(player);
+  ctx.globalAlpha = actorOpacity(player, game.progress().doorOpen);
   ctx.fillStyle = item.kind === "bottle" ? "#6f9886" : "#aaa393";
   ctx.fillRect(
     x,

@@ -1,4 +1,4 @@
-import { ROOM, ROOMS, WALLS, MARKINGS, STOREFRONTS, FIXTURES } from "./room";
+import { ROOM, ROOMS, wallsFor, MARKINGS, STOREFRONTS, FIXTURES } from "./room";
 import { project, type Point } from "./geometry";
 import { illumination, type Flashlight, type Vec3 } from "./lighting";
 
@@ -93,45 +93,17 @@ export class RoomRenderer {
         )!.floor
       );
     };
-    this.surface(
-      ctx,
-      camera,
-      { x: 0, y: 0, z: 0 },
-      { x: ROOM.width, y: 0, z: 0 },
-      { x: 0, y: ROOM.height, z: 0 },
-      floorColor,
-      player,
-      torch,
-    );
-    this.surface(
-      ctx,
-      camera,
-      { x: 0, y: 0, z: 0 },
-      { x: ROOM.width, y: 0, z: 0 },
-      { x: 0, y: 0, z: ROOM.wallHeight },
-      (p) => {
-        const shop = STOREFRONTS.find((s) => p.x >= s.from && p.x <= s.to);
-        if (!shop) return "#323832";
-        if (p.z > 1.08 && p.z < 1.27) return shop.sign;
-        if (p.z > 1.02) return "#323832";
-        if (p.x < shop.from + 0.07 || p.x > shop.to - 0.07) return shop.trim;
-        if (p.z < 0.07) return "#151b19";
-        // Fine horizontal ribs give closed shutters their familiar mall silhouette.
-        return Math.floor(p.z * 24) % 2 ? "#343a35" : "#2b302c";
-      },
-      player,
-      torch,
-    );
-    this.surface(
-      ctx,
-      camera,
-      { x: 0, y: 0, z: 0 },
-      { x: 0, y: ROOM.height, z: 0 },
-      { x: 0, y: 0, z: ROOM.wallHeight },
-      () => "#242d29",
-      player,
-      torch,
-    );
+    for (const room of ROOMS)
+      this.surface(
+        ctx,
+        camera,
+        { x: room.minX, y: room.minY, z: 0 },
+        { x: room.maxX - room.minX, y: 0, z: 0 },
+        { x: 0, y: room.maxY - room.minY, z: 0 },
+        floorColor,
+        player,
+        torch,
+      );
     const shopColor = (p: Vec3) => {
       const shop = STOREFRONTS.find((s) => p.x >= s.from && p.x <= s.to);
       if (!shop) return "#323832";
@@ -141,7 +113,7 @@ export class RoomRenderer {
       return Math.floor(p.z * 24) % 2 ? "#343a35" : "#2b302c";
     };
     const objects = [
-      ...WALLS.map((wall) => ({
+      ...wallsFor(torch.unlocked).map((wall) => ({
         depth: wall.position + wall.to,
         draw: () => {
           this.surface(
@@ -171,7 +143,9 @@ export class RoomRenderer {
             if (prop.kind === "planter" && p.z > prop.height - 0.08)
               return "#263c2e";
             if (
-              (prop.kind === "directory" || prop.kind === "kiosk") &&
+              (prop.kind === "directory" ||
+                prop.kind === "kiosk" ||
+                prop.kind === "computer") &&
               p.z > 0.16 &&
               p.z < prop.height - 0.07
             )

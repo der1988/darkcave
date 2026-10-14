@@ -1,12 +1,12 @@
 import type { Game } from "./game";
 import { project, type Point } from "./geometry";
 import { illumination, type Flashlight } from "./lighting";
-import { WALLS, ROOM } from "./room";
+import { wallsFor, ROOM } from "./room";
 import { drawPerson } from "./player-sprite";
 
 /** Intersect the isometric camera ray with a vertical wall at torso height. */
-export function actorOpacity(actor: Point) {
-  for (const wall of WALLS) {
+export function actorOpacity(actor: Point, unlocked = false) {
+  for (const wall of wallsFor(unlocked)) {
     const across = wall.axis === "x" ? actor.x : actor.y;
     const along = wall.axis === "x" ? actor.y : actor.x;
     const distance = wall.position - across;
@@ -54,7 +54,7 @@ export function drawActors(
       !child ? { x: lens.x + camera.x, y: lens.y + camera.y } : undefined,
       child ? 0 : 1,
       actor.stealth,
-      actorOpacity(actor),
+      actorOpacity(actor, game.progress().doorOpen),
     );
   }
 }
@@ -66,28 +66,30 @@ export function drawClicker(
   game: Game,
   torch: Flashlight,
 ) {
-  const actor = game.clicker(),
-    light = torch.at({ ...actor, z: 0.3 }, game.player());
-  if (light < 0.05 || actorOpacity(actor) < 1) return;
-  const p = project(actor.x, actor.y),
-    x = Math.round(p.x + camera.x),
-    y = Math.round(p.y + camera.y),
-    step = actor.moving ? Math.round(Math.sin(actor.stride) * 2) : 0;
-  ctx.save();
-  ctx.globalAlpha = Math.min(1, light * 1.7);
-  ctx.fillStyle = "#342d28";
-  ctx.fillRect(x - 4, y - 12, 7, 9);
-  ctx.fillRect(x - 3 + step, y - 5, 2, 5);
-  ctx.fillRect(x + 2 - step, y - 5, 2, 5);
-  ctx.fillStyle = "#71675a";
-  ctx.fillRect(x - 5, y - 21, 9, 8);
-  ctx.fillRect(x - 7, y - 19, 3, 4);
-  ctx.fillRect(x + 3, y - 18, 3, 5);
-  ctx.fillStyle = "#a39173";
-  ctx.fillRect(x - 4, y - 22, 3, 4);
-  ctx.fillRect(x + 1, y - 20, 3, 3);
-  ctx.fillStyle = "#4c4035";
-  ctx.fillRect(x - 6, y - 12, 2, 8);
-  ctx.fillRect(x + 3, y - 12, 2, 8);
-  ctx.restore();
+  for (const actor of game.clickers()) {
+    const light = torch.at({ ...actor, z: 0.3 }, game.player());
+    if (light < 0.05 || actorOpacity(actor, game.progress().doorOpen) < 1)
+      continue;
+    const p = project(actor.x, actor.y),
+      x = Math.round(p.x + camera.x),
+      y = Math.round(p.y + camera.y),
+      step = actor.moving ? Math.round(Math.sin(actor.stride) * 2) : 0;
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, light * 1.7);
+    ctx.fillStyle = "#342d28";
+    ctx.fillRect(x - 4, y - 12, 7, 9);
+    ctx.fillRect(x - 3 + step, y - 5, 2, 5);
+    ctx.fillRect(x + 2 - step, y - 5, 2, 5);
+    ctx.fillStyle = "#71675a";
+    ctx.fillRect(x - 5, y - 21, 9, 8);
+    ctx.fillRect(x - 7, y - 19, 3, 4);
+    ctx.fillRect(x + 3, y - 18, 3, 5);
+    ctx.fillStyle = "#a39173";
+    ctx.fillRect(x - 4, y - 22, 3, 4);
+    ctx.fillRect(x + 1, y - 20, 3, 3);
+    ctx.fillStyle = "#4c4035";
+    ctx.fillRect(x - 6, y - 12, 2, 8);
+    ctx.fillRect(x + 3, y - 12, 2, 8);
+    ctx.restore();
+  }
 }

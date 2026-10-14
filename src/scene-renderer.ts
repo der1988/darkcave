@@ -1,3 +1,4 @@
+import { drawMechanisms } from "./mechanism-renderer";
 import { drawThrowables, drawHeldObject } from "./throwable-renderer";
 import { actorOpacity } from "./actor-renderer";
 import { illumination } from "./lighting";
@@ -66,7 +67,7 @@ export class SceneRenderer {
       .filter(
         (item) =>
           item.state === "ground" &&
-          actorOpacity(item) === 1 &&
+          actorOpacity(item, this.game.progress().doorOpen) === 1 &&
           illumination({ ...item, z: 0 }, this.game.player(), this.torch) >
             0.15,
       )
@@ -88,7 +89,16 @@ export class SceneRenderer {
   render(now: number) {
     this.ctx.fillStyle = ROOM_STYLE.background;
     this.ctx.fillRect(0, 0, this.width, this.height);
+    this.torch.unlocked = this.game.progress().doorOpen;
     this.surfaces.draw(this.ctx, this.camera, this.game.player(), this.torch);
+    drawMechanisms(
+      this.ctx,
+      this.camera,
+      this.game,
+      this.torch,
+      this.width,
+      this.height,
+    );
     drawThrowables(this.ctx, this.camera, this.game, this.torch);
     drawClicker(this.ctx, this.camera, this.game, this.torch);
     drawActors(this.ctx, this.camera, this.game, this.torch, now);

@@ -9,17 +9,19 @@ const center = (index: number): Point => ({
   x: ((index % WIDTH) + 0.5) * CELL,
   y: (Math.floor(index / WIDTH) + 0.5) * CELL,
 });
-const passable = Array.from({ length: WIDTH * HEIGHT }, (_, index) => {
-  const point = center(index);
-  return (
-    point.x >= 0.22 &&
-    point.y >= 0.22 &&
-    point.x <= ROOM.width - 0.22 &&
-    point.y <= ROOM.height - 0.22 &&
-    !blocked(point.x, point.y)
-  );
-});
-function nearest(point: Point) {
+function passability(unlocked: boolean) {
+  return Array.from({ length: WIDTH * HEIGHT }, (_, index) => {
+    const p = center(index);
+    return (
+      p.x >= 0.22 &&
+      p.y >= 0.22 &&
+      p.x <= ROOM.width - 0.22 &&
+      p.y <= ROOM.height - 0.22 &&
+      !blocked(p.x, p.y, unlocked)
+    );
+  });
+}
+function nearest(point: Point, passable: boolean[]) {
   let best = -1,
     distance = Infinity;
   passable.forEach((open, index) => {
@@ -34,9 +36,10 @@ function nearest(point: Point) {
   return best;
 }
 /** Cardinal grid search respects walls, doorway width and furniture footprints. */
-export function findPath(from: Point, to: Point): Point[] {
-  const start = nearest(from),
-    goal = nearest(to);
+export function findPath(from: Point, to: Point, unlocked = false): Point[] {
+  const passable = passability(unlocked);
+  const start = nearest(from, passable),
+    goal = nearest(to, passable);
   if (start < 0 || goal < 0) return [];
   const queue = [start],
     previous = new Map<number, number>([[start, -1]]);
