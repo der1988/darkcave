@@ -23,13 +23,14 @@ export class SceneRenderer{
   }
   private drawFurniture(){
     const footprint=(x:number,y:number,w:number,d:number,color:string)=>{this.path([[x,y,.015],[x+w,y,.015],[x+w,y+d,.015],[x,y+d,.015]]);this.ctx.fillStyle=color;this.ctx.fill();};
-    footprint(.55,.55,1.45,.72,"#292b27");footprint(2.55,.55,.45,.45,"#343832");
-    footprint(4.5,.55,1.05,.55,"#293536");footprint(6.55,.62,.48,.38,"#344345");
-    footprint(.65,4.25,1.55,.55,"#3a332b");footprint(2.55,4.3,.78,.62,"#26231f");
-    footprint(4.55,4.05,2.55,.42,"#293430");footprint(6.72,4.48,.38,1.02,"#313b37");
+    for(const [x,y] of [[.7,.75],[2.45,.7],[.65,2.25],[2.5,2.2]])footprint(x,y,.16,.16,"#514d32");
+    footprint(3.55,.48,2.5,1.78,"#18383b");footprint(3.7,.63,2.2,1.48,"#28545a");
+    for(const [x,y] of [[6.72,.62],[7.75,.62],[8.72,.62],[7.25,1.85],[8.28,1.85]])footprint(x,y,.62,.32,"#30352f");
+    footprint(.45,3.42,3.85,.18,"#403b39");footprint(.55,5.42,3.7,.16,"#332f2e");footprint(1.45,4.18,1.75,.58,"#252424");
+    footprint(5.22,3.62,1.25,.34,"#4b454f");footprint(7.15,4.12,.58,.58,"#3b4d50");footprint(8.15,5.08,.72,.42,"#51453e");
   }
   private daylight(now:number){
-    const phase=now*.000075,drift=.34+Math.sin(phase)*.16,intensity=.78+Math.sin(phase*.63+.8)*.12,depth=2.32;
+    const phase=now*.000075,drift=.34+Math.sin(phase)*.16,intensity=.78+Math.sin(phase*.63+.8)*.12,depth=2.82;
     for(const window of WINDOWS){
       const bottom=.43,top=1.13;this.path([[window.from,0,bottom],[window.to,0,bottom],[window.to,0,top],[window.from,0,top]]);
       const wallGlow=this.ctx.createLinearGradient(0,this.camera.y-20,0,this.camera.y+45);wallGlow.addColorStop(0,`rgba(178,205,202,${.72*intensity})`);wallGlow.addColorStop(1,`rgba(113,145,143,${.46*intensity})`);this.ctx.fillStyle=wallGlow;this.ctx.fill();

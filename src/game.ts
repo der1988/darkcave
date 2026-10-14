@@ -8,8 +8,8 @@ const blocked=(x:number,y:number)=>WALLS.some(wall=>{const across=wall.axis==="x
 const move=(actor:ActorState,dx:number,dy:number)=>{const x=clamp(actor.x+dx,.22,ROOM.width-.22);if(!blocked(x,actor.y))actor.x=x;const y=clamp(actor.y+dy,.22,ROOM.height-.22);if(!blocked(actor.x,y))actor.y=y;};
 
 export function createGame():Game{
-  const player:ActorState={x:3.8,y:3,heading:-Math.PI/4,stride:0,moving:false,stealth:false};
-  const brother:ActorState={x:3.35,y:3.05,heading:-Math.PI/4,stride:0,moving:false,stealth:false};
+  const player:ActorState={x:1.9,y:1.55,heading:-Math.PI/4,stride:0,moving:false,stealth:false};
+  const brother:ActorState={x:1.48,y:1.78,heading:-Math.PI/4,stride:0,moving:false,stealth:false};
   return{room:ROOM,update(dt,horizontal,vertical,stealth){
     dt=clamp(dt,0,.04);const dx=horizontal+vertical,dy=-horizontal+vertical,length=Math.hypot(dx,dy);player.moving=false;player.stealth=stealth;
     if(length>.001){const ux=dx/length,uy=dy/length,speed=stealth?1.15:2.05,distance=speed*dt;
