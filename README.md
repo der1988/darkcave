@@ -33,9 +33,13 @@ npm run test:browser
 - Shift: silent stealth movement
 - Mouse: aim flashlight
 - Space / F: toggle flashlight
+- Click a nearby stone or bottle: pick up into the free hand
+- Hold left mouse button and release: throw toward the cursor; holding longer increases power
 
 There is no corridor. Six directly connected rooms form a square shopping mall: entrance, closed storefronts, deserted food court, empty displays, seating court and closed arcade. Small benches, counters, a directory, planters and kiosks have collision footprints. The companion routes through the doorway graph between both rows. Brothers fade to 48% opacity when a solid wall lies between their torso and the isometric camera. Floor inlays, blank signboards and ribbed shutters are deliberately restrained and proportionate to the brothers.
 
 There are no windows or exterior light sources. Lighting is evaluated in world coordinates for each floor and wall texel: subtle ambient penumbra and a flashlight with soft angular edges, distance falloff and shared wall occlusion through doorway openings.
 
 Short Italian exchanges appear above the speaking brother and move with him. Exchanges are less frequent during stealth. The clicker starts in the farthest room and wanders there until it hears footsteps. Walking produces quiet footstep audio and matching gameplay sound events; stealth produces neither. Hearing has a limited range and follows routes through doors. The clicker investigates the last heard position, searches briefly, then resumes wandering. It is visible only in the flashlight and has no attack/damage behavior in this phase.
+
+Five loose stones and two empty bottles can be collected. One authoritative object state tracks ground, hand, flight and broken glass. Stones follow ballistic arcs, bounce, settle and can be recovered; bottles shatter on the first impact. Wall/furniture collisions and impacts emit gameplay sounds that can distract the blind clicker. Standing or moving in stealth creates no footstep events. After an unsuccessful search the creature chooses a patrol point away from its last heard position. Its original synthetic clicks and rasp are spatialized and audible even when it is hidden. Browser audio unlocks after the first keyboard/mouse gesture.

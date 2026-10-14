@@ -1,3 +1,6 @@
+import { drawThrowables, drawHeldObject } from "./throwable-renderer";
+import { actorOpacity } from "./actor-renderer";
+import { illumination } from "./lighting";
 import { ROOM_STYLE, VIEW } from "./config";
 import type { Game } from "./game";
 import { project, type Point } from "./geometry";
@@ -54,12 +57,42 @@ export class SceneRenderer {
     this.torch.angle = Math.atan2(y - player.y, x - player.x);
   }
 
+  pickUpAt(clientX: number, clientY: number) {
+    const rect = this.canvas.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * this.width,
+      y = ((clientY - rect.top) / rect.height) * this.height;
+    const item = this.game
+      .objects()
+      .filter(
+        (item) =>
+          item.state === "ground" &&
+          actorOpacity(item) === 1 &&
+          illumination({ ...item, z: 0 }, this.game.player(), this.torch) >
+            0.15,
+      )
+      .sort((a, b) => {
+        const pa = project(a.x, a.y),
+          pb = project(b.x, b.y);
+        return (
+          Math.hypot(pa.x + this.camera.x - x, pa.y + this.camera.y - y) -
+          Math.hypot(pb.x + this.camera.x - x, pb.y + this.camera.y - y)
+        );
+      })[0];
+    if (!item) return false;
+    const p = project(item.x, item.y);
+    if (Math.hypot(p.x + this.camera.x - x, p.y + this.camera.y - y) > 9)
+      return false;
+    return this.game.pickUp(item.id);
+  }
+
   render(now: number) {
     this.ctx.fillStyle = ROOM_STYLE.background;
     this.ctx.fillRect(0, 0, this.width, this.height);
     this.surfaces.draw(this.ctx, this.camera, this.game.player(), this.torch);
+    drawThrowables(this.ctx, this.camera, this.game, this.torch);
     drawClicker(this.ctx, this.camera, this.game, this.torch);
     drawActors(this.ctx, this.camera, this.game, this.torch, now);
+    drawHeldObject(this.ctx, this.camera, this.game);
     drawDialogue(this.ctx, this.camera, this.game, this.width);
   }
 }

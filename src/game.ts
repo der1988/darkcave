@@ -1,3 +1,4 @@
+import { Throwables, type Throwable, type SoundEvent } from "./throwables";
 import { Clicker, type ClickerState, type Footstep } from "./clicker";
 import { Dialogue, type DialogueLine } from "./dialogue";
 import { ROOM, DOORS, roomAt } from "./room";
@@ -23,6 +24,14 @@ export type Game = {
   clicker(): ClickerState;
   dialogue(): DialogueLine | null;
   takeFootsteps(): Footstep[];
+  objects(): Throwable[];
+  heldObject(): Throwable | null;
+  chargePower(): number | null;
+  pickUp(id: string): boolean;
+  beginThrow(): void;
+  releaseThrow(angle: number): boolean;
+  cancelThrow(): void;
+  takeImpacts(): SoundEvent[];
 };
 function actor(x: number, y: number): ActorState {
   return {
@@ -88,6 +97,8 @@ export function createGame(): Game {
   const clicker = new Clicker(),
     dialogue = new Dialogue();
   const footsteps: Footstep[] = [];
+  const objects = new Throwables();
+  const impacts: SoundEvent[] = [];
   const travel = { player: 0, brother: 0 };
   return {
     room: ROOM,
@@ -133,9 +144,25 @@ export function createGame(): Game {
           if (footsteps.length > 24) footsteps.shift();
         }
       }
+      for (const sound of objects.update(dt, player)) {
+        clicker.hear(sound);
+        impacts.push(sound);
+        if (impacts.length > 24) impacts.shift();
+      }
       clicker.update(dt);
       dialogue.update(dt, stealth);
     },
+    objects: () => objects.snapshot(),
+    heldObject: () => {
+      const held = objects.held();
+      return held ? { ...held } : null;
+    },
+    chargePower: () => objects.power(),
+    pickUp: (id) => objects.pickUp(id, player),
+    beginThrow: () => objects.beginCharge(),
+    releaseThrow: (angle) => objects.release(player, angle),
+    cancelThrow: () => objects.cancelCharge(),
+    takeImpacts: () => impacts.splice(0),
     clicker: () => clicker.snapshot(),
     dialogue: () => dialogue.snapshot(),
     takeFootsteps: () => footsteps.splice(0),

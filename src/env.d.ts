@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import type { Throwable } from "./throwables";
 
 import type { ClickerState } from "./clicker";
 import type { DialogueLine } from "./dialogue";
@@ -13,6 +14,9 @@ declare global {
         torchOn: boolean;
         clicker: ClickerState;
         dialogue: DialogueLine | null;
+        objects: Throwable[];
+        heldObject: Throwable | null;
+        chargePower: number | null;
       };
     };
   }

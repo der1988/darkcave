@@ -13,7 +13,22 @@ canvas.addEventListener("pointermove", (event) =>
 );
 const footstepAudio = new FootstepAudio();
 addEventListener("keydown", () => footstepAudio.unlock());
-canvas.addEventListener("pointerdown", () => footstepAudio.unlock());
+canvas.addEventListener("pointerdown", (event) => {
+  if (event.button !== 0) return;
+  footstepAudio.unlock();
+  renderer.aim(event.clientX, event.clientY);
+  if (game.heldObject()) {
+    game.beginThrow();
+    canvas.setPointerCapture(event.pointerId);
+  } else renderer.pickUpAt(event.clientX, event.clientY);
+});
+canvas.addEventListener("pointerup", (event) => {
+  if (event.button !== 0) return;
+  renderer.aim(event.clientX, event.clientY);
+  game.releaseThrow(renderer.torch.angle);
+});
+canvas.addEventListener("pointercancel", () => game.cancelThrow());
+addEventListener("blur", () => game.cancelThrow());
 let lastFrame = performance.now();
 
 function frame(now: number) {
@@ -22,6 +37,8 @@ function frame(now: number) {
   const movement = input.movement();
   game.update(dt, movement.horizontal, movement.vertical, movement.stealth);
   footstepAudio.play(game.takeFootsteps());
+  footstepAudio.impacts(game.takeImpacts(), game.player());
+  footstepAudio.clicker(dt, game.clicker(), game.player());
   renderer.render(now);
   requestAnimationFrame(frame);
 }
@@ -37,5 +54,8 @@ if (import.meta.env.DEV)
       torchOn: renderer.torch.on,
       clicker: game.clicker(),
       dialogue: game.dialogue(),
+      objects: game.objects(),
+      heldObject: game.heldObject(),
+      chargePower: game.chargePower(),
     }),
   };

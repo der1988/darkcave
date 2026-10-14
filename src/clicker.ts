@@ -3,6 +3,7 @@ import type { Point } from "./geometry";
 import { move } from "./movement";
 import { findPath } from "./navigation";
 
+import type { SoundEvent } from "./throwables";
 export type Footstep = Point & { source: "player" | "brother" };
 export type ClickerState = ActorState & {
   mode: "wandering" | "investigating" | "searching";
@@ -34,8 +35,12 @@ export class Clicker {
       lastHeard: this.actor.lastHeard ? { ...this.actor.lastHeard } : null,
     };
   }
-  hear(step: Footstep) {
-    if (Math.hypot(step.x - this.actor.x, step.y - this.actor.y) > 5.5)
+  hear(step: SoundEvent) {
+    const strength = step.loudness ?? 1;
+    if (
+      Math.hypot(step.x - this.actor.x, step.y - this.actor.y) >
+      7.5 * strength
+    )
       return false;
     const route = findPath(this.actor, step);
     let distance = 0,
@@ -45,7 +50,7 @@ export class Clicker {
       previous = point;
     }
     // Sound travels through openings: long routes around walls are too quiet.
-    if (!route.length || distance > 6.2) return false;
+    if (!route.length || distance > 8 * strength) return false;
     this.actor.lastHeard = { x: step.x, y: step.y };
     this.actor.mode = "investigating";
     this.route = route;
@@ -65,8 +70,21 @@ export class Clicker {
         return;
       }
       this.actor.mode = "wandering";
+      const lastHeard = this.actor.lastHeard;
       this.actor.lastHeard = null;
-      this.patrol = (this.patrol + 1) % PATROL.length;
+      if (lastHeard) {
+        this.patrol = PATROL.reduce(
+          (best, point, index) =>
+            Math.hypot(point.x - lastHeard.x, point.y - lastHeard.y) >
+            Math.hypot(
+              PATROL[best].x - lastHeard.x,
+              PATROL[best].y - lastHeard.y,
+            )
+              ? index
+              : best,
+          0,
+        );
+      } else this.patrol = (this.patrol + 1) % PATROL.length;
       this.route = findPath(this.actor, PATROL[this.patrol]);
     }
     const target = this.route[0];

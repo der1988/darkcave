@@ -16,7 +16,9 @@ Read only the modules relevant to the requested change.
 - Grid navigation around walls and furniture: `src/navigation.ts`
 - Dialogue timing and text: `src/dialogue.ts`
 - Character-anchored speech bubbles: `src/dialogue-renderer.ts`
-- Browser-safe quiet footstep audio: `src/footstep-audio.ts`
+- Throwable ownership, charged throws, physics and distraction sound: `src/throwables.ts`
+- Ground objects, held items and charge indicator: `src/throwable-renderer.ts`
+- Browser-safe footsteps, impact audio and spatial clicker calls: `src/footstep-audio.ts`
 - Keyboard input: `src/input.ts`
 - Startup wiring: `src/main.ts`
 
