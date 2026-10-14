@@ -33,6 +33,6 @@ npm run test:browser
 - Mouse: aim the flashlight and set its reach on the floor
 - Space: physically stow or draw the flashlight
 - F: switch the flashlight on or off while it is held
-- Shift: move faster
+- Shift: silent stealth movement
 
 The room contains one true cube. Its shadow is the convex perspective projection of all eight cube vertices from the flashlight lens onto the floor, with a narrow penumbra around the exact geometric core.

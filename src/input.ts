@@ -36,7 +36,7 @@ export class InputState {
       vertical:
         Number(this.keys.has("s") || this.keys.has("arrowdown")) -
         Number(this.keys.has("w") || this.keys.has("arrowup")),
-      running: this.keys.has("shift"),
+      stealth: this.keys.has("shift"),
     };
   }
 }

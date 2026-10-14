@@ -3,8 +3,14 @@ import type { Flashlight } from "./flashlight";
 import { project, type Camera, type Point } from "./geometry";
 import type { ActorState } from "./game";
 import { drawPerson } from "./player-sprite";
+import { DOOR_MAX,DOOR_MIN } from "./world";
 
 type Room = { width: number; height: number };
+
+export function wallOpacity(actor:ActorState){
+  const wall=actor.x<4?4:actor.x<8?8:null;
+  return wall&&wall-actor.x<.85&&(actor.y<DOOR_MIN||actor.y>DOOR_MAX)?.42:1;
+}
 
 function drawBrotherShadow(
   ctx: CanvasRenderingContext2D,
@@ -73,7 +79,7 @@ export function drawActors(
   for (const { actor, child, light } of actors) {
     const screen = project(actor.x, actor.y);
     const lens = !child && flashlight.holdProgress > 0.02
-      ? project(lightOrigin.x, lightOrigin.y, LIGHT.lensHeight)
+      ? project(lightOrigin.x, lightOrigin.y, LIGHT.lensHeight-(player.stealth?.1:0))
       : undefined;
     drawPerson(
       ctx,
@@ -87,6 +93,8 @@ export function drawActors(
       actor.moving,
       lens ? { x: lens.x + camera.x, y: lens.y + camera.y } : undefined,
       child ? 0 : flashlight.holdProgress,
+      actor.stealth,
+      wallOpacity(actor),
     );
   }
 }

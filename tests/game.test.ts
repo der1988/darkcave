@@ -19,3 +19,13 @@ test("the younger brother follows at a short distance",()=>{
   const p=game.player(),b=game.brother(),gap=Math.hypot(p.x-b.x,p.y-b.y);
   assert.ok(gap>=.46&&gap<.56,`unexpected gap ${gap}`);
 });
+
+test("stealth is slower than walking and affects both brothers",()=>{
+  const walking=createGame(),stealth=createGame(),start=walking.player();
+  walking.update(.04,1,0,false);stealth.update(.04,1,0,true);
+  const walkDistance=Math.hypot(walking.player().x-start.x,walking.player().y-start.y);
+  const stealthDistance=Math.hypot(stealth.player().x-start.x,stealth.player().y-start.y);
+  assert.ok(stealthDistance<walkDistance);
+  assert.equal(stealth.player().stealth,true);
+  assert.equal(stealth.brother().stealth,true);
+});

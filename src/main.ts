@@ -21,8 +21,8 @@ function frame(now: number) {
   const dt = Math.min(0.04, (now - lastFrame) / 1000);
   lastFrame = now;
   const movement = input.movement();
-  game.update(dt, movement.horizontal, movement.vertical, movement.running);
-  flashlight.update(dt, game.player(), movement.running, now / 1000);
+  game.update(dt, movement.horizontal, movement.vertical, movement.stealth);
+  flashlight.update(dt, game.player(), movement.stealth, now / 1000);
   renderer.render(now);
   requestAnimationFrame(frame);
 }

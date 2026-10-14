@@ -27,7 +27,7 @@ function drawSurface(
   ctx.clip();
 
   const lightOrigin = flashlight.origin(player);
-  const origin = project(lightOrigin.x, lightOrigin.y, LIGHT.lensHeight);
+  const origin = project(lightOrigin.x, lightOrigin.y, LIGHT.lensHeight-(player.stealth?.1:0));
   const ox = origin.x + camera.x;
   const oy = origin.y + camera.y;
   const spillRadius = LIGHT.localSpillRadius * VIEW.isoX * 1.8;
