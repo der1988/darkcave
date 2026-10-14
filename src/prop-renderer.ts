@@ -7,7 +7,7 @@ type Room = { width: number; height: number };
 const lit = (color: RoomProp["color"], amount: number) =>
   `rgb(${color.map((channel) => Math.round(channel * Math.max(.28, Math.min(1.65, amount)))).join(",")})`;
 
-function polygon(ctx: CanvasRenderingContext2D, points: [number, number, number][], camera: Camera, fill: string) {
+function polygon(ctx: CanvasRenderingContext2D, points: [number, number, number][], camera: Camera, fill: string | CanvasGradient) {
   ctx.beginPath();
   points.forEach(([x, y, z], index) => {
     const p = project(x, y, z);
@@ -25,15 +25,34 @@ function cuboid(ctx: CanvasRenderingContext2D, p: RoomProp, camera: Camera, ligh
   polygon(ctx, [[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]], camera, lit(p.color, light));
 }
 
-function drawShadow(ctx: CanvasRenderingContext2D, p: RoomProp, origin: Point, camera: Camera, amount: number) {
-  if (amount < .1) return;
+export function objectShadow(p: RoomProp, origin: Point, softness = 0) {
   const cx = (p.minX + p.maxX) / 2, cy = (p.minY + p.maxY) / 2;
-  const dx = cx - origin.x, dy = cy - origin.y, length = Math.hypot(dx, dy) || 1;
-  const ux = dx / length, uy = dy / length, spread = Math.max(p.maxX-p.minX,p.maxY-p.minY) * .55;
-  polygon(ctx, [[cx-spread*uy,cy+spread*ux,.003],[cx+spread*uy,cy-spread*ux,.003],
-    [cx+ux*(p.height*1.25)+spread*uy,cy+uy*(p.height*1.25)-spread*ux,.003],
-    [cx+ux*(p.height*1.65)-spread*uy,cy+uy*(p.height*1.65)+spread*ux,.003]], camera,
-    `rgba(0,0,0,${Math.min(.55, amount*.28)})`);
+  const dx = cx - origin.x, dy = cy - origin.y, distance = Math.hypot(dx, dy) || 1;
+  const ux = dx / distance, uy = dy / distance;
+  const px = -uy, py = ux;
+  const halfWidth = (Math.abs(px) * (p.maxX-p.minX) + Math.abs(py) * (p.maxY-p.minY)) * .5;
+  const spread = halfWidth + softness;
+  const length = Math.min(2.4, Math.max(.24, p.height * (.82 + 1.8 / (distance + .35))));
+  return [
+    [cx-px*spread,cy-py*spread,.003], [cx+px*spread,cy+py*spread,.003],
+    [cx+ux*length+px*(spread+softness),cy+uy*length+py*(spread+softness),.003],
+    [cx+ux*length-px*(spread+softness),cy+uy*length-py*(spread+softness),.003],
+  ] as [number, number, number][];
+}
+
+function drawShadow(ctx: CanvasRenderingContext2D, p: RoomProp, origin: Point, camera: Camera, amount: number) {
+  if (amount < .025) return;
+  const center = {x:(p.minX+p.maxX)/2,y:(p.minY+p.maxY)/2};
+  const base = project(center.x,center.y,.003);
+  const shape = objectShadow(p,origin);
+  const tip = project(shape[2][0],shape[2][1],.003);
+  for (const [softness, opacity] of [[.09,.12],[.045,.2],[0,.3]] as const) {
+    const shadow = ctx.createLinearGradient(base.x+camera.x,base.y+camera.y,tip.x+camera.x,tip.y+camera.y);
+    shadow.addColorStop(0,`rgba(0,0,0,${Math.min(.62,amount*opacity*1.8)})`);
+    shadow.addColorStop(.7,`rgba(0,0,0,${Math.min(.34,amount*opacity)})`);
+    shadow.addColorStop(1,"rgba(0,0,0,0)");
+    polygon(ctx,objectShadow(p,origin,softness),camera,shadow);
+  }
 }
 
 function drawProp(ctx: CanvasRenderingContext2D, p: RoomProp, camera: Camera, light: number) {
@@ -75,15 +94,25 @@ export function drawProps(ctx: CanvasRenderingContext2D, player: ActorState, fla
   for (const p of ROOM_PROPS) {
     const depth = (p.minX+p.maxX+p.minY+p.maxY)/2;
     if (beforeDepth === null ? depth <= player.x+player.y : depth > beforeDepth) continue;
-    const center = {x:(p.minX+p.maxX)/2,y:(p.minY+p.maxY)/2};
-    const illumination = flashlight.at(center, origin, room, p);
+    const samples = [
+      [(p.minX+p.maxX)/2,(p.minY+p.maxY)/2],
+      [p.minX,p.minY],[p.maxX,p.minY],[p.minX,p.maxY],[p.maxX,p.maxY],
+      [(p.minX+p.maxX)/2,p.minY],[(p.minX+p.maxX)/2,p.maxY],
+      [p.minX,(p.minY+p.maxY)/2],[p.maxX,(p.minY+p.maxY)/2],
+    ];
+    const illumination = Math.max(...samples.map(([x,y]) => flashlight.at({x,y}, origin, room, p)));
     drawShadow(ctx,p,origin,camera,illumination);
     drawProp(ctx,p,camera,.34+illumination*.72);
   }
 }
 
 export function drawWallPicture(ctx: CanvasRenderingContext2D, camera: Camera, player: ActorState, flashlight: Flashlight, room: Room) {
-  const center={x:5.35,y:0}; const light=flashlight.at(center,flashlight.origin(player),room);
+  const center={x:5.35,y:0}; const origin=flashlight.origin(player);
+  const light=flashlight.at(center,origin,room);
+  if (light > .025) {
+    const shift = Math.max(-.09,Math.min(.09,(center.x-origin.x)*.025));
+    polygon(ctx,[[4.92+shift,.003,.65],[5.72+shift,.003,.69],[5.72+shift,.003,1.13],[4.92+shift,.003,1.08]],camera,`rgba(0,0,0,${Math.min(.48,light*.3)})`);
+  }
   polygon(ctx,[[4.92,.002,.61],[5.72,.002,.65],[5.72,.002,1.08],[4.92,.002,1.03]],camera,lit([52,44,38],.4+light*.7));
   polygon(ctx,[[5.01,.001,.68],[5.63,.001,.71],[5.63,.001,.99],[5.01,.001,.96]],camera,lit([87,79,64],.35+light*.8));
 }
