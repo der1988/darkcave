@@ -17,7 +17,7 @@ export class SceneRenderer{
   private path(points:[number,number,number][]){this.ctx.beginPath();points.forEach(([x,y,z],index)=>{const p=project(x,y,z);if(index)this.ctx.lineTo(p.x+this.camera.x,p.y+this.camera.y);else this.ctx.moveTo(p.x+this.camera.x,p.y+this.camera.y);});this.ctx.closePath();}
   private roomClip(){
     const surfaces:[number,number,number][][]=[[[0,0,0],[ROOM.width,0,0],[ROOM.width,ROOM.height,0],[0,ROOM.height,0]],[[0,0,0],[ROOM.width,0,0],[ROOM.width,0,ROOM.wallHeight],[0,0,ROOM.wallHeight]],[[0,0,0],[0,ROOM.height,0],[0,ROOM.height,ROOM.wallHeight],[0,0,ROOM.wallHeight]]];
-    this.ctx.beginPath();for(const surface of surfaces)surface.forEach(([x,y,z],index)=>{const p=project(x,y,z);if(index)this.ctx.lineTo(p.x+this.camera.x,p.y+this.camera.y);else this.ctx.moveTo(p.x+this.camera.x,p.y+this.camera.y);});
+    this.ctx.beginPath();for(const surface of surfaces){surface.forEach(([x,y,z],index)=>{const p=project(x,y,z);if(index)this.ctx.lineTo(p.x+this.camera.x,p.y+this.camera.y);else this.ctx.moveTo(p.x+this.camera.x,p.y+this.camera.y);});this.ctx.closePath();}
   }
   aimFromPointer(clientX:number,clientY:number,rect:DOMRect){const sx=(clientX-rect.left)/rect.width*this.width-this.camera.x,sy=(clientY-rect.top)/rect.height*this.height-this.camera.y,target=unproject(sx,sy),player=this.game.player();this.flashlight.aim({x:target.x-player.x,y:target.y-player.y});}
   private drawRoom(){
@@ -33,6 +33,16 @@ export class SceneRenderer{
     const ox=start.x+this.camera.x,oy=start.y+this.camera.y,tx=(left.x+right.x)/2+this.camera.x,ty=(left.y+right.y)/2+this.camera.y,gradient=this.ctx.createLinearGradient(ox,oy,tx,ty);
     gradient.addColorStop(0,`rgba(255,239,185,${.48*this.flashlight.brightness})`);gradient.addColorStop(.58,`rgba(235,220,171,${.25*this.flashlight.brightness})`);gradient.addColorStop(1,"rgba(200,194,163,.07)");
     this.ctx.save();this.roomClip();this.ctx.clip();this.ctx.globalCompositeOperation="lighter";this.ctx.beginPath();this.ctx.moveTo(ox,oy);this.ctx.lineTo(left.x+this.camera.x,left.y+this.camera.y);this.ctx.lineTo(right.x+this.camera.x,right.y+this.camera.y);this.ctx.closePath();this.ctx.fillStyle=gradient;this.ctx.fill();this.ctx.restore();
+    const hit={x:origin.x+direction.x*range,y:origin.y+direction.y*range};
+    if(range<this.flashlight.range-.001&&(hit.x<.01||hit.y<.01))this.drawWallImpact(hit,radius);
+  }
+  private drawWallImpact(hit:Point,radius:number){
+    const onBack=hit.y<.01,wall:[number,number,number][]=onBack
+      ?[[0,0,0],[ROOM.width,0,0],[ROOM.width,0,ROOM.wallHeight],[0,0,ROOM.wallHeight]]
+      :[[0,0,0],[0,ROOM.height,0],[0,ROOM.height,ROOM.wallHeight],[0,0,ROOM.wallHeight]];
+    const center=project(hit.x,hit.y,Math.min(ROOM.wallHeight*.5,LIGHT.lensHeight)),cx=center.x+this.camera.x,cy=center.y+this.camera.y,screenRadius=Math.max(18,radius*VIEW.isoX*1.15);
+    const glow=this.ctx.createRadialGradient(cx,cy,0,cx,cy,screenRadius);glow.addColorStop(0,`rgba(255,241,194,${.62*this.flashlight.brightness})`);glow.addColorStop(.42,`rgba(236,222,178,${.36*this.flashlight.brightness})`);glow.addColorStop(1,"rgba(196,193,170,0)");
+    this.ctx.save();this.path(wall);this.ctx.clip();this.ctx.globalCompositeOperation="lighter";this.ctx.fillStyle=glow;this.ctx.fillRect(cx-screenRadius,cy-screenRadius,screenRadius*2,screenRadius*2);this.ctx.restore();
   }
   private drawActors(now:number){
     const player=this.game.player(),brother=this.game.brother(),origin=this.flashlight.origin(player);for(const [actor,child] of [[brother,true],[player,false]] as const){const p=project(actor.x,actor.y),light=.48+this.flashlight.at(actor,origin,this.game.room)*.42,lens=!child?project(origin.x,origin.y,LIGHT.lensHeight):undefined;

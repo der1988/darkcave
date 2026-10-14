@@ -69,6 +69,9 @@ try {
       walked.player.y - walked.brother.y,
     ) < 0.65,
   );
+  // Aim at the visible rear walls so the browser artifact covers wall lighting.
+  await page.mouse.move(360, 270);
+  await page.waitForTimeout(100);
   await page.screenshot({ path: "/tmp/liminal-foundation.png" });
 
   assert.deepEqual(errors, []);
