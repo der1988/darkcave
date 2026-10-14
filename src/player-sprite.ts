@@ -29,20 +29,20 @@ export function drawPerson(
   type Color = [number, number, number];
   const palette = child
     ? {
-        trousers: [104, 81, 51] as Color,
-        trousersLight: [128, 99, 62] as Color,
-        coat: [80, 105, 70] as Color,
-        coatLight: [109, 132, 83] as Color,
+        trousers: [91, 75, 57] as Color,
+        trousersLight: [116, 94, 68] as Color,
+        coat: [72, 98, 73] as Color,
+        coatLight: [99, 123, 91] as Color,
         skin: [194, 145, 108] as Color,
         skinShade: [165, 112, 82] as Color,
         hair: [68, 45, 31] as Color,
         accent: [151, 79, 55] as Color,
       }
     : {
-        trousers: [55, 65, 78] as Color,
-        trousersLight: [72, 82, 96] as Color,
-        coat: [45, 83, 94] as Color,
-        coatLight: [63, 109, 116] as Color,
+        trousers: [55, 63, 73] as Color,
+        trousersLight: [73, 82, 92] as Color,
+        coat: [46, 78, 87] as Color,
+        coatLight: [65, 102, 107] as Color,
         skin: [183, 132, 101] as Color,
         skinShade: [151, 99, 76] as Color,
         hair: [57, 40, 35] as Color,

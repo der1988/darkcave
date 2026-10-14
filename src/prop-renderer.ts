@@ -39,9 +39,17 @@ function drawShadow(ctx:CanvasRenderingContext2D,cube:RoomProp,origin:Point,came
 }
 function drawCube(ctx:CanvasRenderingContext2D,c:RoomProp,camera:Camera,light:number){
   const {minX:x0,minY:y0,maxX:x1,maxY:y1,height:z}=c;
-  polygon(ctx,[[x0,y0,0],[x1,y0,0],[x1,y0,z],[x0,y0,z]],camera,lit(c.color,light*.7));
-  polygon(ctx,[[x0,y0,0],[x0,y1,0],[x0,y1,z],[x0,y0,z]],camera,lit(c.color,light*.58));
-  polygon(ctx,[[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],camera,lit(c.color,light));
+  const faces:{points:Vertex[];shade:number}[]=[
+    {points:[[x0,y0,0],[x1,y0,0],[x1,y0,z],[x0,y0,z]],shade:.72},
+    {points:[[x0,y0,0],[x0,y1,0],[x0,y1,z],[x0,y0,z]],shade:.58},
+    {points:[[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],shade:1},
+  ];
+  for(const face of faces){
+    polygon(ctx,face.points,camera,lit(c.color,light*face.shade));
+    ctx.beginPath();face.points.forEach(([x,y,height],index)=>{const point=project(x,y,height);
+      if(index)ctx.lineTo(point.x+camera.x,point.y+camera.y);else ctx.moveTo(point.x+camera.x,point.y+camera.y);});
+    ctx.closePath();ctx.strokeStyle=`rgba(173,158,125,${Math.min(.24,.06+light*.1)})`;ctx.lineWidth=.65;ctx.stroke();
+  }
 }
 export function drawProps(ctx:CanvasRenderingContext2D,player:ActorState,flashlight:Flashlight,camera:Camera,room:Room,beforeDepth:number|null){
   const origin=flashlight.origin(player);for(const cube of ROOM_PROPS){const depth=(cube.minX+cube.maxX+cube.minY+cube.maxY)/2;

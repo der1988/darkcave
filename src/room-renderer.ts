@@ -30,8 +30,8 @@ function drawSurface(
   const oy = origin.y + camera.y;
   const spillRadius = LIGHT.localSpillRadius * VIEW.isoX * 1.8;
   const ambientGlow = ctx.createRadialGradient(ox, oy, 0, ox, oy, spillRadius);
-  ambientGlow.addColorStop(0, "rgba(47,51,49,.2)");
-  ambientGlow.addColorStop(0.55, "rgba(30,34,34,.1)");
+  ambientGlow.addColorStop(0, "rgba(55,59,55,.16)");
+  ambientGlow.addColorStop(0.55, "rgba(32,36,35,.075)");
   ambientGlow.addColorStop(1, "rgba(16,19,21,0)");
   ctx.fillStyle = ambientGlow;
   ctx.fillRect(0, 0, viewport.width, viewport.height);
@@ -53,7 +53,7 @@ function drawSurface(
       const radius =
         flashlight.beamRadius(distance) * LIGHT.coronaScale * VIEW.isoX;
       const beam = ctx.createRadialGradient(px, py, 0, px, py, radius);
-      const alpha = flashlight.power(distance) * strength * 0.045;
+      const alpha = flashlight.power(distance) * strength * 0.032;
       beam.addColorStop(0, `rgba(${rgb},${alpha})`);
       beam.addColorStop(0.55, `rgba(${rgb},${alpha * 0.42})`);
       beam.addColorStop(1, `rgba(${rgb},0)`);
@@ -80,11 +80,9 @@ function drawSurface(
 
     const hotspotRadius =
       flashlight.beamRadius(range) * LIGHT.hotspotScale * VIEW.isoX;
-    const irregularX = Math.sin(flashlight.angle * 3.7) * 1.4;
-    const irregularY = Math.cos(flashlight.angle * 2.9) * 1.1;
     const hotspot = ctx.createRadialGradient(
-      sx + irregularX,
-      sy + irregularY,
+      sx,
+      sy,
       0,
       sx,
       sy,
@@ -138,4 +136,20 @@ export function drawRoom(
     0.72,
     ...common,
   );
+  ctx.strokeStyle = ROOM_STYLE.edge;
+  ctx.lineWidth = 1;
+  const seams: [number, number, number][][] = [
+    [[0,0,0],[room.width,0,0]],
+    [[0,0,0],[0,room.height,0]],
+    [[0,0,0],[0,0,ROOM_STYLE.wallHeight]],
+  ];
+  for (const seam of seams) {
+    ctx.beginPath();
+    seam.forEach(([x,y,z],index) => {
+      const point=project(x,y,z);
+      if(index) ctx.lineTo(point.x+camera.x,point.y+camera.y);
+      else ctx.moveTo(point.x+camera.x,point.y+camera.y);
+    });
+    ctx.stroke();
+  }
 }
