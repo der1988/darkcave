@@ -8,7 +8,7 @@ const server = spawn(
   ["run", "dev", "--", "--port", "5174", "--strictPort"],
   { stdio: "ignore", detached: true },
 );
-let browser;
+let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
 try {
   for (let i = 0; i < 80; i++) {
     try {
@@ -26,11 +26,11 @@ try {
   const page = await browser.newPage({
     viewport: { width: 1280, height: 800 },
   });
-  const errors = [];
+  const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("http://127.0.0.1:5174");
   await page.waitForFunction(() => window.__liminal);
-  const state = () => page.evaluate(() => window.__liminal.snapshot());
+  const state = () => page.evaluate(() => window.__liminal!.snapshot());
 
   const initial = await state();
   assert.equal(initial.torchOn, true);
@@ -84,6 +84,6 @@ try {
 } finally {
   await browser?.close();
   try {
-    process.kill(-server.pid, "SIGTERM");
+    if (server.pid) process.kill(-server.pid, "SIGTERM");
   } catch {}
 }

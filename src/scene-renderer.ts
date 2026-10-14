@@ -2,7 +2,7 @@ import { drawActors } from "./actor-renderer";
 import { ROOM_STYLE, VIEW } from "./config";
 import type { Flashlight } from "./flashlight";
 import { project, type Camera } from "./geometry";
-import type { NativeGame } from "./native";
+import type { Game } from "./game";
 import { drawRoom } from "./room-renderer";
 import { drawProps } from "./prop-renderer";
 
@@ -16,7 +16,7 @@ export class SceneRenderer {
 
   constructor(
     readonly canvas: HTMLCanvasElement,
-    private game: NativeGame,
+    private game: Game,
     private flashlight: Flashlight,
   ) {
     this.ctx = canvas.getContext("2d", { alpha: false })!;

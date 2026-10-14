@@ -1,6 +1,7 @@
+import { LIGHT } from "./config";
 import type { Flashlight } from "./flashlight";
 import { project, type Camera, type Point } from "./geometry";
-import type { ActorState } from "./native";
+import type { ActorState } from "./game";
 import { drawPerson } from "./player-sprite";
 
 type Room = { width: number; height: number };
@@ -71,7 +72,7 @@ export function drawActors(
   for (const { actor, child, light } of actors) {
     const screen = project(actor.x, actor.y);
     const lens = !child && flashlight.holdProgress > 0.02
-      ? project(lightOrigin.x, lightOrigin.y, 0.34)
+      ? project(lightOrigin.x, lightOrigin.y, LIGHT.lensHeight)
       : undefined;
     drawPerson(
       ctx,

@@ -3,12 +3,12 @@ import { VIEW } from "./config";
 import { Flashlight } from "./flashlight";
 import { screenToWorld } from "./geometry";
 import { InputState } from "./input";
-import { loadNativeGame } from "./native";
+import { createGame } from "./game";
 import { SceneRenderer } from "./scene-renderer";
 import { playSwitchClick } from "./switch-sound";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
-const game = await loadNativeGame();
+const game = createGame();
 const flashlight = new Flashlight();
 const input = new InputState(
   () => playSwitchClick(flashlight.toggle()),

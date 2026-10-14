@@ -1,7 +1,7 @@
 import { LIGHT, ROOM_STYLE, VIEW } from "./config";
 import { project, traceSurface, type Camera, type SurfacePoint } from "./geometry";
 import type { Flashlight } from "./flashlight";
-import type { ActorState } from "./native";
+import type { ActorState } from "./game";
 
 type Room = { width: number; height: number };
 type Color = [number, number, number];
@@ -25,7 +25,7 @@ function drawSurface(
   ctx.clip();
 
   const lightOrigin = flashlight.origin(player);
-  const origin = project(lightOrigin.x, lightOrigin.y, 0.34);
+  const origin = project(lightOrigin.x, lightOrigin.y, LIGHT.lensHeight);
   const ox = origin.x + camera.x;
   const oy = origin.y + camera.y;
   const spillRadius = LIGHT.localSpillRadius * VIEW.isoX * 1.8;

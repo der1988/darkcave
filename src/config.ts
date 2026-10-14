@@ -25,6 +25,7 @@ export const LIGHT = {
   beamSamples: 7,
   lensForwardOffset: 0.2,
   stowDuration: 0.24,
+  lensHeight: 0.48,
 } as const;
 
 export const ROOM_STYLE = {

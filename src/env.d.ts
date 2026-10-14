@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-import type { ActorState } from "./native";
+import type { ActorState } from "./game";
 
 declare global {
   interface Window {
@@ -9,6 +9,8 @@ declare global {
         player: ActorState;
         brother: ActorState;
         torchOn: boolean;
+        torchHeld: boolean;
+        holdProgress: number;
         angle: number;
         lightRange: number;
       };

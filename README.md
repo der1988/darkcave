@@ -1,8 +1,8 @@
-# LIMINAL — C++ foundation
+# LIMINAL — TypeScript foundation
 
 This is a deliberately small playable foundation: one clean isometric room, two brothers, movement and a handheld flashlight.
 
-The authoritative simulation lives in `native/game.cpp` and is compiled to a self-contained WebAssembly module. TypeScript only connects browser input, the canvas renderer and the C++ exports.
+The complete simulation and renderer use TypeScript. There is no native compiler or WebAssembly layer.
 
 ## Run
 
@@ -13,11 +13,9 @@ npm ci
 npm run dev
 ```
 
-The local C++ toolchain is supplied by `@live-codes/clang-wasm`; no system compiler is required.
-
 ## Modular structure
 
-Visual constants live in `src/config.ts`. Flashlight behavior, room rendering, actor rendering, pixel sprites, input, geometry and camera composition each have a separate module. `src/main.ts` only connects them. Gameplay simulation remains isolated in `native/game.cpp`.
+Visual constants live in `src/config.ts`. Gameplay, flashlight behavior, room rendering, actors, input and geometry each have a small TypeScript module. `src/main.ts` only connects them.
 
 `AGENTS.md` contains a task-to-file map so targeted changes can begin without loading unrelated source files.
 
@@ -29,8 +27,6 @@ npm run build
 npm run test:browser
 ```
 
-`npm run build:native` recompiles `native/game.cpp` into `public/liminal-core.wasm`.
-
 ## Controls
 
 - WASD / arrow keys: move
@@ -39,4 +35,4 @@ npm run test:browser
 - F: switch the flashlight on or off while it is held
 - Shift: move faster
 
-The room uses continuous surfaces with restrained ambient visibility and one square test object. The flashlight combines a warm hotspot, a broad corona and weak local spill. Its world-space origin is the visible lens and its target follows the mouse directly. Walls limit its reach; the object remains inside the light field while casting a shadow from its exact silhouette corners. The protagonist does not cast a projected shadow; the younger brother and test object cast one only while illuminated.
+The room contains one true cube. Its shadow is the convex perspective projection of all eight cube vertices from the flashlight lens onto the floor, with a narrow penumbra around the exact geometric core.
