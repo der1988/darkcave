@@ -40,19 +40,57 @@ export function objectShadow(p: RoomProp, origin: Point, softness = 0) {
   ] as [number, number, number][];
 }
 
+function shadowCasters(p: RoomProp): RoomProp[] {
+  const part = (minX: number, minY: number, maxX: number, maxY: number, height: number) =>
+    ({...p,minX,minY,maxX,maxY,height});
+  const w=p.maxX-p.minX,d=p.maxY-p.minY;
+  if (p.kind === "lamp") return [
+    part(p.minX,p.minY,p.maxX,p.maxY,.06),
+    part(p.minX+w*.43,p.minY+d*.43,p.minX+w*.57,p.minY+d*.57,p.height),
+    part(p.minX-.05,p.minY-.05,p.maxX+.05,p.maxY+.05,p.height),
+  ];
+  if (p.kind === "table") return [
+    part(p.minX+.04,p.minY+.04,p.maxX-.04,p.maxY-.04,p.height),
+    ...[[.09,.1],[.82,.1],[.09,.78],[.82,.78]].map(([x,y]) =>
+      part(p.minX+w*x-.035,p.minY+d*y-.035,p.minX+w*x+.035,p.minY+d*y+.035,p.height)),
+  ];
+  if (p.kind === "chair" || p.kind === "armchair") {
+    const inset=p.kind === "armchair"?.04:.09;
+    const parts=[
+      part(p.minX+inset,p.minY+inset,p.maxX-inset,p.maxY-inset,p.kind === "armchair"?.38:.35),
+      part(p.minX+inset,p.maxY-.16,p.maxX-inset,p.maxY,p.height),
+    ];
+    if (p.kind === "armchair") parts.push(
+      part(p.minX,p.minY+.06,p.minX+.17,p.maxY-.08,.55),
+      part(p.maxX-.17,p.minY+.06,p.maxX,p.maxY-.08,.55),
+    );
+    return parts;
+  }
+  return [p];
+}
+
 function drawShadow(ctx: CanvasRenderingContext2D, p: RoomProp, origin: Point, camera: Camera, amount: number) {
   if (amount < .025) return;
-  const center = {x:(p.minX+p.maxX)/2,y:(p.minY+p.maxY)/2};
-  const base = project(center.x,center.y,.003);
-  const shape = objectShadow(p,origin);
-  const tip = project(shape[2][0],shape[2][1],.003);
-  for (const [softness, opacity] of [[.09,.12],[.045,.2],[0,.3]] as const) {
-    const shadow = ctx.createLinearGradient(base.x+camera.x,base.y+camera.y,tip.x+camera.x,tip.y+camera.y);
-    shadow.addColorStop(0,`rgba(0,0,0,${Math.min(.62,amount*opacity*1.8)})`);
-    shadow.addColorStop(.7,`rgba(0,0,0,${Math.min(.34,amount*opacity)})`);
-    shadow.addColorStop(1,"rgba(0,0,0,0)");
-    polygon(ctx,objectShadow(p,origin,softness),camera,shadow);
+  ctx.save();
+  ctx.globalCompositeOperation="multiply";
+  for (const caster of shadowCasters(p)) {
+    const center={x:(caster.minX+caster.maxX)/2,y:(caster.minY+caster.maxY)/2};
+    const base=project(center.x,center.y,.003);
+    const hardShape=objectShadow(caster,origin);
+    const tip=project(hardShape[2][0],hardShape[2][1],.003);
+    for (const [softness,opacity] of [[.075,.1],[.035,.18],[0,.3]] as const) {
+      const shadow=ctx.createLinearGradient(base.x+camera.x,base.y+camera.y,tip.x+camera.x,tip.y+camera.y);
+      shadow.addColorStop(0,`rgba(8,9,10,${Math.min(.72,amount*opacity*2.15)})`);
+      shadow.addColorStop(.18,`rgba(8,9,10,${Math.min(.58,amount*opacity*1.7)})`);
+      shadow.addColorStop(.78,`rgba(8,9,10,${Math.min(.3,amount*opacity)})`);
+      shadow.addColorStop(1,"rgba(8,9,10,0)");
+      polygon(ctx,objectShadow(caster,origin,softness),camera,shadow);
+    }
+    const contact=Math.max(.025,Math.min(.12,(caster.maxX-caster.minX)*.14));
+    polygon(ctx,objectShadow({...caster,height:contact},origin),camera,
+      `rgba(3,4,5,${Math.min(.68,amount*.42)})`);
   }
+  ctx.restore();
 }
 
 function drawProp(ctx: CanvasRenderingContext2D, p: RoomProp, camera: Camera, light: number) {
