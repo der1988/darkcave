@@ -61,6 +61,13 @@ test("the flashlight ends at the cursor-controlled range", () => {
   assert.ok(beam({ ...lamp, range: 5 }, { x: 10, y: 5 }) > 0);
 });
 
+test("the flashlight has a bright centre and weakens for distant aiming", () => {
+  const near = { x: 6, y: 5, angle: 0, range: 3, on: true };
+  const far = { ...near, range: 12 };
+  assert.ok(beam(near, { x: 7.5, y: 5 }) > beam(near, { x: 7.3, y: 5.7 }));
+  assert.ok(beam(near, { x: 7.5, y: 5 }) > beam(far, { x: 7.5, y: 5 }));
+});
+
 test("the younger brother follows closely and is slightly faster", () => {
   const child = new Companion(BROTHER_START);
   const leader = { ...PLAYER_START };

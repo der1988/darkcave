@@ -19,9 +19,13 @@ export function beam(lamp: Lamp, point: Point, z = 0) {
     distance < 0.02
       ? 1
       : (dx * Math.cos(lamp.angle) + dy * Math.sin(lamp.angle)) / distance;
-  const cone = smooth(Math.cos(0.56), Math.cos(0.29), facing);
-  const distanceFade = 1 - smooth(0.8, Math.max(1, lamp.range), distance) * 0.45;
+  const angleFromCenter = Math.acos(Math.max(-1, Math.min(1, facing)));
+  const outerCone = 1 - smooth(0.16, 0.78, angleFromCenter);
+  const coreCone = 1 - smooth(0.03, 0.3, angleFromCenter);
+  const cone = outerCone * (0.38 + coreCone * 0.62);
+  const targetPower = 1 - smooth(1.2, MAX_LIGHT_RANGE, lamp.range) * 0.48;
+  const distanceFade = 1 - smooth(0.7, Math.max(1, lamp.range), distance) * 0.5;
   const endFade = 1 - smooth(Math.max(0, lamp.range - 0.3), lamp.range, distance);
   const height = 1 - smooth(0.8, 1.8, Math.abs(z - 0.35));
-  return cone * distanceFade * endFade * height;
+  return cone * targetPower * distanceFade * endFade * height;
 }

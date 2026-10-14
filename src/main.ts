@@ -8,7 +8,7 @@ import {
   FLOOR_TILE_SIZE,
   PLAYER_START,
   ROOM,
-  TILE_Z,
+  WALL_TILE_SIZE,
   move,
   project,
   screenToWorld,
@@ -31,6 +31,7 @@ let lightRange = 4;
 let torchOn = true;
 let playerHeading = angle;
 let playerStride = 0;
+let playerMoving = false;
 let last = performance.now();
 
 function resize() {
@@ -91,44 +92,51 @@ function drawFloor() {
 function drawWalls() {
   const activeLamp = lamp();
   const h = 1.3;
-  for (let x = 0; x < ROOM.w; x++) {
-    const near = { x: x + 0.5, y: 0.03 };
-    const far = { x: x + 0.5, y: ROOM.h - 0.03 };
-    polygon(
-      [
-        [x, 0, 0],
-        [x + 1, 0, 0],
-        [x + 1, 0, h],
-        [x, 0, h],
-      ],
-      [128, 122, 94],
-      beam(activeLamp, near, 0.55) * 0.8,
-    );
-    polygon(
-      [
-        [x, ROOM.h, 0],
-        [x + 1, ROOM.h, 0],
-        [x + 1, ROOM.h, h],
-        [x, ROOM.h, h],
-      ],
-      [112, 108, 86],
-      beam(activeLamp, far, 0.55) * 0.68,
-    );
-  }
-  for (let y = 0; y < ROOM.h; y++) {
-    for (const x of [0, ROOM.w]) {
-      const sample = { x: x ? ROOM.w - 0.03 : 0.03, y: y + 0.5 };
-      polygon(
-        [
-          [x, y, 0],
-          [x, y + 1, 0],
-          [x, y + 1, h],
-          [x, y, h],
-        ],
-        [118, 113, 88],
-        beam(activeLamp, sample, 0.55) * 0.72,
-      );
-    }
+  const layers = Math.ceil(h / WALL_TILE_SIZE);
+  const drawHorizontalWall = (y: number, color: number[], scale: number) => {
+    for (let column = 0; column < ROOM.w / WALL_TILE_SIZE; column++)
+      for (let layer = 0; layer < layers; layer++) {
+        const x = ROOM.x + column * WALL_TILE_SIZE;
+        const z = layer * WALL_TILE_SIZE;
+        const sample = { x: x + WALL_TILE_SIZE / 2, y };
+        polygon(
+          [
+            [x, y, z],
+            [x + WALL_TILE_SIZE, y, z],
+            [x + WALL_TILE_SIZE, y, z + WALL_TILE_SIZE],
+            [x, y, z + WALL_TILE_SIZE],
+          ],
+          color,
+          beam(activeLamp, sample, z + WALL_TILE_SIZE / 2) *
+            scale *
+            (0.96 + ((column * 11 + layer * 7) % 5) * 0.012),
+        );
+      }
+  };
+  const drawVerticalWall = (x: number, color: number[], scale: number) => {
+    for (let row = 0; row < ROOM.h / WALL_TILE_SIZE; row++)
+      for (let layer = 0; layer < layers; layer++) {
+        const y = ROOM.y + row * WALL_TILE_SIZE;
+        const z = layer * WALL_TILE_SIZE;
+        const sample = { x, y: y + WALL_TILE_SIZE / 2 };
+        polygon(
+          [
+            [x, y, z],
+            [x, y + WALL_TILE_SIZE, z],
+            [x, y + WALL_TILE_SIZE, z + WALL_TILE_SIZE],
+            [x, y, z + WALL_TILE_SIZE],
+          ],
+          color,
+          beam(activeLamp, sample, z + WALL_TILE_SIZE / 2) *
+            scale *
+            (0.96 + ((row * 13 + layer * 5) % 5) * 0.012),
+        );
+      }
+  };
+  drawHorizontalWall(0, [128, 122, 94], 0.8);
+  drawHorizontalWall(ROOM.h, [112, 108, 86], 0.68);
+  for (const x of [0, ROOM.w]) {
+    drawVerticalWall(x, [118, 113, 88], 0.72);
   }
 }
 
@@ -156,6 +164,8 @@ function drawCharacters() {
       figure.stride,
       figure.child,
       characterLight(figure.p),
+      performance.now() / 1000,
+      figure.child ? brother.moving : playerMoving,
     );
   }
 }
@@ -169,6 +179,7 @@ function update(dt: number) {
     Number(keys.has("w") || keys.has("arrowup"));
   const direction = movementVector(horizontal, vertical);
   const running = keys.has("shift");
+  playerMoving = false;
   if (direction.x || direction.y) {
     const speed = movementSpeed(running);
     const before = { ...player };
@@ -177,6 +188,7 @@ function update(dt: number) {
     if (travelled) {
       playerHeading = Math.atan2(direction.y, direction.x);
       playerStride += travelled * 8;
+      playerMoving = true;
     }
   }
   brother.update(dt, player, running);
