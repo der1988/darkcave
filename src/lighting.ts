@@ -11,11 +11,14 @@ const smooth = (x: number) => {
 /** Segment occlusion uses the same walls and doorway gaps as movement. */
 export function visible(from: Vec3, to: Vec3) {
   for (const wall of WALLS) {
-    const dx = to.x - from.x;
+    const dx = wall.axis === "x" ? to.x - from.x : to.y - from.y;
     if (Math.abs(dx) < 1e-6) continue;
-    const t = (wall.position - from.x) / dx;
+    const t = (wall.position - (wall.axis === "x" ? from.x : from.y)) / dx;
     if (t <= 0.001 || t >= 0.999) continue;
-    const y = from.y + (to.y - from.y) * t;
+    const y =
+      wall.axis === "x"
+        ? from.y + (to.y - from.y) * t
+        : from.x + (to.x - from.x) * t;
     const z = from.z + (to.z - from.z) * t;
     if (y >= wall.from && y <= wall.to && z >= 0 && z <= ROOM.wallHeight)
       return false;

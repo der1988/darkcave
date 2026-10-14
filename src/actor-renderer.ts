@@ -1,7 +1,27 @@
 import type { Game } from "./game";
 import { project, type Point } from "./geometry";
 import { illumination, type Flashlight } from "./lighting";
+import { WALLS, ROOM } from "./room";
 import { drawPerson } from "./player-sprite";
+
+/** Intersect the isometric camera ray with a vertical wall at torso height. */
+export function actorOpacity(actor: Point) {
+  for (const wall of WALLS) {
+    const across = wall.axis === "x" ? actor.x : actor.y;
+    const along = wall.axis === "x" ? actor.y : actor.x;
+    const distance = wall.position - across;
+    if (distance <= 0.01) continue;
+    const hitAlong = along + distance;
+    const hitHeight = 0.3 + distance;
+    if (
+      hitHeight < ROOM.wallHeight &&
+      hitAlong >= wall.from &&
+      hitAlong <= wall.to
+    )
+      return 0.48;
+  }
+  return 1;
+}
 
 export function drawActors(
   ctx: CanvasRenderingContext2D,
@@ -34,6 +54,7 @@ export function drawActors(
       !child ? { x: lens.x + camera.x, y: lens.y + camera.y } : undefined,
       child ? 0 : 1,
       actor.stealth,
+      actorOpacity(actor),
     );
   }
 }

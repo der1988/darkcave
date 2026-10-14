@@ -1,4 +1,4 @@
-import { ROOM, ROOMS, WALLS, MARKINGS, STOREFRONTS } from "./room";
+import { ROOM, ROOMS, WALLS, MARKINGS, STOREFRONTS, FIXTURES } from "./room";
 import { project, type Point } from "./geometry";
 import { illumination, type Flashlight, type Vec3 } from "./lighting";
 
@@ -86,7 +86,11 @@ export class RoomRenderer {
             p.y < m.y + m.depth,
         );
       return (
-        mark?.color ?? ROOMS.find((r) => p.x >= r.minX && p.x <= r.maxX)!.floor
+        mark?.color ??
+        ROOMS.find(
+          (r) =>
+            p.x >= r.minX && p.x <= r.maxX && p.y >= r.minY && p.y <= r.maxY,
+        )!.floor
       );
     };
     this.surface(
@@ -128,16 +132,88 @@ export class RoomRenderer {
       player,
       torch,
     );
-    for (const wall of WALLS)
-      this.surface(
-        ctx,
-        camera,
-        { x: wall.position, y: wall.from, z: 0 },
-        { x: 0, y: wall.to - wall.from, z: 0 },
-        { x: 0, y: 0, z: ROOM.wallHeight },
-        () => "#26312c",
-        player,
-        torch,
-      );
+    const shopColor = (p: Vec3) => {
+      const shop = STOREFRONTS.find((s) => p.x >= s.from && p.x <= s.to);
+      if (!shop) return "#323832";
+      if (p.z > 1.08 && p.z < 1.27) return shop.sign;
+      if (p.z > 1.02) return "#323832";
+      if (p.x < shop.from + 0.07 || p.x > shop.to - 0.07) return shop.trim;
+      return Math.floor(p.z * 24) % 2 ? "#343a35" : "#2b302c";
+    };
+    const objects = [
+      ...WALLS.map((wall) => ({
+        depth: wall.position + wall.to,
+        draw: () => {
+          this.surface(
+            ctx,
+            camera,
+            {
+              x: wall.axis === "x" ? wall.position : wall.from,
+              y: wall.axis === "x" ? wall.from : wall.position,
+              z: 0,
+            },
+            {
+              x: wall.axis === "y" ? wall.to - wall.from : 0,
+              y: wall.axis === "x" ? wall.to - wall.from : 0,
+              z: 0,
+            },
+            { x: 0, y: 0, z: ROOM.wallHeight },
+            wall.axis === "y" ? shopColor : () => "#26312c",
+            player,
+            torch,
+          );
+        },
+      })),
+      ...FIXTURES.map((prop) => ({
+        depth: prop.x + prop.y + prop.width + prop.depth,
+        draw: () => {
+          const material = (p: Vec3) => {
+            if (prop.kind === "planter" && p.z > prop.height - 0.08)
+              return "#263c2e";
+            if (
+              (prop.kind === "directory" || prop.kind === "kiosk") &&
+              p.z > 0.16 &&
+              p.z < prop.height - 0.07
+            )
+              return "#1d292b";
+            if (prop.kind === "display" && p.z > 0.12) return "#25383b";
+            return prop.color;
+          };
+          this.surface(
+            ctx,
+            camera,
+            { x: prop.x, y: prop.y, z: prop.height },
+            { x: prop.width, y: 0, z: 0 },
+            { x: 0, y: prop.depth, z: 0 },
+            material,
+            player,
+            torch,
+          );
+          this.surface(
+            ctx,
+            camera,
+            { x: prop.x + prop.width, y: prop.y, z: 0 },
+            { x: 0, y: prop.depth, z: 0 },
+            { x: 0, y: 0, z: prop.height },
+            material,
+            player,
+            torch,
+          );
+          this.surface(
+            ctx,
+            camera,
+            { x: prop.x, y: prop.y + prop.depth, z: 0 },
+            { x: prop.width, y: 0, z: 0 },
+            { x: 0, y: 0, z: prop.height },
+            material,
+            player,
+            torch,
+          );
+        },
+      })),
+    ];
+    objects
+      .sort((a, b) => a.depth - b.depth)
+      .forEach((object) => object.draw());
   }
 }

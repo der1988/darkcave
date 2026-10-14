@@ -1,14 +1,26 @@
 import type { ActorState } from "./game";
-import { ROOM, WALLS } from "./room";
+import { ROOM, WALLS, FIXTURES } from "./room";
 export const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
 const RADIUS = 0.18;
 export function blocked(x: number, y: number) {
-  return WALLS.some(
-    (wall) =>
-      Math.abs(x - wall.position) < RADIUS + 0.025 &&
-      y > wall.from - RADIUS &&
-      y < wall.to + RADIUS,
+  return (
+    WALLS.some((wall) => {
+      const across = wall.axis === "x" ? x : y,
+        along = wall.axis === "x" ? y : x;
+      return (
+        Math.abs(across - wall.position) < RADIUS + 0.025 &&
+        along > wall.from - RADIUS &&
+        along < wall.to + RADIUS
+      );
+    }) ||
+    FIXTURES.some(
+      (prop) =>
+        x > prop.x - RADIUS &&
+        x < prop.x + prop.width + RADIUS &&
+        y > prop.y - RADIUS &&
+        y < prop.y + prop.depth + RADIUS,
+    )
   );
 }
 /** Resolve axes independently so actors slide along a wall. Return actual travel. */

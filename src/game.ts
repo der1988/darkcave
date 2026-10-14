@@ -1,4 +1,4 @@
-import { ROOM, DOORS } from "./room";
+import { ROOM, DOORS, roomAt } from "./room";
 import { clamp, move } from "./movement";
 export type ActorState = {
   x: number;
@@ -48,14 +48,34 @@ function walk(
   actor.stride += travel * 8;
   actor.moving = travel > 0.001;
 }
-/** Route the companion through the nearest separating doorway before following directly. */
+/** Breadth-first room routing keeps the companion following through either wall axis. */
 function followTarget(brother: ActorState, player: ActorState) {
-  const door = DOORS.filter(
-    (door) => brother.x < door.x !== player.x < door.x,
-  ).sort((a, b) => Math.abs(a.x - brother.x) - Math.abs(b.x - brother.x))[0];
-  if (!door) return player;
-  if (Math.abs(brother.y - door.y) > 0.12) return { x: brother.x, y: door.y };
-  return { x: door.x + Math.sign(player.x - brother.x) * 0.35, y: door.y };
+  const start = roomAt(brother.x, brother.y).id,
+    goal = roomAt(player.x, player.y).id;
+  if (start === goal) return player;
+  const queue = [{ id: start, path: [] as typeof DOORS }];
+  const visited = new Set([start]);
+  for (const entry of queue) {
+    if (entry.id === goal) {
+      const door = entry.path[0];
+      if (door.axis === "x") {
+        if (Math.abs(brother.y - door.y) > 0.1)
+          return { x: brother.x, y: door.y };
+        return { x: door.x + Math.sign(door.x - brother.x) * 0.35, y: door.y };
+      }
+      if (Math.abs(brother.x - door.x) > 0.1)
+        return { x: door.x, y: brother.y };
+      return { x: door.x, y: door.y + Math.sign(door.y - brother.y) * 0.35 };
+    }
+    for (const door of DOORS.filter((door) => door.rooms.includes(entry.id))) {
+      const next = door.rooms.find((id) => id !== entry.id)!;
+      if (!visited.has(next)) {
+        visited.add(next);
+        queue.push({ id: next, path: [...entry.path, door] });
+      }
+    }
+  }
+  return player;
 }
 export function createGame(): Game {
   const player = actor(1.9, 1.55),
