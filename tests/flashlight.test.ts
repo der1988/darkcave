@@ -28,12 +28,11 @@ test("solid occluders stop light and points behind them stay dark", () => {
   assert.equal(flashlight.reaches({ x: 6, y: 3 }, origin), false);
 });
 
-test("aim follows its target with smooth inertia", () => {
+test("aim follows its target immediately", () => {
   const flashlight = new Flashlight();
-  const start = flashlight.angle;
   flashlight.aim({ x: 4, y: 0 });
-  flashlight.update(1 / 60, { stride: 0, moving: false }, false, 0);
-  assert.ok(flashlight.angle > start && flashlight.angle < 0);
+  assert.equal(flashlight.angle, 0);
+  assert.equal(flashlight.range, 4 - 0.2);
 });
 
 test("the light origin is the animated lens position", () => {

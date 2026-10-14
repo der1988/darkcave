@@ -5,7 +5,6 @@ import { project, type Camera } from "./geometry";
 import type { NativeGame } from "./native";
 import { drawRoom } from "./room-renderer";
 import { drawProps, drawWallPicture } from "./prop-renderer";
-import { PROP_OCCLUDERS } from "./room-props";
 
 export class SceneRenderer {
   readonly ctx: CanvasRenderingContext2D;
@@ -21,7 +20,6 @@ export class SceneRenderer {
     private flashlight: Flashlight,
   ) {
     this.ctx = canvas.getContext("2d", { alpha: false })!;
-    this.flashlight.setOccluders(PROP_OCCLUDERS);
     this.resize();
   }
 

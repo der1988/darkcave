@@ -93,10 +93,13 @@ export class Flashlight {
     const distance = Math.hypot(target.x, target.y);
     if (distance <= 0.04) return;
     this.desiredAngle = Math.atan2(target.y, target.x);
+    this.baseAngle = this.desiredAngle;
+    this.motionAngle = 0;
     this.desiredRange = Math.max(
       LIGHT.minRange,
-      Math.min(LIGHT.maxRange, distance),
+      Math.min(LIGHT.maxRange, distance - LIGHT.lensForwardOffset),
     );
+    this.actualRange = this.desiredRange;
   }
 
   update(dt: number, motion: LightMotion, running: boolean, time: number) {
@@ -112,15 +115,11 @@ export class Flashlight {
       (this.desiredRange - this.actualRange) *
       (1 - Math.exp(-LIGHT.rangeResponse * dt));
 
-    const movementSway = motion.moving
-      ? Math.sin(motion.stride * 0.92) *
-        (running ? LIGHT.runSway : LIGHT.walkSway)
-      : 0;
-    const idleSway =
-      (Math.sin(time * 1.37) + Math.sin(time * 2.11 + 0.8) * 0.38) *
-      LIGHT.idleSway;
-    const targetSway = movementSway + idleSway;
-    this.motionAngle += (targetSway - this.motionAngle) * (1 - Math.exp(-8 * dt));
+    // The lens follows the pointer exactly; actor motion must not displace its target.
+    void motion;
+    void running;
+    void time;
+    this.motionAngle = 0;
 
     const targetBrightness = this.on && this.held ? this.holdProgress : 0;
     const response = this.on ? 36 : 80;
