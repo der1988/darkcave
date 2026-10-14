@@ -1,4 +1,5 @@
 import type { ActorState } from "./game";
+import { roomAt } from "./room";
 import type { Point } from "./geometry";
 import { move } from "./movement";
 import { findPath } from "./navigation";
@@ -25,8 +26,9 @@ export class Clicker {
       mode: "wandering",
       lastHeard: null,
     };
-    const x = Math.floor(spawn.x / 3) * 3,
-      y = Math.floor(spawn.y / 3) * 3;
+    const zone = roomAt(spawn.x, spawn.y)!;
+    const x = zone.minX,
+      y = zone.minY;
     this.patrolPoints = [
       { x: x + 0.7, y: y + 0.7 },
       { x: x + 2.3, y: y + 0.7 },

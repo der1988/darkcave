@@ -17,7 +17,7 @@ export class Mechanisms {
   }
   private target(player: Point): "computer" | "memory" | "exit" | null {
     const near = (target: Point) =>
-      Math.hypot(player.x - target.x, player.y - target.y) < 1 &&
+      Math.hypot(player.x - target.x, player.y - target.y) < 1.25 &&
       visible(
         { ...player, z: 0.3 },
         { ...target, z: 0.3 },

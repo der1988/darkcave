@@ -5,7 +5,7 @@ import { illumination } from "./lighting";
 import { ROOM_STYLE, VIEW } from "./config";
 import type { Game } from "./game";
 import { project, type Point } from "./geometry";
-import { ROOM } from "./room";
+import { COMPUTER } from "./room";
 import { RoomRenderer } from "./room-renderer";
 import { Flashlight } from "./lighting";
 import { drawDialogue } from "./dialogue-renderer";
@@ -41,7 +41,8 @@ export class SceneRenderer {
     this.canvas.width = this.width;
     this.canvas.height = this.height;
     this.ctx.imageSmoothingEnabled = false;
-    const center = project(ROOM.width / 2, ROOM.height / 2);
+    const player = this.game.player();
+    const center = project(player.x, player.y);
     this.camera.x = Math.round(this.width / 2 - center.x);
     this.camera.y = Math.round(this.height / 2 - center.y + 25);
   }
@@ -86,7 +87,39 @@ export class SceneRenderer {
     return this.game.pickUp(item.id);
   }
 
+  private followCamera() {
+    const player = this.game.player(),
+      center = project(player.x, player.y);
+    const targetX = this.width / 2 - center.x,
+      targetY = this.height / 2 - center.y + VIEW.cameraY;
+    this.camera.x += (targetX - this.camera.x) * 0.12;
+    this.camera.y += (targetY - this.camera.y) * 0.12;
+  }
+
+  clickComputer(clientX: number, clientY: number) {
+    const rect = this.canvas.getBoundingClientRect();
+    const x = ((clientX - rect.left) / rect.width) * this.width,
+      y = ((clientY - rect.top) / rect.height) * this.height;
+    const screen = project(COMPUTER.x, COMPUTER.y, 0.53);
+    if (
+      Math.hypot(screen.x + this.camera.x - x, screen.y + this.camera.y - y) >
+      16
+    )
+      return false;
+    return this.game.interact();
+  }
+
+  screenPoint(x: number, y: number, z = 0) {
+    const p = project(x, y, z),
+      rect = this.canvas.getBoundingClientRect();
+    return {
+      x: rect.left + ((p.x + this.camera.x) / this.width) * rect.width,
+      y: rect.top + ((p.y + this.camera.y) / this.height) * rect.height,
+    };
+  }
+
   render(now: number) {
+    this.followCamera();
     this.ctx.fillStyle = ROOM_STYLE.background;
     this.ctx.fillRect(0, 0, this.width, this.height);
     this.torch.unlocked = this.game.progress().doorOpen;

@@ -1,5 +1,5 @@
 /** Layout transcribed from the two-wing level sketch, in world units. */
-export const ROOM = { width: 15, height: 9, wallHeight: 1.4 };
+export const ROOM = { width: 18, height: 10.8, wallHeight: 1.4 };
 export type RoomZone = {
   id: string;
   label: string;
@@ -230,3 +230,40 @@ export const STOREFRONTS = [0.5, 3.55, 9.55, 12.5].map((from) => ({
   trim: "#474942",
   sign: "#363d3c",
 }));
+
+/** Increase room dimensions without enlarging characters or furniture. */
+export const ROOM_SCALE = 1.2;
+for (const room of ROOMS) {
+  room.minX *= ROOM_SCALE;
+  room.maxX *= ROOM_SCALE;
+  room.minY *= ROOM_SCALE;
+  room.maxY *= ROOM_SCALE;
+}
+for (const door of DOORS) {
+  door.x *= ROOM_SCALE;
+  door.y *= ROOM_SCALE;
+  door.width *= ROOM_SCALE;
+}
+for (const wall of [...WALLS, MEMORY_GATE]) {
+  wall.position *= ROOM_SCALE;
+  wall.from *= ROOM_SCALE;
+  wall.to *= ROOM_SCALE;
+}
+for (const point of [COMPUTER, MEMORY, EXIT, ...CLICKER_SPAWNS]) {
+  point.x *= ROOM_SCALE;
+  point.y *= ROOM_SCALE;
+}
+for (const prop of FIXTURES) {
+  prop.x = (prop.x + prop.width / 2) * ROOM_SCALE - prop.width / 2;
+  prop.y = (prop.y + prop.depth / 2) * ROOM_SCALE - prop.depth / 2;
+}
+for (const mark of MARKINGS) {
+  mark.x *= ROOM_SCALE;
+  mark.y *= ROOM_SCALE;
+  mark.width *= ROOM_SCALE;
+  mark.depth *= ROOM_SCALE;
+}
+for (const shop of STOREFRONTS) {
+  shop.from *= ROOM_SCALE;
+  shop.to *= ROOM_SCALE;
+}

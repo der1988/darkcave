@@ -52,7 +52,13 @@ export function drawMechanisms(
       4,
     );
   }
-  const hint = game.interactionHint();
+  const nearComputer =
+    Math.hypot(game.player().x - COMPUTER.x, game.player().y - COMPUTER.y) <
+    1.25;
+  const hint =
+    progress.doorOpen && nearComputer
+      ? "Passaggio verso il ricordo aperto"
+      : game.interactionHint();
   ctx.font = "8px monospace";
   ctx.textAlign = "center";
   if (hint) {

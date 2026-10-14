@@ -1,6 +1,6 @@
 export const VIEW = {
-  isoX: 26,
-  isoY: 13,
+  isoX: 32,
+  isoY: 16,
   isoZ: 32,
   cameraY: 24,
   minWidth: 320,

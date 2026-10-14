@@ -9,6 +9,13 @@ import type { ActorState } from "./game";
 declare global {
   interface Window {
     __liminal?: {
+      advance(
+        dt: number,
+        horizontal: number,
+        vertical: number,
+        stealth: boolean,
+      ): void;
+      screenPoint(x: number, y: number, z?: number): { x: number; y: number };
       snapshot(): {
         player: ActorState;
         brother: ActorState;

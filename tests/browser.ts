@@ -1,5 +1,5 @@
-import { project } from "../src/geometry.ts";
-import { ROOM } from "../src/room.ts";
+import { findPath } from "../src/navigation.ts";
+import { COMPUTER } from "../src/room.ts";
 import { chromium } from "playwright";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -42,10 +42,12 @@ try {
   assert.equal((await state()).torchOn, true);
   assert.ok(await page.locator(".controls").isVisible());
   const stone = initial.objects[0];
-  const center = project(ROOM.width / 2, ROOM.height / 2),
-    item = project(stone.x, stone.y);
-  const screenX = (item.x + 320 - center.x) * 2,
-    screenY = (item.y + 200 - center.y + 25) * 2;
+  const point = await page.evaluate(
+    (item) => window.__liminal!.screenPoint(item.x, item.y),
+    stone,
+  );
+  const screenX = point.x,
+    screenY = point.y;
   await page.mouse.click(screenX, screenY);
   assert.equal((await state()).heldObject?.id, stone.id);
   assert.equal(
@@ -82,10 +84,34 @@ try {
   assert.ok((await state()).dialogue?.text);
   await page.screenshot({ path: "/tmp/liminal-foundation.png" });
 
+  const path = findPath((await state()).player, {
+    x: COMPUTER.x,
+    y: COMPUTER.y + 0.7,
+  });
+  await page.evaluate((path) => {
+    for (const point of path)
+      for (let i = 0; i < 90; i++) {
+        const p = window.__liminal!.snapshot().player,
+          dx = point.x - p.x,
+          dy = point.y - p.y;
+        if (Math.hypot(dx, dy) < 0.045) break;
+        window.__liminal!.advance(1 / 60, (dx - dy) / 2, (dx + dy) / 2, true);
+      }
+  }, path);
+  await page.waitForTimeout(450);
+  const terminal = await page.evaluate(
+    (p) => window.__liminal!.screenPoint(p.x, p.y, 0.53),
+    COMPUTER,
+  );
+  await page.mouse.click(terminal.x, terminal.y);
+  assert.equal((await state()).progress.doorOpen, true);
+  await page.screenshot({ path: "/tmp/liminal-computer.png" });
+
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify({
       movement: "passed",
+      computerClick: "passed",
       mallScene: "rendered",
       flashlightToggle: "passed",
       brother: "passed",

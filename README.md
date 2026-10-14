@@ -15,6 +15,8 @@ npm run dev
 
 ## Modular structure
 
+The camera follows the brothers at the earlier isometric magnification, showing a few rooms at a time. Rooms are 20% larger while character and furniture sizes remain fixed.
+
 Visual constants live in `src/config.ts`; the mall layout, walls, doors and storefronts live in `src/room.ts`. Gameplay, flashlight lighting, actors and input remain separate TypeScript modules. `src/main.ts` only connects them.
 
 `AGENTS.md` contains a task-to-file map so targeted changes can begin without loading unrelated source files.
@@ -37,7 +39,7 @@ npm run test:browser
 - Click a nearby stone or bottle: pick up into the free hand
 - Hold left mouse button and release: throw toward the cursor; holding longer increases power
 
-The level follows the provided sketch: six rooms on each side and one memory bridge between them. Start in the upper-left room. The computer in the neighboring upper room opens the left memory door; use E nearby. The memory room leads directly into the right wing. Seven blind clickers occupy the marked danger rooms. The exit is in the upper-left room of the right wing. The disconnected areas above and below the bridge have no floor and cannot be crossed. Movement, light, sound routes and thrown objects share the locked door state.
+The level follows the provided sketch: six rooms on each side and one memory bridge between them. Start in the upper-left room. The computer in the neighboring upper room opens the left memory door; use E nearby or click the terminal. The confirmation shows when the passage opens. The memory room leads directly into the right wing. Seven blind clickers occupy the marked danger rooms. The exit is in the upper-left room of the right wing. The disconnected areas above and below the bridge have no floor and cannot be crossed. Movement, light, sound routes and thrown objects share the locked door state.
 
 Use E to collect the memory in the central room and to finish at the exit. Existing stones, bottles, stealth, dialogue and spatial creature audio remain available.
 

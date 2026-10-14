@@ -8,7 +8,7 @@ test("walls block light but doorways transmit it", () => {
     false,
   );
   assert.equal(
-    visible({ x: 2, y: 7.5, z: 0.4 }, { x: 4, y: 7.5, z: 0.4 }),
+    visible({ x: 2, y: 9, z: 0.4 }, { x: 4, y: 9, z: 0.4 }),
     true,
   );
 });

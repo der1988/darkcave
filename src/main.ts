@@ -20,6 +20,7 @@ canvas.addEventListener("pointerdown", (event) => {
   if (event.button !== 0) return;
   footstepAudio.unlock();
   renderer.aim(event.clientX, event.clientY);
+  if (renderer.clickComputer(event.clientX, event.clientY)) return;
   if (game.heldObject()) {
     game.beginThrow();
     canvas.setPointerCapture(event.pointerId);
@@ -55,6 +56,9 @@ requestAnimationFrame(frame);
 
 if (import.meta.env.DEV)
   window.__liminal = {
+    advance: (dt, horizontal, vertical, stealth) =>
+      game.update(dt, horizontal, vertical, stealth),
+    screenPoint: (x, y, z) => renderer.screenPoint(x, y, z),
     snapshot: () => ({
       player: game.player(),
       brother: game.brother(),
