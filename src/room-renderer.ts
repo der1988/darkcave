@@ -30,8 +30,8 @@ function drawSurface(
   const oy = origin.y + camera.y;
   const spillRadius = LIGHT.localSpillRadius * VIEW.isoX * 1.8;
   const ambientGlow = ctx.createRadialGradient(ox, oy, 0, ox, oy, spillRadius);
-  ambientGlow.addColorStop(0, "rgba(55,59,55,.16)");
-  ambientGlow.addColorStop(0.55, "rgba(32,36,35,.075)");
+  ambientGlow.addColorStop(0, "rgba(58,62,58,.22)");
+  ambientGlow.addColorStop(0.55, "rgba(34,38,36,.11)");
   ambientGlow.addColorStop(1, "rgba(16,19,21,0)");
   ctx.fillStyle = ambientGlow;
   ctx.fillRect(0, 0, viewport.width, viewport.height);
@@ -41,7 +41,23 @@ function drawSurface(
     const target = flashlight.target(lightOrigin, viewport.room);
     const rgb = torchColor.join(",");
 
-    for (let sample = 1; sample <= LIGHT.beamSamples; sample++) {
+    const directionX=Math.cos(flashlight.angle);
+    const directionY=Math.sin(flashlight.angle);
+    const perpendicularX=-directionY;
+    const perpendicularY=directionX;
+    const endRadius=flashlight.beamRadius(range);
+    for(const [width,alpha] of [[1.65,.035],[1.08,.06],[.62,.09]] as const){
+      const left=project(target.x+perpendicularX*endRadius*width,target.y+perpendicularY*endRadius*width,.015);
+      const right=project(target.x-perpendicularX*endRadius*width,target.y-perpendicularY*endRadius*width,.015);
+      const gradient=ctx.createLinearGradient(ox,oy,(left.x+right.x)/2+camera.x,(left.y+right.y)/2+camera.y);
+      gradient.addColorStop(0,`rgba(${rgb},${flashlight.brightness*strength*alpha*.65})`);
+      gradient.addColorStop(.35,`rgba(${rgb},${flashlight.brightness*strength*alpha})`);
+      gradient.addColorStop(1,`rgba(${rgb},${flashlight.brightness*strength*alpha*.18})`);
+      ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(left.x+camera.x,left.y+camera.y);
+      ctx.lineTo(right.x+camera.x,right.y+camera.y);ctx.closePath();ctx.fillStyle=gradient;ctx.fill();
+    }
+
+    for (let sample = 1; sample < LIGHT.beamSamples; sample++) {
       const distance = (range * sample) / LIGHT.beamSamples;
       const position = project(
         lightOrigin.x + Math.cos(flashlight.angle) * distance,
@@ -53,7 +69,7 @@ function drawSurface(
       const radius =
         flashlight.beamRadius(distance) * LIGHT.coronaScale * VIEW.isoX;
       const beam = ctx.createRadialGradient(px, py, 0, px, py, radius);
-      const alpha = flashlight.power(distance) * strength * 0.032;
+      const alpha = flashlight.power(distance) * strength * 0.022;
       beam.addColorStop(0, `rgba(${rgb},${alpha})`);
       beam.addColorStop(0.55, `rgba(${rgb},${alpha * 0.42})`);
       beam.addColorStop(1, `rgba(${rgb},0)`);
@@ -63,42 +79,6 @@ function drawSurface(
       ctx.fill();
     }
 
-    const hitsWall = range < flashlight.range - 0.02;
-    const spot = project(target.x, target.y, hitsWall ? 0.56 : 0.02);
-    const sx = spot.x + camera.x;
-    const sy = spot.y + camera.y;
-    const radius = flashlight.spotRadius(range) * VIEW.isoX;
-    const corona = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius);
-    const coronaAlpha = Math.min(0.42, flashlight.power(range) * strength * 0.3);
-    corona.addColorStop(0, `rgba(${rgb},${coronaAlpha})`);
-    corona.addColorStop(0.5, `rgba(${rgb},${coronaAlpha * 0.62})`);
-    corona.addColorStop(1, `rgba(${rgb},0)`);
-    ctx.fillStyle = corona;
-    ctx.beginPath();
-    ctx.arc(sx, sy, radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    const hotspotRadius =
-      flashlight.beamRadius(range) * LIGHT.hotspotScale * VIEW.isoX;
-    const hotspot = ctx.createRadialGradient(
-      sx,
-      sy,
-      0,
-      sx,
-      sy,
-      hotspotRadius,
-    );
-    const hotspotAlpha = Math.min(
-      0.88,
-      flashlight.power(range) * strength * 0.72,
-    );
-    hotspot.addColorStop(0, `rgba(255,244,211,${hotspotAlpha})`);
-    hotspot.addColorStop(0.38, `rgba(${rgb},${hotspotAlpha * 0.8})`);
-    hotspot.addColorStop(1, `rgba(${rgb},0)`);
-    ctx.fillStyle = hotspot;
-    ctx.beginPath();
-    ctx.arc(sx, sy, hotspotRadius, 0, Math.PI * 2);
-    ctx.fill();
   }
   ctx.restore();
 }
