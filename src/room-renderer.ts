@@ -2,6 +2,7 @@ import { LIGHT, ROOM_STYLE, VIEW } from "./config";
 import { project, traceSurface, type Camera, type SurfacePoint } from "./geometry";
 import type { Flashlight } from "./flashlight";
 import type { ActorState } from "./game";
+import { DOOR_MAX,DOOR_MIN,ZONES } from "./world";
 
 type Room = { width: number; height: number };
 type Color = [number, number, number];
@@ -12,6 +13,7 @@ function drawSurface(
   ambient: string,
   torchColor: Color,
   strength: number,
+  distanceShade: number,
   player: ActorState,
   flashlight: Flashlight,
   camera: Camera,
@@ -86,7 +88,7 @@ function drawSurface(
   const distanceDarkness=ctx.createRadialGradient(ox,oy,spillRadius*.35,ox,oy,darknessRadius);
   distanceDarkness.addColorStop(0,"rgba(0,0,0,0)");
   distanceDarkness.addColorStop(.35,"rgba(0,0,0,.055)");
-  distanceDarkness.addColorStop(1,"rgba(0,0,0,.42)");
+  distanceDarkness.addColorStop(1,`rgba(0,0,0,${distanceShade})`);
   ctx.fillStyle=distanceDarkness;
   ctx.fillRect(0,0,viewport.width,viewport.height);
   ctx.restore();
@@ -100,31 +102,36 @@ export function drawRoom(
   camera: Camera,
   viewport: { width: number; height: number; room: Room },
 ) {
-  const common = [player, flashlight, camera, viewport] as const;
-  drawSurface(
-    ctx,
-    [[0, 0, 0], [room.width, 0, 0], [room.width, room.height, 0], [0, room.height, 0]],
-    ROOM_STYLE.floor,
-    [174, 166, 127],
-    1,
-    ...common,
-  );
-  drawSurface(
-    ctx,
-    [[0, 0, 0], [room.width, 0, 0], [room.width, 0, ROOM_STYLE.wallHeight], [0, 0, ROOM_STYLE.wallHeight]],
-    ROOM_STYLE.backWall,
-    [184, 176, 137],
-    0.82,
-    ...common,
-  );
+  const common=[player,flashlight,camera,viewport] as const;
+  const style={
+    lit:{floor:"#393a34",wall:"#4a4b43",side:"#41423b",shade:.04,strength:.8},
+    dim:{floor:"#151918",wall:"#202521",side:"#1b211e",shade:.2,strength:.9},
+    dark:{floor:ROOM_STYLE.floor,wall:ROOM_STYLE.backWall,side:ROOM_STYLE.sideWall,shade:.46,strength:1},
+  } as const;
+  for(const zone of ZONES){
+    const look=style[zone.light];
+    drawSurface(ctx,[[zone.minX,0,0],[zone.maxX,0,0],[zone.maxX,room.height,0],[zone.minX,room.height,0]],
+      look.floor,[174,166,127],look.strength,look.shade,...common);
+    drawSurface(ctx,[[zone.minX,0,0],[zone.maxX,0,0],[zone.maxX,0,ROOM_STYLE.wallHeight],[zone.minX,0,ROOM_STYLE.wallHeight]],
+      look.wall,[184,176,137],look.strength*.82,look.shade,...common);
+  }
+  const first=style.lit;
   drawSurface(
     ctx,
     [[0, 0, 0], [0, room.height, 0], [0, room.height, ROOM_STYLE.wallHeight], [0, 0, ROOM_STYLE.wallHeight]],
-    ROOM_STYLE.sideWall,
+    first.side,
     [165, 159, 128],
-    0.72,
+    0.6,
+    first.shade,
     ...common,
   );
+  for(const wallX of [4,8]){
+    const wallColor=wallX===4?style.dim.wall:style.dark.wall;
+    const shade=wallX===4?style.dim.shade:style.dark.shade;
+    for(const [from,to] of [[0,DOOR_MIN],[DOOR_MAX,room.height]] as const)
+      drawSurface(ctx,[[wallX,from,0],[wallX,to,0],[wallX,to,ROOM_STYLE.wallHeight],[wallX,from,ROOM_STYLE.wallHeight]],
+        wallColor,[172,164,130],.72,shade,...common);
+  }
   ctx.strokeStyle = ROOM_STYLE.edge;
   ctx.lineWidth = 1;
   const seams: [number, number, number][][] = [

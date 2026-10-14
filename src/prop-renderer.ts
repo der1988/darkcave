@@ -44,7 +44,9 @@ function drawShadow(ctx:CanvasRenderingContext2D,cube:RoomProp,origin:Point,came
 }
 function drawCube(ctx:CanvasRenderingContext2D,c:RoomProp,camera:Camera,amount:number){
   const {minX:x0,minY:y0,maxX:x1,maxY:y1,height:z}=c;
-  const brightness=.08+amount*.95;
+  const centerX=(x0+x1)/2;
+  const roomLight=centerX<4?.82:centerX<8?.3:.045;
+  const brightness=roomLight+amount*.95;
   const faces:{points:Vertex[];shade:number}[]=[
     {points:[[x1,y0,0],[x1,y1,0],[x1,y1,z],[x1,y0,z]],shade:brightness*.9},
     {points:[[x0,y1,0],[x1,y1,0],[x1,y1,z],[x0,y1,z]],shade:brightness*.82},
