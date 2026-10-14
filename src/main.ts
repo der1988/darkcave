@@ -5,6 +5,7 @@ import { movementSpeed, movementVector } from "./movement";
 import { drawPerson } from "./player-sprite";
 import {
   BROTHER_START,
+  FLOOR_TILE_SIZE,
   PLAYER_START,
   ROOM,
   TILE_Z,
@@ -63,19 +64,26 @@ function polygon(
 
 function drawFloor() {
   const activeLamp = lamp();
-  for (let y = ROOM.y; y < ROOM.y + ROOM.h; y++)
-    for (let x = ROOM.x; x < ROOM.x + ROOM.w; x++) {
-      const center = { x: x + 0.5, y: y + 0.5 };
+  const columns = ROOM.w / FLOOR_TILE_SIZE;
+  const rows = ROOM.h / FLOOR_TILE_SIZE;
+  for (let row = 0; row < rows; row++)
+    for (let column = 0; column < columns; column++) {
+      const x = ROOM.x + column * FLOOR_TILE_SIZE;
+      const y = ROOM.y + row * FLOOR_TILE_SIZE;
+      const center = {
+        x: x + FLOOR_TILE_SIZE / 2,
+        y: y + FLOOR_TILE_SIZE / 2,
+      };
       const light = beam(activeLamp, center, 0);
       polygon(
         [
           [x, y, 0],
-          [x + 1, y, 0],
-          [x + 1, y + 1, 0],
-          [x, y + 1, 0],
+          [x + FLOOR_TILE_SIZE, y, 0],
+          [x + FLOOR_TILE_SIZE, y + FLOOR_TILE_SIZE, 0],
+          [x, y + FLOOR_TILE_SIZE, 0],
         ],
         [102, 98, 78],
-        light * (0.94 + ((x * 17 + y * 31) % 7) * 0.008),
+        light * (0.94 + ((column * 17 + row * 31) % 7) * 0.008),
       );
     }
 }
