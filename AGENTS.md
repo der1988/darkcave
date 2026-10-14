@@ -2,7 +2,7 @@
 
 Read only the modules relevant to the requested change.
 
-- Room layout, doors, windows and decorative markings: `src/room.ts`
+- Room layout, doors, storefronts and decorative markings: `src/room.ts`
 - Movement and companion doorway routing: `src/game.ts`
 - Collision checks and world bounds: `src/movement.ts`
 - Floor and wall surface shading: `src/room-renderer.ts`

@@ -1,9 +1,9 @@
-import { ROOM, ROOMS, WALLS, WINDOWS, MARKINGS } from "./room";
-import { project, traceSurface, type Point } from "./geometry";
+import { ROOM, ROOMS, WALLS, MARKINGS, STOREFRONTS } from "./room";
+import { project, type Point } from "./geometry";
 import { illumination, type Flashlight, type Vec3 } from "./lighting";
 
 /** Shade real floor/wall coordinates into a reusable texture, then project it.
- * Both light sources are evaluated at each texel, not drawn as screen overlays. */
+ * Ambient fill and flashlight are evaluated at each texel, not drawn as screen overlays. */
 export class RoomRenderer {
   private texture = document.createElement("canvas");
   private ctx = this.texture.getContext("2d")!;
@@ -44,7 +44,7 @@ export class RoomRenderer {
         const light = illumination(point, player, torch);
         const index = (y * width + x) * 4;
         for (let channel = 0; channel < 3; channel++) {
-          // Muted cool exterior and slightly warm flashlight, with restrained exposure.
+          // Restrained penumbra and a slightly warm flashlight.
           const tint = channel === 2 ? 0.95 : 1;
           pixels.data[index + channel] = Math.min(
             255,
@@ -105,7 +105,16 @@ export class RoomRenderer {
       { x: 0, y: 0, z: 0 },
       { x: ROOM.width, y: 0, z: 0 },
       { x: 0, y: 0, z: ROOM.wallHeight },
-      () => "#27332f",
+      (p) => {
+        const shop = STOREFRONTS.find((s) => p.x >= s.from && p.x <= s.to);
+        if (!shop) return "#323832";
+        if (p.z > 1.08 && p.z < 1.27) return shop.sign;
+        if (p.z > 1.02) return "#323832";
+        if (p.x < shop.from + 0.07 || p.x > shop.to - 0.07) return shop.trim;
+        if (p.z < 0.07) return "#151b19";
+        // Fine horizontal ribs give closed shutters their familiar mall silhouette.
+        return Math.floor(p.z * 24) % 2 ? "#343a35" : "#2b302c";
+      },
       player,
       torch,
     );
@@ -119,33 +128,6 @@ export class RoomRenderer {
       player,
       torch,
     );
-    for (const window of WINDOWS) {
-      traceSurface(
-        ctx,
-        [
-          [window.from, 0, 0.43],
-          [window.to, 0, 0.43],
-          [window.to, 0, 1.13],
-          [window.from, 0, 1.13],
-        ],
-        camera,
-      );
-      ctx.fillStyle = "#90aaa5";
-      ctx.fill();
-      ctx.strokeStyle = "#26332f";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      const mid = (window.from + window.to) / 2;
-      traceSurface(
-        ctx,
-        [
-          [mid, 0, 0.43],
-          [mid, 0, 1.13],
-        ],
-        camera,
-      );
-      ctx.stroke();
-    }
     for (const wall of WALLS)
       this.surface(
         ctx,

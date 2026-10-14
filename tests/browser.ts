@@ -57,7 +57,7 @@ try {
   console.log(
     JSON.stringify({
       movement: "passed",
-      windowLight: "rendered",
+      mallScene: "rendered",
       flashlightToggle: "passed",
       brother: "passed",
       errors,

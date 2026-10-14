@@ -1,8 +1,7 @@
 import type { Point } from "./geometry";
-import { ROOM, WALLS, WINDOWS } from "./room";
+import { ROOM, WALLS } from "./room";
 
 export type Vec3 = { x: number; y: number; z: number };
-export const SUN = { x: 0.24, y: 1, z: -0.48 };
 export const TORCH = { height: 0.43, range: 6, angle: 0.29, power: 1.8 };
 const smooth = (x: number) => {
   x = Math.max(0, Math.min(1, x));
@@ -22,21 +21,6 @@ export function visible(from: Vec3, to: Vec3) {
       return false;
   }
   return true;
-}
-
-export function sunlight(point: Vec3) {
-  const distance = point.y / SUN.y;
-  const x = point.x - SUN.x * distance;
-  const z = point.z - SUN.z * distance;
-  if (z < 0.43 || z > 1.13) return 0;
-  for (const window of WINDOWS) {
-    if (x <= window.from || x >= window.to) continue;
-    if (Math.abs(x - (window.from + window.to) / 2) < 0.025) return 0;
-    if (!visible({ x, y: 0.001, z }, point)) return 0;
-    const edge = Math.min(x - window.from, window.to - x, z - 0.43, 1.13 - z);
-    return smooth(edge / 0.07) * 0.85;
-  }
-  return 0;
 }
 
 export class Flashlight {
@@ -76,5 +60,5 @@ export class Flashlight {
 }
 
 export function illumination(point: Vec3, actor: Point, torch: Flashlight) {
-  return 0.19 + sunlight(point) + torch.at(point, actor);
+  return 0.19 + torch.at(point, actor);
 }

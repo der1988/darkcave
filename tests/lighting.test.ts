@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { Flashlight, sunlight, visible } from "../src/lighting.ts";
+import { Flashlight, illumination, visible } from "../src/lighting.ts";
 
 test("walls block light but doorways transmit it", () => {
   assert.equal(
@@ -12,9 +12,11 @@ test("walls block light but doorways transmit it", () => {
     true,
   );
 });
-test("sunlight reaches only floor points projected through windows", () => {
-  assert.ok(sunlight({ x: 1.06, y: 1, z: 0 }) > 0.5);
-  assert.equal(sunlight({ x: 2, y: 1, z: 0 }), 0);
+test("with the torch off only uniform penumbra remains", () => {
+  const torch = new Flashlight();
+  torch.toggle();
+  assert.equal(illumination({ x: 1, y: 1, z: 0 }, { x: 1, y: 1 }, torch), 0.19);
+  assert.equal(illumination({ x: 8, y: 2, z: 1 }, { x: 1, y: 1 }, torch), 0.19);
 });
 test("torch illuminates walls, fades with distance, and stops behind walls", () => {
   const torch = new Flashlight();
