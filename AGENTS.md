@@ -1,19 +1,17 @@
 # Targeted editing map
 
-Read only the files relevant to the requested change, then expand scope if a dependency requires it.
+Read only the modules relevant to the requested change.
 
-- Movement, collisions, room size, companion following: `src/game.ts`
-- Global visual tuning values: `src/config.ts`
-- Flashlight aim, range and intensity math: `src/flashlight.ts`
-- Floor, walls and environmental light: `src/room-renderer.ts`
-- Character placement, illumination and brother shadow: `src/actor-renderer.ts`
+- Room layout, doors, windows and decorative markings: `src/room.ts`
+- Movement and companion doorway routing: `src/game.ts`
+- Collision checks and world bounds: `src/movement.ts`
+- Floor and wall rendering: `src/room-renderer.ts`
+- Window light, character shading and shadows: `src/window-lighting.ts`
 - Character pixel art and animation: `src/player-sprite.ts`
-- Isometric projection helpers: `src/geometry.ts`
-- Keyboard state: `src/input.ts`
-- Camera and frame composition: `src/scene-renderer.ts`
-- Startup and browser event wiring: `src/main.ts`
-- Flashlight switch audio: `src/switch-sound.ts`
-- Reusable furniture data and light occluders: `src/room-props.ts`
-- Furniture geometry, depth and shadows: `src/prop-renderer.ts`
+- Isometric projection: `src/geometry.ts`
+- Camera, canvas sizing and frame composition: `src/scene-renderer.ts`
+- Visual tuning: `src/config.ts`
+- Keyboard input: `src/input.ts`
+- Startup wiring: `src/main.ts`
 
-The project uses TypeScript only. Keep feature logic out of `main.ts`; it should only connect modules.
+Use TypeScript only. Keep feature logic out of `main.ts`.

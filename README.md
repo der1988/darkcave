@@ -1,6 +1,6 @@
 # LIMINAL — TypeScript foundation
 
-This is a deliberately small isometric foundation: five directly connected liminal spaces, two brothers, movement, stealth and daylight entering through one facade.
+This is a deliberately small isometric foundation: three directly connected liminal spaces, two brothers, movement, stealth and daylight entering through one facade.
 
 The complete simulation and renderer use TypeScript. There is no native compiler or WebAssembly layer.
 
@@ -32,4 +32,4 @@ npm run test:browser
 - WASD / arrow keys: move in the isometric room
 - Shift: silent stealth movement
 
-There is no corridor. The connected spaces draw from familiar liminal imagery: yellow repeating rooms, poolrooms, an empty fluorescent office, a closed shopping center and an abandoned indoor play area. All windows share one facade, so their parallel light comes from one sun or moon direction.
+There is no corridor. The connected spaces draw from familiar liminal imagery: yellow repeating rooms, poolrooms and an empty office. All windows share one facade, so their parallel light comes from one sun or moon direction.
