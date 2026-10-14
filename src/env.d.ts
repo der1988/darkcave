@@ -20,6 +20,7 @@ declare global {
         player: ActorState;
         brother: ActorState;
         torchOn: boolean;
+        camera: { x: number; y: number; z: number };
         clicker: ClickerState;
         clickers: ClickerState[];
         progress: Progress;

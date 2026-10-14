@@ -42,3 +42,6 @@ canvas {
   pointer-events: none;
   text-shadow: 0 1px 2px #000;
 }
+
+.speech-bubble { position: fixed; transform: translate(-50%, -100%); max-width: 220px; background: rgba(8,12,11,.9); border: 1px solid #62766c; padding: 6px 8px; color: #c4c5b3; font: 12px monospace; pointer-events: none; }
+.interaction-hint { position: fixed; bottom: 52px; left: 50%; transform: translateX(-50%); color: #c4c5b3; font: 12px monospace; pointer-events: none; }

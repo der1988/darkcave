@@ -1,6 +1,6 @@
 # LIMINAL — TypeScript foundation
 
-This is a deliberately small isometric foundation: two six-room mall wings joined by a central memory room, two brothers, movement, stealth, interior penumbra and a handheld flashlight.
+This is a deliberately small third-person foundation: two six-room mall wings joined by a central memory room, two brothers, movement, stealth, interior penumbra and a handheld flashlight.
 
 The complete simulation and renderer use TypeScript. There is no native compiler or WebAssembly layer.
 
@@ -15,7 +15,7 @@ npm run dev
 
 ## Modular structure
 
-The camera follows the brothers at the earlier isometric magnification, showing a few rooms at a time. Rooms are 20% larger while character and furniture sizes remain fixed.
+A perspective camera follows behind the brothers. Hold the right mouse button and drag to orbit; movement follows the camera direction. Rooms are 20% larger while character and furniture sizes remain fixed.
 
 Visual constants live in `src/config.ts`; the mall layout, walls, doors and storefronts live in `src/room.ts`. Gameplay, flashlight lighting, actors and input remain separate TypeScript modules. `src/main.ts` only connects them.
 
@@ -31,9 +31,10 @@ npm run test:browser
 
 ## Controls
 
-- WASD / arrow keys: move in the isometric room
+- WASD / arrow keys: move relative to the camera
 - Shift: silent stealth movement
 - Mouse: aim flashlight
+- Right mouse drag: orbit the third-person camera
 - Space / F: toggle flashlight
 - E: use computer / collect memory / exit
 - Click a nearby stone or bottle: pick up into the free hand
@@ -43,7 +44,7 @@ The level follows the provided sketch: six rooms on each side and one memory bri
 
 Use E to collect the memory in the central room and to finish at the exit. Existing stones, bottles, stealth, dialogue and spatial creature audio remain available.
 
-There are no windows or exterior light sources. Lighting is evaluated in world coordinates for each floor and wall texel: subtle ambient penumbra and a flashlight with soft angular edges, distance falloff and shared wall occlusion through doorway openings.
+There are no windows or exterior light sources. Three.js renders actual walls, floors and stylized characters. A shadow-casting spotlight illuminates the environment; gameplay hearing, navigation and interactions keep using the same world-space simulation.
 
 Short Italian exchanges appear above the speaking brother and move with him. Exchanges are less frequent during stealth. Each clicker starts in a marked room and wanders there until it hears footsteps. Walking produces quiet footstep audio and matching gameplay sound events; stealth produces neither. Hearing has a limited range and follows routes through doors. The clicker investigates the last heard position, searches briefly, then resumes wandering. It is visible only in the flashlight and has no attack/damage behavior in this phase.
 

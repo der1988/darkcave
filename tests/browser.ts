@@ -107,10 +107,23 @@ try {
   assert.equal((await state()).progress.doorOpen, true);
   await page.screenshot({ path: "/tmp/liminal-computer.png" });
 
+  const beforeOrbit = (await state()).camera;
+  await page.mouse.move(640, 400);
+  await page.mouse.down({ button: "right" });
+  await page.mouse.move(730, 400, { steps: 8 });
+  await page.mouse.up({ button: "right" });
+  await page.waitForTimeout(350);
+  const afterOrbit = (await state()).camera;
+  assert.ok(
+    Math.hypot(beforeOrbit.x - afterOrbit.x, beforeOrbit.z - afterOrbit.z) >
+      0.3,
+  );
+  assert.notDeepEqual(walked.camera, initial.camera);
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify({
       movement: "passed",
+      thirdPersonCamera: "passed",
       computerClick: "passed",
       mallScene: "rendered",
       flashlightToggle: "passed",

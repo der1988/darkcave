@@ -39,7 +39,8 @@ function frame(now: number) {
   const dt = Math.min(0.04, (now - lastFrame) / 1000);
   lastFrame = now;
   const movement = input.movement();
-  game.update(dt, movement.horizontal, movement.vertical, movement.stealth);
+  const direction = renderer.movement(movement.horizontal, movement.vertical);
+  game.update(dt, direction.horizontal, direction.vertical, movement.stealth);
   footstepAudio.play(game.takeFootsteps());
   footstepAudio.impacts(game.takeImpacts(), game.player());
   game
@@ -63,6 +64,11 @@ if (import.meta.env.DEV)
       player: game.player(),
       brother: game.brother(),
       torchOn: renderer.torch.on,
+      camera: {
+        x: renderer.camera.position.x,
+        y: renderer.camera.position.y,
+        z: renderer.camera.position.z,
+      },
       clicker: game.clicker(),
       clickers: game.clickers(),
       progress: game.progress(),
