@@ -5,6 +5,7 @@ import { project, type Camera } from "./geometry";
 import type { Game } from "./game";
 import { drawRoom } from "./room-renderer";
 import { drawProps } from "./prop-renderer";
+import { WALL_OCCLUDERS } from "./world";
 
 export class SceneRenderer {
   readonly ctx: CanvasRenderingContext2D;
@@ -20,6 +21,7 @@ export class SceneRenderer {
     private flashlight: Flashlight,
   ) {
     this.ctx = canvas.getContext("2d", { alpha: false })!;
+    this.flashlight.setOccluders(WALL_OCCLUDERS);
     this.resize();
   }
 

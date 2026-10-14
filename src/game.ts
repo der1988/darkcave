@@ -1,5 +1,5 @@
 import { ROOM_PROPS } from "./room-props";
-import { DOOR_MAX,DOOR_MIN,WORLD } from "./world";
+import { WALLS,WORLD } from "./world";
 
 export type ActorState = { x:number; y:number; heading:number; stride:number; moving:boolean; stealth:boolean };
 export type Game = {
@@ -12,7 +12,10 @@ const margin=.24,radius=.17;
 const clamp=(v:number,low:number,high:number)=>Math.max(low,Math.min(high,v));
 const blocked=(x:number,y:number)=>{
   for(const cube of ROOM_PROPS)if(x>cube.minX-radius&&x<cube.maxX+radius&&y>cube.minY-radius&&y<cube.maxY+radius)return true;
-  for(const wallX of [4,8])if(Math.abs(x-wallX)<radius+.035&&(y<DOOR_MIN+radius||y>DOOR_MAX-radius))return true;
+  for(const wall of WALLS){
+    const across=wall.axis==="x"?x:y,along=wall.axis==="x"?y:x;
+    if(Math.abs(across-wall.position)<radius+.035&&along>wall.from-radius&&along<wall.to+radius)return true;
+  }
   return false;
 };
 function move(actor:ActorState,dx:number,dy:number) {

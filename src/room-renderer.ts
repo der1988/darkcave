@@ -2,7 +2,7 @@ import { LIGHT, ROOM_STYLE, VIEW } from "./config";
 import { project, traceSurface, type Camera, type SurfacePoint } from "./geometry";
 import type { Flashlight } from "./flashlight";
 import type { ActorState } from "./game";
-import { DOOR_MAX,DOOR_MIN,ZONES } from "./world";
+import { WALLS,ZONES,zoneAt,type Zone } from "./world";
 
 type Room = { width: number; height: number };
 type Color = [number, number, number];
@@ -42,6 +42,7 @@ function drawSurface(
   if (flashlight.brightness > 0.01) {
     const range = flashlight.effectiveRange(lightOrigin, viewport.room);
     const target = flashlight.target(lightOrigin, viewport.room);
+    const impactZ=range<flashlight.range-.02?.58:.015;
     const rgb = torchColor.join(",");
 
     const directionX=Math.cos(flashlight.angle);
@@ -50,8 +51,8 @@ function drawSurface(
     const perpendicularY=directionX;
     const endRadius=flashlight.beamRadius(range);
     for(const [width,alpha] of [[1.65,.05],[1.08,.08],[.62,.12]] as const){
-      const left=project(target.x+perpendicularX*endRadius*width,target.y+perpendicularY*endRadius*width,.015);
-      const right=project(target.x-perpendicularX*endRadius*width,target.y-perpendicularY*endRadius*width,.015);
+      const left=project(target.x+perpendicularX*endRadius*width,target.y+perpendicularY*endRadius*width,impactZ);
+      const right=project(target.x-perpendicularX*endRadius*width,target.y-perpendicularY*endRadius*width,impactZ);
       const gradient=ctx.createLinearGradient(ox,oy,(left.x+right.x)/2+camera.x,(left.y+right.y)/2+camera.y);
       gradient.addColorStop(0,`rgba(${rgb},${flashlight.brightness*strength*alpha*1.15})`);
       gradient.addColorStop(.28,`rgba(${rgb},${flashlight.brightness*strength*alpha*.78})`);
@@ -94,6 +95,29 @@ function drawSurface(
   ctx.restore();
 }
 
+function drawCharacteristics(ctx:CanvasRenderingContext2D,zone:Zone,player:ActorState,
+  flashlight:Flashlight,camera:Camera,room:Room){
+  const patterns:Record<string,[number,number,number,number][]>={
+    arrival:[[1.55,1.12,.9,.66]],
+    yellow:[[.55,.55,.12,1.9],[1.35,.55,.12,1.9],[2.15,.55,.12,1.9],[2.95,.55,.12,1.9]],
+    service:[[.65,.72,.55,.1],[1.35,1.05,.55,.1],[2.05,1.38,.55,.1]],
+    threshold:[[.6,.62,.72,.72],[2.55,1.65,.72,.72]],
+    white:[[1.12,.72,1.75,1.55]],
+    carpet:[[.35,.42,3.3,.16],[.35,2.42,3.3,.16]],
+    storage:[[.55,.55,.38,.38],[1.35,1.15,.38,.38],[2.2,.62,.38,.38],[2.85,1.78,.38,.38]],
+    return:[[.55,.55,.18,1.75],[.55,2.12,2.45,.18]],
+  };
+  const center={x:(zone.minX+zone.maxX)/2,y:(zone.minY+zone.maxY)/2};
+  const illumination=flashlight.at(center,flashlight.origin(player),room);
+  ctx.save();ctx.globalAlpha=Math.min(.34,.05+zone.ambient*.13+illumination*.12);
+  for(const [x,y,w,h] of patterns[zone.id]){
+    traceSurface(ctx,[[zone.minX+x,zone.minY+y,.006],[zone.minX+x+w,zone.minY+y,.006],
+      [zone.minX+x+w,zone.minY+y+h,.006],[zone.minX+x,zone.minY+y+h,.006]],camera);
+    ctx.fillStyle=zone.accent;ctx.fill();
+  }
+  ctx.restore();
+}
+
 export function drawRoom(
   ctx: CanvasRenderingContext2D,
   room: Room,
@@ -103,34 +127,26 @@ export function drawRoom(
   viewport: { width: number; height: number; room: Room },
 ) {
   const common=[player,flashlight,camera,viewport] as const;
-  const style={
-    lit:{floor:"#393a34",wall:"#4a4b43",side:"#41423b",shade:.04,strength:.8},
-    dim:{floor:"#151918",wall:"#202521",side:"#1b211e",shade:.2,strength:.9},
-    dark:{floor:ROOM_STYLE.floor,wall:ROOM_STYLE.backWall,side:ROOM_STYLE.sideWall,shade:.46,strength:1},
-  } as const;
   for(const zone of ZONES){
-    const look=style[zone.light];
-    drawSurface(ctx,[[zone.minX,0,0],[zone.maxX,0,0],[zone.maxX,room.height,0],[zone.minX,room.height,0]],
-      look.floor,[174,166,127],look.strength,look.shade,...common);
-    drawSurface(ctx,[[zone.minX,0,0],[zone.maxX,0,0],[zone.maxX,0,ROOM_STYLE.wallHeight],[zone.minX,0,ROOM_STYLE.wallHeight]],
-      look.wall,[184,176,137],look.strength*.82,look.shade,...common);
+    const shade=.5*(1-zone.ambient),strength=.78+shade*.4;
+    drawSurface(ctx,[[zone.minX,zone.minY,0],[zone.maxX,zone.minY,0],
+      [zone.maxX,zone.maxY,0],[zone.minX,zone.maxY,0]],zone.floor,[174,166,127],strength,shade,...common);
+    if(zone.minY===0)drawSurface(ctx,[[zone.minX,0,0],[zone.maxX,0,0],
+      [zone.maxX,0,ROOM_STYLE.wallHeight],[zone.minX,0,ROOM_STYLE.wallHeight]],
+      zone.wall,[184,176,137],strength*.82,shade,...common);
+    if(zone.minX===0)drawSurface(ctx,[[0,zone.minY,0],[0,zone.maxY,0],
+      [0,zone.maxY,ROOM_STYLE.wallHeight],[0,zone.minY,ROOM_STYLE.wallHeight]],
+      zone.wall,[165,159,128],strength*.72,shade,...common);
   }
-  const first=style.lit;
-  drawSurface(
-    ctx,
-    [[0, 0, 0], [0, room.height, 0], [0, room.height, ROOM_STYLE.wallHeight], [0, 0, ROOM_STYLE.wallHeight]],
-    first.side,
-    [165, 159, 128],
-    0.6,
-    first.shade,
-    ...common,
-  );
-  for(const wallX of [4,8]){
-    const wallColor=wallX===4?style.dim.wall:style.dark.wall;
-    const shade=wallX===4?style.dim.shade:style.dark.shade;
-    for(const [from,to] of [[0,DOOR_MIN],[DOOR_MAX,room.height]] as const)
-      drawSurface(ctx,[[wallX,from,0],[wallX,to,0],[wallX,to,ROOM_STYLE.wallHeight],[wallX,from,ROOM_STYLE.wallHeight]],
-        wallColor,[172,164,130],.72,shade,...common);
+  for(const zone of ZONES)drawCharacteristics(ctx,zone,player,flashlight,camera,room);
+  for(const wall of WALLS){
+    const midpoint=(wall.from+wall.to)/2;
+    const adjacent=wall.axis==="x"?zoneAt(wall.position-.05,midpoint):zoneAt(midpoint,wall.position-.05);
+    const wallColor=adjacent?.wall??ROOM_STYLE.backWall,shade=.5*(1-(adjacent?.ambient??.05));
+    const points:SurfacePoint[]=wall.axis==="x"
+      ?[[wall.position,wall.from,0],[wall.position,wall.to,0],[wall.position,wall.to,ROOM_STYLE.wallHeight],[wall.position,wall.from,ROOM_STYLE.wallHeight]]
+      :[[wall.from,wall.position,0],[wall.to,wall.position,0],[wall.to,wall.position,ROOM_STYLE.wallHeight],[wall.from,wall.position,ROOM_STYLE.wallHeight]];
+    drawSurface(ctx,points,wallColor,[180,171,135],.78,shade,...common);
   }
   ctx.strokeStyle = ROOM_STYLE.edge;
   ctx.lineWidth = 1;

@@ -3,13 +3,16 @@ import type { Flashlight } from "./flashlight";
 import { project, type Camera, type Point } from "./geometry";
 import type { ActorState } from "./game";
 import { drawPerson } from "./player-sprite";
-import { DOOR_MAX,DOOR_MIN } from "./world";
+import { WALLS,zoneAt } from "./world";
 
 type Room = { width: number; height: number };
 
 export function wallOpacity(actor:ActorState){
-  const wall=actor.x<4?4:actor.x<8?8:null;
-  return wall&&wall-actor.x<.85&&(actor.y<DOOR_MIN||actor.y>DOOR_MAX)?.42:1;
+  for(const wall of WALLS){
+    const across=wall.axis==="x"?actor.x:actor.y,along=wall.axis==="x"?actor.y:actor.x;
+    if(across<wall.position&&wall.position-across<.85&&along>=wall.from&&along<=wall.to)return .42;
+  }
+  return 1;
 }
 
 function drawBrotherShadow(
@@ -70,11 +73,11 @@ export function drawActors(
   room: Room,
 ) {
   const lightOrigin = flashlight.origin(player);
-  const roomLight=(x:number)=>x<4?.82:x<8?.3:.045;
+  const roomLight=(actor:ActorState)=>zoneAt(actor.x,actor.y)?.ambient??.03;
   drawBrotherShadow(ctx, player, brother, flashlight, camera, room);
   const actors = [
-    { actor: player, child: false, light: roomLight(player.x)+flashlight.brightness*.12 },
-    { actor: brother, child: true, light: roomLight(brother.x)+flashlight.at(brother, lightOrigin, room)*.82 },
+    { actor: player, child: false, light: roomLight(player)+flashlight.brightness*.12 },
+    { actor: brother, child: true, light: roomLight(brother)+flashlight.at(brother, lightOrigin, room)*.82 },
   ].sort((a, b) => a.actor.x + a.actor.y - b.actor.x - b.actor.y);
   for (const { actor, child, light } of actors) {
     const screen = project(actor.x, actor.y);
