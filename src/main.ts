@@ -1,18 +1,12 @@
 import "./style.css";
-import { Flashlight } from "./flashlight";
 import { InputState } from "./input";
 import { createGame } from "./game";
 import { SceneRenderer } from "./scene-renderer";
-import { playSwitchClick } from "./switch-sound";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const game = createGame();
-const flashlight = new Flashlight();
-const input = new InputState(
-  () => playSwitchClick(flashlight.toggle()),
-  () => playSwitchClick(flashlight.toggleHeld()),
-);
-const renderer = new SceneRenderer(canvas, game, flashlight);
+const input = new InputState();
+const renderer = new SceneRenderer(canvas, game);
 let lastFrame = performance.now();
 
 function frame(now: number) {
@@ -20,17 +14,11 @@ function frame(now: number) {
   lastFrame = now;
   const movement = input.movement();
   game.update(dt, movement.horizontal, movement.vertical, movement.stealth);
-  flashlight.update(dt, game.player(), movement.stealth, now / 1000);
   renderer.render(now);
   requestAnimationFrame(frame);
 }
 
 addEventListener("resize", () => renderer.resize());
-canvas.addEventListener("pointermove", (event) => {
-  const rect = canvas.getBoundingClientRect();
-  renderer.aimFromPointer(event.clientX,event.clientY,rect);
-});
-
 requestAnimationFrame(frame);
 
 if (import.meta.env.DEV)
@@ -38,10 +26,5 @@ if (import.meta.env.DEV)
     snapshot: () => ({
       player: game.player(),
       brother: game.brother(),
-      torchOn: flashlight.on,
-      torchHeld: flashlight.held,
-      holdProgress: flashlight.holdProgress,
-      angle: flashlight.angle,
-      lightRange: flashlight.range,
     }),
   };

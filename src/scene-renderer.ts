@@ -1,52 +1,51 @@
-import { LIGHT,ROOM_STYLE,VIEW } from "./config";
-import type { Flashlight } from "./flashlight";
-import type { Game } from "./game";
+import { ROOM_STYLE,VIEW } from "./config";
+import type { ActorState,Game } from "./game";
 import { drawPerson } from "./player-sprite";
 import { ROOM } from "./room";
 
 type Point={x:number;y:number};
+type WindowDef={from:number;to:number;bottom:number;top:number};
+const WINDOWS:WindowDef[]=[{from:.9,to:1.75,bottom:.43,top:1.13},{from:3.7,to:4.65,bottom:.43,top:1.13}];
 const project=(x:number,y:number,z=0):Point=>({x:(x-y)*VIEW.isoX,y:(x+y)*VIEW.isoY-z*VIEW.isoZ});
-const unproject=(x:number,y:number):Point=>({x:x/(VIEW.isoX*2)+y/(VIEW.isoY*2),y:y/(VIEW.isoY*2)-x/(VIEW.isoX*2)});
 
 export class SceneRenderer{
   readonly ctx:CanvasRenderingContext2D;width=0;height=0;private camera={x:0,y:0};
   get room(){return this.game.room;}
-  constructor(readonly canvas:HTMLCanvasElement,private game:Game,private flashlight:Flashlight){this.ctx=canvas.getContext("2d",{alpha:false})!;this.flashlight.setOccluders([]);this.resize();}
+  constructor(readonly canvas:HTMLCanvasElement,private game:Game){this.ctx=canvas.getContext("2d",{alpha:false})!;this.resize();}
   resize(){this.width=Math.max(VIEW.minWidth,Math.ceil(innerWidth*VIEW.resolutionScale));this.height=Math.max(VIEW.minHeight,Math.ceil(innerHeight*VIEW.resolutionScale));this.canvas.width=this.width;this.canvas.height=this.height;this.ctx.imageSmoothingEnabled=false;this.updateCamera();}
   private updateCamera(){const center=project(ROOM.width/2,ROOM.height/2);this.camera={x:Math.round(this.width/2-center.x),y:Math.round(this.height/2-center.y+35)};}
   private path(points:[number,number,number][]){this.ctx.beginPath();points.forEach(([x,y,z],index)=>{const p=project(x,y,z);if(index)this.ctx.lineTo(p.x+this.camera.x,p.y+this.camera.y);else this.ctx.moveTo(p.x+this.camera.x,p.y+this.camera.y);});this.ctx.closePath();}
-  private roomClip(){
-    const surfaces:[number,number,number][][]=[[[0,0,0],[ROOM.width,0,0],[ROOM.width,ROOM.height,0],[0,ROOM.height,0]],[[0,0,0],[ROOM.width,0,0],[ROOM.width,0,ROOM.wallHeight],[0,0,ROOM.wallHeight]],[[0,0,0],[0,ROOM.height,0],[0,ROOM.height,ROOM.wallHeight],[0,0,ROOM.wallHeight]]];
-    this.ctx.beginPath();for(const surface of surfaces){surface.forEach(([x,y,z],index)=>{const p=project(x,y,z);if(index)this.ctx.lineTo(p.x+this.camera.x,p.y+this.camera.y);else this.ctx.moveTo(p.x+this.camera.x,p.y+this.camera.y);});this.ctx.closePath();}
-  }
-  aimFromPointer(clientX:number,clientY:number,rect:DOMRect){const sx=(clientX-rect.left)/rect.width*this.width-this.camera.x,sy=(clientY-rect.top)/rect.height*this.height-this.camera.y,target=unproject(sx,sy),player=this.game.player();this.flashlight.aim({x:target.x-player.x,y:target.y-player.y});}
   private drawRoom(){
-    this.path([[0,0,0],[ROOM.width,0,0],[ROOM.width,ROOM.height,0],[0,ROOM.height,0]]);this.ctx.fillStyle="#111715";this.ctx.fill();
-    this.path([[0,0,0],[ROOM.width,0,0],[ROOM.width,0,ROOM.wallHeight],[0,0,ROOM.wallHeight]]);this.ctx.fillStyle="#1a211e";this.ctx.fill();
-    this.path([[0,0,0],[0,ROOM.height,0],[0,ROOM.height,ROOM.wallHeight],[0,0,ROOM.wallHeight]]);this.ctx.fillStyle="#151c1a";this.ctx.fill();
-    this.ctx.strokeStyle="rgba(104,116,109,.18)";this.ctx.lineWidth=1;for(const line of [[[0,0,0],[ROOM.width,0,0]],[[0,0,0],[0,ROOM.height,0]],[[0,0,0],[0,0,ROOM.wallHeight]]] as [number,number,number][][]){this.path(line);this.ctx.stroke();}
+    this.path([[0,0,0],[ROOM.width,0,0],[ROOM.width,ROOM.height,0],[0,ROOM.height,0]]);this.ctx.fillStyle="#101614";this.ctx.fill();
+    this.path([[0,0,0],[ROOM.width,0,0],[ROOM.width,0,ROOM.wallHeight],[0,0,ROOM.wallHeight]]);this.ctx.fillStyle="#19211e";this.ctx.fill();
+    this.path([[0,0,0],[0,ROOM.height,0],[0,ROOM.height,ROOM.wallHeight],[0,0,ROOM.wallHeight]]);this.ctx.fillStyle="#141b19";this.ctx.fill();
+    this.ctx.strokeStyle="rgba(104,116,109,.17)";this.ctx.lineWidth=1;for(const line of [[[0,0,0],[ROOM.width,0,0]],[[0,0,0],[0,ROOM.height,0]],[[0,0,0],[0,0,ROOM.wallHeight]]] as [number,number,number][][]){this.path(line);this.ctx.stroke();}
   }
-  private drawLight(){
-    if(this.flashlight.brightness<.01)return;const player=this.game.player(),origin=this.flashlight.origin(player),range=this.flashlight.effectiveRange(origin,this.game.room),angle=this.flashlight.angle;
-    const direction={x:Math.cos(angle),y:Math.sin(angle)},perpendicular={x:-direction.y,y:direction.x},radius=this.flashlight.beamRadius(range)*1.25;
-    const start=project(origin.x,origin.y,LIGHT.lensHeight),left=project(origin.x+direction.x*range+perpendicular.x*radius,origin.y+direction.y*range+perpendicular.y*radius,0),right=project(origin.x+direction.x*range-perpendicular.x*radius,origin.y+direction.y*range-perpendicular.y*radius,0);
-    const ox=start.x+this.camera.x,oy=start.y+this.camera.y,tx=(left.x+right.x)/2+this.camera.x,ty=(left.y+right.y)/2+this.camera.y,gradient=this.ctx.createLinearGradient(ox,oy,tx,ty);
-    gradient.addColorStop(0,`rgba(255,239,185,${.48*this.flashlight.brightness})`);gradient.addColorStop(.58,`rgba(235,220,171,${.25*this.flashlight.brightness})`);gradient.addColorStop(1,"rgba(200,194,163,.07)");
-    this.ctx.save();this.roomClip();this.ctx.clip();this.ctx.globalCompositeOperation="lighter";this.ctx.beginPath();this.ctx.moveTo(ox,oy);this.ctx.lineTo(left.x+this.camera.x,left.y+this.camera.y);this.ctx.lineTo(right.x+this.camera.x,right.y+this.camera.y);this.ctx.closePath();this.ctx.fillStyle=gradient;this.ctx.fill();this.ctx.restore();
-    const hit={x:origin.x+direction.x*range,y:origin.y+direction.y*range};
-    if(range<this.flashlight.range-.001&&(hit.x<.01||hit.y<.01))this.drawWallImpact(hit,radius);
+  private daylight(now:number){
+    const phase=now*.000075,drift=Math.sin(phase)*.38,intensity=.78+Math.sin(phase*.63+.8)*.12,depth=3.25;
+    for(const window of WINDOWS){
+      this.path([[window.from,0,window.bottom],[window.to,0,window.bottom],[window.to,0,window.top],[window.from,0,window.top]]);
+      const wallGlow=this.ctx.createLinearGradient(0,this.camera.y-20,0,this.camera.y+45);wallGlow.addColorStop(0,`rgba(178,205,202,${.72*intensity})`);wallGlow.addColorStop(1,`rgba(113,145,143,${.46*intensity})`);this.ctx.fillStyle=wallGlow;this.ctx.fill();
+      this.ctx.strokeStyle="rgba(25,35,34,.85)";this.ctx.lineWidth=2;this.ctx.stroke();const middle=(window.from+window.to)/2;this.path([[middle,0,window.bottom],[middle,0,window.top]]);this.ctx.stroke();
+      const floorFrom=window.from+.08,floorTo=window.to-.08;
+      this.path([[floorFrom,0,.02],[floorTo,0,.02],[floorTo+drift,depth,.02],[floorFrom+drift,depth,.02]]);
+      const start=project(middle,0,0),end=project(middle+drift,depth,0),beam=this.ctx.createLinearGradient(start.x+this.camera.x,start.y+this.camera.y,end.x+this.camera.x,end.y+this.camera.y);
+      beam.addColorStop(0,`rgba(177,203,195,${.27*intensity})`);beam.addColorStop(.72,`rgba(145,172,165,${.16*intensity})`);beam.addColorStop(1,"rgba(118,146,140,.02)");this.ctx.save();this.ctx.globalCompositeOperation="lighter";this.ctx.fillStyle=beam;this.ctx.fill();this.ctx.restore();
+    }
+    return{drift,intensity,depth};
   }
-  private drawWallImpact(hit:Point,radius:number){
-    const onBack=hit.y<.01,wall:[number,number,number][]=onBack
-      ?[[0,0,0],[ROOM.width,0,0],[ROOM.width,0,ROOM.wallHeight],[0,0,ROOM.wallHeight]]
-      :[[0,0,0],[0,ROOM.height,0],[0,ROOM.height,ROOM.wallHeight],[0,0,ROOM.wallHeight]];
-    const center=project(hit.x,hit.y,Math.min(ROOM.wallHeight*.5,LIGHT.lensHeight)),cx=center.x+this.camera.x,cy=center.y+this.camera.y,screenRadius=Math.max(18,radius*VIEW.isoX*1.15);
-    const glow=this.ctx.createRadialGradient(cx,cy,0,cx,cy,screenRadius);glow.addColorStop(0,`rgba(255,241,194,${.62*this.flashlight.brightness})`);glow.addColorStop(.42,`rgba(236,222,178,${.36*this.flashlight.brightness})`);glow.addColorStop(1,"rgba(196,193,170,0)");
-    this.ctx.save();this.path(wall);this.ctx.clip();this.ctx.globalCompositeOperation="lighter";this.ctx.fillStyle=glow;this.ctx.fillRect(cx-screenRadius,cy-screenRadius,screenRadius*2,screenRadius*2);this.ctx.restore();
+  private illumination(actor:ActorState,light:{drift:number;intensity:number;depth:number}){
+    if(actor.y<0||actor.y>light.depth)return .34;const travel=actor.y/light.depth;
+    for(const window of WINDOWS){const from=window.from+.08+light.drift*travel,to=window.to-.08+light.drift*travel;if(actor.x>=from-.12&&actor.x<=to+.12)return .52+light.intensity*.48;}
+    return .38;
   }
-  private drawActors(now:number){
-    const player=this.game.player(),brother=this.game.brother(),origin=this.flashlight.origin(player);for(const [actor,child] of [[brother,true],[player,false]] as const){const p=project(actor.x,actor.y),light=.48+this.flashlight.at(actor,origin,this.game.room)*.42,lens=!child?project(origin.x,origin.y,LIGHT.lensHeight):undefined;
-      drawPerson(this.ctx,Math.round(p.x+this.camera.x),Math.round(p.y+this.camera.y),actor.heading,actor.stride,child,Math.min(1.15,light),now/1000,actor.moving,lens?{x:lens.x+this.camera.x,y:lens.y+this.camera.y}:undefined,child?0:this.flashlight.holdProgress,actor.stealth);}
+  private drawShadow(actor:ActorState,light:{drift:number;intensity:number;depth:number}){
+    if(this.illumination(actor,light)<.6)return;const awayX=light.drift*.22,awayY=.42,length=actor.stealth?.38:.55;
+    const base=project(actor.x,actor.y,.005),tip=project(actor.x+awayX*length,actor.y+awayY*length,.005);this.ctx.beginPath();this.ctx.moveTo(base.x+this.camera.x-3,base.y+this.camera.y);this.ctx.lineTo(base.x+this.camera.x+3,base.y+this.camera.y);this.ctx.lineTo(tip.x+this.camera.x+2,tip.y+this.camera.y);this.ctx.lineTo(tip.x+this.camera.x-2,tip.y+this.camera.y);this.ctx.closePath();this.ctx.fillStyle=`rgba(0,0,0,${.34*light.intensity})`;this.ctx.fill();
   }
-  render(now:number){this.ctx.fillStyle=ROOM_STYLE.background;this.ctx.fillRect(0,0,this.width,this.height);this.drawRoom();this.drawLight();this.drawActors(now);}
+  private drawActors(now:number,light:{drift:number;intensity:number;depth:number}){
+    const player=this.game.player(),brother=this.game.brother();this.drawShadow(brother,light);this.drawShadow(player,light);
+    for(const [actor,child] of [[brother,true],[player,false]] as const){const p=project(actor.x,actor.y);drawPerson(this.ctx,Math.round(p.x+this.camera.x),Math.round(p.y+this.camera.y),actor.heading,actor.stride,child,this.illumination(actor,light),now/1000,actor.moving,undefined,0,actor.stealth);}
+  }
+  render(now:number){this.ctx.fillStyle=ROOM_STYLE.background;this.ctx.fillRect(0,0,this.width,this.height);this.drawRoom();const light=this.daylight(now);this.drawActors(now,light);}
 }

@@ -33,31 +33,6 @@ try {
   const state = () => page.evaluate(() => window.__liminal!.snapshot());
 
   const initial = await state();
-  assert.equal(initial.torchOn, true);
-  await page.keyboard.press("Space");
-  assert.equal((await state()).torchHeld, false);
-  await page.waitForTimeout(300);
-  assert.ok((await state()).holdProgress < 0.01);
-  await page.keyboard.press("Space");
-  assert.equal((await state()).torchHeld, true);
-  await page.waitForTimeout(300);
-  assert.ok((await state()).holdProgress > 0.99);
-  await page.keyboard.press("f");
-  assert.equal((await state()).torchOn, false);
-  await page.keyboard.press("f");
-  assert.equal((await state()).torchOn, true);
-
-  await page.mouse.move(1100, 400);
-  const aimed = await state();
-  assert.notEqual(aimed.angle, initial.angle);
-  assert.equal(aimed.lightRange, initial.lightRange);
-
-  await page.mouse.move(760, 400);
-  const nearAim = await state();
-  await page.mouse.move(1100, 400);
-  const farAim = await state();
-  assert.equal(farAim.lightRange, nearAim.lightRange);
-
   await page.keyboard.down("d");
   await page.waitForTimeout(700);
   await page.keyboard.up("d");
@@ -69,8 +44,6 @@ try {
       walked.player.y - walked.brother.y,
     ) < 0.65,
   );
-  // Aim at the visible rear walls so the browser artifact covers wall lighting.
-  await page.mouse.move(360, 270);
   await page.waitForTimeout(100);
   await page.screenshot({ path: "/tmp/liminal-foundation.png" });
 
@@ -78,8 +51,7 @@ try {
   console.log(
     JSON.stringify({
       movement: "passed",
-      flashlight: "passed",
-      flashlightStow: "passed",
+      windowLight: "rendered",
       brother: "passed",
       errors,
     }),

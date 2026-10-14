@@ -7,20 +7,16 @@ const GAME_KEYS = [
   "arrowdown",
   "arrowleft",
   "arrowright",
-  " ",
-  "f",
 ];
 
 export class InputState {
   private keys = new Set<string>();
 
-  constructor(toggleFlashlight: () => void, toggleHeld: () => void) {
+  constructor() {
     addEventListener("blur", () => this.keys.clear());
     addEventListener("keydown", (event) => {
       const key = event.key.toLowerCase();
       if (GAME_KEYS.includes(key)) event.preventDefault();
-      if (key === "f" && !event.repeat) toggleFlashlight();
-      if (key === " " && !event.repeat) toggleHeld();
       this.keys.add(key === "shift" ? "shift" : key);
     });
     addEventListener("keyup", (event) =>
