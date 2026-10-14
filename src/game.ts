@@ -1,10 +1,12 @@
+import { ROOM_PROPS } from "./room-props";
+
 export type ActorState = { x:number; y:number; heading:number; stride:number; moving:boolean };
 export type Game = {
   room:{width:number;height:number};
   update(dt:number,horizontal:number,vertical:number,running:boolean):void;
   player():ActorState; brother():ActorState;
 };
-const ROOM={width:8,height:6},CUBE={minX:5.12,minY:1.08,maxX:5.46,maxY:1.42};
+const ROOM={width:8,height:6},CUBE=ROOM_PROPS[0];
 const margin=.24,radius=.17;
 const clamp=(v:number,low:number,high:number)=>Math.max(low,Math.min(high,v));
 const blocked=(x:number,y:number)=>x>CUBE.minX-radius&&x<CUBE.maxX+radius&&y>CUBE.minY-radius&&y<CUBE.maxY+radius;
