@@ -20,7 +20,7 @@ export function objectShadow(cube:RoomProp,origin:Point):Vertex[]{
   const ordered=[...corners].sort((a,b)=>(a[0]*px+a[1]*py)-(b[0]*px+b[1]*py));
   const left=ordered[0],right=ordered.at(-1)!;
   const physical=distance*cube.height/Math.max(.08,LIGHT.lensHeight-cube.height);
-  const length=Math.min(.9,Math.max(.22,physical));
+  const length=Math.min(.55,Math.max(.14,physical));
   return [[left[0],left[1],.003],[right[0],right[1],.003],
     [right[0]+ux*length,right[1]+uy*length,.003],
     [left[0]+ux*length,left[1]+uy*length,.003]];
@@ -30,24 +30,24 @@ function expanded(points:Vertex[],amount:number):Vertex[]{
   return points.map(([x,y,z])=>{const d=Math.hypot(x-cx,y-cy)||1;return [x+(x-cx)/d*amount,y+(y-cy)/d*amount,z];});
 }
 function drawShadow(ctx:CanvasRenderingContext2D,cube:RoomProp,origin:Point,camera:Camera,amount:number){
-  const shape=objectShadow(cube,origin),strength=Math.min(.58,amount*.34);
-  ctx.save();ctx.globalCompositeOperation="multiply";
+  const shape=objectShadow(cube,origin),strength=Math.min(.22,amount*.16);
+  ctx.save();
   if(amount>.025){
-    polygon(ctx,expanded(shape,.035),camera,`rgba(4,5,6,${strength*.12})`);
-    polygon(ctx,expanded(shape,.015),camera,`rgba(4,5,6,${strength*.24})`);
-    polygon(ctx,shape,camera,`rgba(2,3,4,${strength*.62})`);
+    polygon(ctx,expanded(shape,.055),camera,`rgba(0,0,0,${strength*.12})`);
+    polygon(ctx,expanded(shape,.025),camera,`rgba(0,0,0,${strength*.22})`);
+    polygon(ctx,shape,camera,`rgba(0,0,0,${strength*.36})`);
   }
   const footprint:Vertex[]=[[cube.minX,cube.minY,.004],[cube.maxX,cube.minY,.004],
     [cube.maxX,cube.maxY,.004],[cube.minX,cube.maxY,.004]];
-  polygon(ctx,expanded(footprint,.025),camera,"rgba(2,3,4,.1)");
-  polygon(ctx,footprint,camera,`rgba(2,3,4,${.3+amount*.16})`);ctx.restore();
+  polygon(ctx,expanded(footprint,.018),camera,"rgba(0,0,0,.045)");
+  polygon(ctx,footprint,camera,`rgba(0,0,0,${.12+amount*.06})`);ctx.restore();
 }
 function drawCube(ctx:CanvasRenderingContext2D,c:RoomProp,camera:Camera,amount:number){
   const {minX:x0,minY:y0,maxX:x1,maxY:y1,height:z}=c;
   const brightness=.72+amount*.42;
   const faces:{points:Vertex[];shade:number}[]=[
-    {points:[[x0,y0,0],[x1,y0,0],[x1,y0,z],[x0,y0,z]],shade:brightness*.9},
-    {points:[[x0,y0,0],[x0,y1,0],[x0,y1,z],[x0,y0,z]],shade:brightness*.82},
+    {points:[[x1,y0,0],[x1,y1,0],[x1,y1,z],[x1,y0,z]],shade:brightness*.9},
+    {points:[[x0,y1,0],[x1,y1,0],[x1,y1,z],[x0,y1,z]],shade:brightness*.82},
     {points:[[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],shade:brightness},
   ];
   for(const face of faces){
