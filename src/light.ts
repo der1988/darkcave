@@ -9,6 +9,10 @@ function smooth(a: number, b: number, value: number) {
   return t * t * (3 - 2 * t);
 }
 
+export function flashlightPower(range: number) {
+  return 1.4 - smooth(0.8, MAX_LIGHT_RANGE, range) * 0.9;
+}
+
 export function beam(lamp: Lamp, point: Point, z = 0) {
   if (!lamp.on || !visible(lamp, point)) return 0;
   const dx = point.x - lamp.x;
@@ -23,7 +27,7 @@ export function beam(lamp: Lamp, point: Point, z = 0) {
   const outerCone = 1 - smooth(0.16, 0.78, angleFromCenter);
   const coreCone = 1 - smooth(0.03, 0.3, angleFromCenter);
   const cone = outerCone * (0.38 + coreCone * 0.62);
-  const targetPower = 1 - smooth(1.2, MAX_LIGHT_RANGE, lamp.range) * 0.48;
+  const targetPower = flashlightPower(lamp.range);
   const distanceFade = 1 - smooth(0.7, Math.max(1, lamp.range), distance) * 0.5;
   const endFade = 1 - smooth(Math.max(0, lamp.range - 0.3), lamp.range, distance);
   const height = 1 - smooth(0.8, 1.8, Math.abs(z - 0.35));

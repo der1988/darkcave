@@ -1,6 +1,12 @@
 import "./style.css";
 import { Companion } from "./companion";
-import { beam, MAX_LIGHT_RANGE, MIN_LIGHT_RANGE, type Lamp } from "./light";
+import {
+  beam,
+  flashlightPower,
+  MAX_LIGHT_RANGE,
+  MIN_LIGHT_RANGE,
+  type Lamp,
+} from "./light";
 import { movementSpeed, movementVector } from "./movement";
 import { drawPerson } from "./player-sprite";
 import {
@@ -81,9 +87,7 @@ function drawLitSurface(
   const dy = end.y + offsetY - oy;
   const screenAngle = Math.atan2(dy, dx);
   const radius = Math.max(1, Math.hypot(dx, dy));
-  const targetPower =
-    (1 - Math.min(1, Math.max(0, (lightRange - 1.2) / 16.8)) * 0.48) *
-    surfaceStrength;
+  const targetPower = flashlightPower(lightRange) * surfaceStrength;
 
   for (let layer = 0; layer < 12; layer++) {
     const halfAngle = 0.76 - layer * 0.047;
@@ -144,6 +148,73 @@ function characterLight(p: Point) {
   return Math.max(0.12, beam(lamp(), p, 0.45));
 }
 
+function drawGroundShadow(
+  p: Point,
+  direction: Point,
+  length: number,
+  width: number,
+  opacity: number,
+) {
+  const magnitude = Math.hypot(direction.x, direction.y) || 1;
+  const dx = direction.x / magnitude;
+  const dy = direction.y / magnitude;
+  const px = -dy;
+  const py = dx;
+  const points: Point[] = [
+    { x: p.x + px * width, y: p.y + py * width },
+    { x: p.x - px * width, y: p.y - py * width },
+    { x: p.x + dx * length - px * width * 0.25, y: p.y + dy * length - py * width * 0.25 },
+    { x: p.x + dx * (length + 0.18), y: p.y + dy * (length + 0.18) },
+    { x: p.x + dx * length + px * width * 0.25, y: p.y + dy * length + py * width * 0.25 },
+  ];
+  ctx.beginPath();
+  points.forEach((point, index) => {
+    const screen = project(point.x, point.y, 0.005);
+    if (index) ctx.lineTo(screen.x + offsetX, screen.y + offsetY);
+    else ctx.moveTo(screen.x + offsetX, screen.y + offsetY);
+  });
+  ctx.closePath();
+  const base = project(p.x, p.y, 0.005);
+  const tip = project(p.x + dx * (length + 0.18), p.y + dy * (length + 0.18), 0.005);
+  const gradient = ctx.createLinearGradient(
+    base.x + offsetX,
+    base.y + offsetY,
+    tip.x + offsetX,
+    tip.y + offsetY,
+  );
+  gradient.addColorStop(0, `rgba(0,0,0,${opacity})`);
+  gradient.addColorStop(0.55, `rgba(0,0,0,${opacity * 0.62})`);
+  gradient.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = gradient;
+  ctx.fill();
+}
+
+function drawCharacterShadows() {
+  if (!torchOn) return;
+  const power = flashlightPower(lightRange);
+  drawGroundShadow(
+    player,
+    { x: Math.cos(angle), y: Math.sin(angle) },
+    0.7 + power * 0.55,
+    0.18,
+    Math.min(0.62, 0.25 + power * 0.2),
+  );
+
+  const childLight = beam(lamp(), brother.position, 0.38);
+  if (childLight > 0.03) {
+    drawGroundShadow(
+      brother.position,
+      {
+        x: brother.position.x - player.x,
+        y: brother.position.y - player.y,
+      },
+      0.55 + childLight * 0.9,
+      0.13,
+      Math.min(0.58, 0.2 + childLight * 0.34),
+    );
+  }
+}
+
 function drawCharacters() {
   const figures = [
     { p: player, child: false, heading: playerHeading, stride: playerStride },
@@ -201,6 +272,7 @@ function render() {
   offsetX = width / 2 - center.x;
   offsetY = height / 2 - center.y + 20;
   drawFloor();
+  drawCharacterShadows();
   drawWalls();
   drawCharacters();
 }

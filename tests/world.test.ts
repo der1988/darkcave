@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { beam } from "../src/light.ts";
+import { beam, flashlightPower } from "../src/light.ts";
 import { Companion } from "../src/companion.ts";
 import { movementSpeed, movementVector } from "../src/movement.ts";
 import {
@@ -66,6 +66,7 @@ test("the flashlight has a bright centre and weakens for distant aiming", () => 
   const far = { ...near, range: 12 };
   assert.ok(beam(near, { x: 7.5, y: 5 }) > beam(near, { x: 7.3, y: 5.7 }));
   assert.ok(beam(near, { x: 7.5, y: 5 }) > beam(far, { x: 7.5, y: 5 }));
+  assert.ok(flashlightPower(2) > flashlightPower(12));
 });
 
 test("the younger brother follows closely and is slightly faster", () => {
