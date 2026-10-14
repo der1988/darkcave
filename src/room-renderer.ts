@@ -30,8 +30,9 @@ function drawSurface(
   const oy = origin.y + camera.y;
   const spillRadius = LIGHT.localSpillRadius * VIEW.isoX * 1.8;
   const ambientGlow = ctx.createRadialGradient(ox, oy, 0, ox, oy, spillRadius);
-  ambientGlow.addColorStop(0, "rgba(58,62,58,.22)");
-  ambientGlow.addColorStop(0.55, "rgba(34,38,36,.11)");
+  ambientGlow.addColorStop(0, `rgba(66,70,65,${.035+flashlight.brightness*.235})`);
+  ambientGlow.addColorStop(0.38, `rgba(39,43,40,${.018+flashlight.brightness*.112})`);
+  ambientGlow.addColorStop(0.72, `rgba(25,28,27,${.008+flashlight.brightness*.027})`);
   ambientGlow.addColorStop(1, "rgba(16,19,21,0)");
   ctx.fillStyle = ambientGlow;
   ctx.fillRect(0, 0, viewport.width, viewport.height);
@@ -50,9 +51,10 @@ function drawSurface(
       const left=project(target.x+perpendicularX*endRadius*width,target.y+perpendicularY*endRadius*width,.015);
       const right=project(target.x-perpendicularX*endRadius*width,target.y-perpendicularY*endRadius*width,.015);
       const gradient=ctx.createLinearGradient(ox,oy,(left.x+right.x)/2+camera.x,(left.y+right.y)/2+camera.y);
-      gradient.addColorStop(0,`rgba(${rgb},${flashlight.brightness*strength*alpha*.65})`);
-      gradient.addColorStop(.35,`rgba(${rgb},${flashlight.brightness*strength*alpha})`);
-      gradient.addColorStop(1,`rgba(${rgb},${flashlight.brightness*strength*alpha*.18})`);
+      gradient.addColorStop(0,`rgba(${rgb},${flashlight.brightness*strength*alpha*1.15})`);
+      gradient.addColorStop(.28,`rgba(${rgb},${flashlight.brightness*strength*alpha*.78})`);
+      gradient.addColorStop(.68,`rgba(${rgb},${flashlight.brightness*strength*alpha*.3})`);
+      gradient.addColorStop(1,`rgba(${rgb},${flashlight.brightness*strength*alpha*.025})`);
       ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(left.x+camera.x,left.y+camera.y);
       ctx.lineTo(right.x+camera.x,right.y+camera.y);ctx.closePath();ctx.fillStyle=gradient;ctx.fill();
     }
@@ -80,6 +82,13 @@ function drawSurface(
     }
 
   }
+  const darknessRadius=Math.max(viewport.width,viewport.height)*.72;
+  const distanceDarkness=ctx.createRadialGradient(ox,oy,spillRadius*.35,ox,oy,darknessRadius);
+  distanceDarkness.addColorStop(0,"rgba(0,0,0,0)");
+  distanceDarkness.addColorStop(.42,"rgba(0,0,0,.035)");
+  distanceDarkness.addColorStop(1,"rgba(0,0,0,.3)");
+  ctx.fillStyle=distanceDarkness;
+  ctx.fillRect(0,0,viewport.width,viewport.height);
   ctx.restore();
 }
 

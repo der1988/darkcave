@@ -30,17 +30,17 @@ function expanded(points:Vertex[],amount:number):Vertex[]{
   return points.map(([x,y,z])=>{const d=Math.hypot(x-cx,y-cy)||1;return [x+(x-cx)/d*amount,y+(y-cy)/d*amount,z];});
 }
 function drawShadow(ctx:CanvasRenderingContext2D,cube:RoomProp,origin:Point,camera:Camera,amount:number){
-  const shape=objectShadow(cube,origin),strength=Math.min(.22,amount*.16);
+  const shape=objectShadow(cube,origin),strength=Math.min(.4,amount*.28);
   ctx.save();
   if(amount>.025){
-    polygon(ctx,expanded(shape,.055),camera,`rgba(0,0,0,${strength*.12})`);
-    polygon(ctx,expanded(shape,.025),camera,`rgba(0,0,0,${strength*.22})`);
-    polygon(ctx,shape,camera,`rgba(0,0,0,${strength*.36})`);
+    polygon(ctx,expanded(shape,.055),camera,`rgba(0,0,0,${strength*.16})`);
+    polygon(ctx,expanded(shape,.025),camera,`rgba(0,0,0,${strength*.3})`);
+    polygon(ctx,shape,camera,`rgba(0,0,0,${strength*.58})`);
   }
   const footprint:Vertex[]=[[cube.minX,cube.minY,.004],[cube.maxX,cube.minY,.004],
     [cube.maxX,cube.maxY,.004],[cube.minX,cube.maxY,.004]];
-  polygon(ctx,expanded(footprint,.018),camera,"rgba(0,0,0,.045)");
-  polygon(ctx,footprint,camera,`rgba(0,0,0,${.12+amount*.06})`);ctx.restore();
+  polygon(ctx,expanded(footprint,.018),camera,"rgba(0,0,0,.07)");
+  polygon(ctx,footprint,camera,`rgba(0,0,0,${.2+amount*.1})`);ctx.restore();
 }
 function drawCube(ctx:CanvasRenderingContext2D,c:RoomProp,camera:Camera,amount:number){
   const {minX:x0,minY:y0,maxX:x1,maxY:y1,height:z}=c;

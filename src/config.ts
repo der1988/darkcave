@@ -16,7 +16,7 @@ export const LIGHT = {
   mainBeamDegrees: 30,
   coronaScale: 1.55,
   hotspotScale: 0.38,
-  localSpillRadius: 1.65,
+  localSpillRadius: 1.2,
   aimResponse: 11,
   rangeResponse: 15,
   walkSway: 0.012,
