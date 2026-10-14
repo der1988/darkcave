@@ -15,6 +15,12 @@ npm run dev
 
 The local C++ toolchain is supplied by `@live-codes/clang-wasm`; no system compiler is required.
 
+## Modular structure
+
+Visual constants live in `src/config.ts`. Flashlight behavior, room rendering, actor rendering, pixel sprites, input, geometry and camera composition each have a separate module. `src/main.ts` only connects them. Gameplay simulation remains isolated in `native/game.cpp`.
+
+`AGENTS.md` contains a task-to-file map so targeted changes can begin without loading unrelated source files.
+
 ## Checks
 
 ```sh
