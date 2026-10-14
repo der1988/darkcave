@@ -39,4 +39,4 @@ npm run test:browser
 - F: switch the flashlight on or off while it is held
 - Shift: move faster
 
-The room uses continuous surfaces with restrained ambient visibility and a small reusable set of abandoned furnishings. The flashlight combines a warm hotspot, a broad corona and weak local spill. Its world-space origin is the visible lens and its target follows the mouse directly. Walls limit its reach; furniture remains inside the light field while casting a visual shadow. The protagonist does not cast a projected shadow; the younger brother and room props cast one only while illuminated.
+The room uses continuous surfaces with restrained ambient visibility and one square test object. The flashlight combines a warm hotspot, a broad corona and weak local spill. Its world-space origin is the visible lens and its target follows the mouse directly. Walls limit its reach; the object remains inside the light field while casting a shadow from its exact silhouette corners. The protagonist does not cast a projected shadow; the younger brother and test object cast one only while illuminated.

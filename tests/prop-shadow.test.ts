@@ -21,3 +21,10 @@ test("nearby light produces a longer object shadow", () => {
   const far = objectShadow(prop, { x: -5, y: 2.5 });
   assert.ok(near[2][0] - 2.5 > far[2][0] - 2.5);
 });
+
+test("the hard shadow starts on exact footprint corners", () => {
+  const shadow = objectShadow(prop, { x: 0, y: 2.5 });
+  const corners = new Set(["2,2", "3,2", "3,3", "2,3"]);
+  assert.ok(corners.has(`${shadow[0][0]},${shadow[0][1]}`));
+  assert.ok(corners.has(`${shadow[1][0]},${shadow[1][1]}`));
+});

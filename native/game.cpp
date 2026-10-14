@@ -13,9 +13,7 @@ struct Actor {
 
 struct Obstacle { float min_x, min_y, max_x, max_y; };
 constexpr Obstacle obstacles[] = {
-    {1.15f, 1.15f, 2.01f, 1.87f}, {3.02f, 1.30f, 3.94f, 1.88f},
-    {7.72f, 2.15f, 8.20f, 2.65f}, {0.18f, 4.34f, 0.90f, 5.36f},
-    {6.72f, 4.72f, 6.97f, 4.97f}, {5.16f, 1.02f, 5.78f, 1.54f},
+    {5.08f, 1.02f, 5.80f, 1.74f},
 };
 
 Actor player{};

@@ -16,7 +16,6 @@ function polygon(ctx: CanvasRenderingContext2D, points: [number, number, number]
   });
   ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
 }
-
 function cuboid(ctx: CanvasRenderingContext2D, p: RoomProp, camera: Camera, light: number, inset = 0) {
   const x0 = p.minX + inset, y0 = p.minY + inset;
   const x1 = p.maxX - inset, y1 = p.maxY - inset, z = p.height;
@@ -25,55 +24,31 @@ function cuboid(ctx: CanvasRenderingContext2D, p: RoomProp, camera: Camera, ligh
   polygon(ctx, [[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]], camera, lit(p.color, light));
 }
 
-export function objectShadow(p: RoomProp, origin: Point, softness = 0) {
+export function objectShadow(p: RoomProp, origin: Point, softness = 0, minimumLength = .24) {
   const cx = (p.minX + p.maxX) / 2, cy = (p.minY + p.maxY) / 2;
   const dx = cx - origin.x, dy = cy - origin.y, distance = Math.hypot(dx, dy) || 1;
   const ux = dx / distance, uy = dy / distance;
   const px = -uy, py = ux;
-  const halfWidth = (Math.abs(px) * (p.maxX-p.minX) + Math.abs(py) * (p.maxY-p.minY)) * .5;
-  const spread = halfWidth + softness;
-  const length = Math.min(2.4, Math.max(.24, p.height * (.82 + 1.8 / (distance + .35))));
+  const corners = [
+    {x:p.minX,y:p.minY},{x:p.maxX,y:p.minY},
+    {x:p.maxX,y:p.maxY},{x:p.minX,y:p.maxY},
+  ];
+  const ordered=[...corners].sort((a,b)=>(a.x*px+a.y*py)-(b.x*px+b.y*py));
+  const left=ordered[0],right=ordered[ordered.length-1];
+  const length = Math.min(2.4, Math.max(minimumLength, p.height * (.82 + 1.8 / (distance + .35))));
   return [
-    [cx-px*spread,cy-py*spread,.003], [cx+px*spread,cy+py*spread,.003],
-    [cx+ux*length+px*(spread+softness),cy+uy*length+py*(spread+softness),.003],
-    [cx+ux*length-px*(spread+softness),cy+uy*length-py*(spread+softness),.003],
+    [left.x-px*softness,left.y-py*softness,.003],
+    [right.x+px*softness,right.y+py*softness,.003],
+    [right.x+ux*length+px*softness,right.y+uy*length+py*softness,.003],
+    [left.x+ux*length-px*softness,left.y+uy*length-py*softness,.003],
   ] as [number, number, number][];
-}
-
-function shadowCasters(p: RoomProp): RoomProp[] {
-  const part = (minX: number, minY: number, maxX: number, maxY: number, height: number) =>
-    ({...p,minX,minY,maxX,maxY,height});
-  const w=p.maxX-p.minX,d=p.maxY-p.minY;
-  if (p.kind === "lamp") return [
-    part(p.minX,p.minY,p.maxX,p.maxY,.06),
-    part(p.minX+w*.43,p.minY+d*.43,p.minX+w*.57,p.minY+d*.57,p.height),
-    part(p.minX-.05,p.minY-.05,p.maxX+.05,p.maxY+.05,p.height),
-  ];
-  if (p.kind === "table") return [
-    part(p.minX+.04,p.minY+.04,p.maxX-.04,p.maxY-.04,p.height),
-    ...[[.09,.1],[.82,.1],[.09,.78],[.82,.78]].map(([x,y]) =>
-      part(p.minX+w*x-.035,p.minY+d*y-.035,p.minX+w*x+.035,p.minY+d*y+.035,p.height)),
-  ];
-  if (p.kind === "chair" || p.kind === "armchair") {
-    const inset=p.kind === "armchair"?.04:.09;
-    const parts=[
-      part(p.minX+inset,p.minY+inset,p.maxX-inset,p.maxY-inset,p.kind === "armchair"?.38:.35),
-      part(p.minX+inset,p.maxY-.16,p.maxX-inset,p.maxY,p.height),
-    ];
-    if (p.kind === "armchair") parts.push(
-      part(p.minX,p.minY+.06,p.minX+.17,p.maxY-.08,.55),
-      part(p.maxX-.17,p.minY+.06,p.maxX,p.maxY-.08,.55),
-    );
-    return parts;
-  }
-  return [p];
 }
 
 function drawShadow(ctx: CanvasRenderingContext2D, p: RoomProp, origin: Point, camera: Camera, amount: number) {
   if (amount < .025) return;
   ctx.save();
   ctx.globalCompositeOperation="multiply";
-  for (const caster of shadowCasters(p)) {
+  for (const caster of [p]) {
     const center={x:(caster.minX+caster.maxX)/2,y:(caster.minY+caster.maxY)/2};
     const base=project(center.x,center.y,.003);
     const hardShape=objectShadow(caster,origin);
@@ -87,7 +62,7 @@ function drawShadow(ctx: CanvasRenderingContext2D, p: RoomProp, origin: Point, c
       polygon(ctx,objectShadow(caster,origin,softness),camera,shadow);
     }
     const contact=Math.max(.025,Math.min(.12,(caster.maxX-caster.minX)*.14));
-    polygon(ctx,objectShadow({...caster,height:contact},origin),camera,
+    polygon(ctx,objectShadow({...caster,height:contact},origin,0,.025),camera,
       `rgba(3,4,5,${Math.min(.68,amount*.42)})`);
   }
   ctx.restore();
@@ -142,15 +117,4 @@ export function drawProps(ctx: CanvasRenderingContext2D, player: ActorState, fla
     drawShadow(ctx,p,origin,camera,illumination);
     drawProp(ctx,p,camera,.34+illumination*.72);
   }
-}
-
-export function drawWallPicture(ctx: CanvasRenderingContext2D, camera: Camera, player: ActorState, flashlight: Flashlight, room: Room) {
-  const center={x:5.35,y:0}; const origin=flashlight.origin(player);
-  const light=flashlight.at(center,origin,room);
-  if (light > .025) {
-    const shift = Math.max(-.09,Math.min(.09,(center.x-origin.x)*.025));
-    polygon(ctx,[[4.92+shift,.003,.65],[5.72+shift,.003,.69],[5.72+shift,.003,1.13],[4.92+shift,.003,1.08]],camera,`rgba(0,0,0,${Math.min(.48,light*.3)})`);
-  }
-  polygon(ctx,[[4.92,.002,.61],[5.72,.002,.65],[5.72,.002,1.08],[4.92,.002,1.03]],camera,lit([52,44,38],.4+light*.7));
-  polygon(ctx,[[5.01,.001,.68],[5.63,.001,.71],[5.63,.001,.99],[5.01,.001,.96]],camera,lit([87,79,64],.35+light*.8));
 }

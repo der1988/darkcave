@@ -4,7 +4,7 @@ import type { Flashlight } from "./flashlight";
 import { project, type Camera } from "./geometry";
 import type { NativeGame } from "./native";
 import { drawRoom } from "./room-renderer";
-import { drawProps, drawWallPicture } from "./prop-renderer";
+import { drawProps } from "./prop-renderer";
 
 export class SceneRenderer {
   readonly ctx: CanvasRenderingContext2D;
@@ -55,7 +55,6 @@ export class SceneRenderer {
       camera,
       this,
     );
-    drawWallPicture(this.ctx, camera, player, this.flashlight, this.game.room);
     drawProps(this.ctx, player, this.flashlight, camera, this.game.room, player.x + player.y);
     drawActors(
       this.ctx,
