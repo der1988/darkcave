@@ -6,7 +6,7 @@ import { ROOM_PROPS, type RoomProp } from "./room-props";
 
 type Room={width:number;height:number};
 type Vertex=[number,number,number];
-const lit=(color:RoomProp["color"],amount:number)=>`rgb(${color.map(v=>Math.round(v*Math.max(.28,Math.min(1.65,amount)))).join(",")})`;
+const lit=(color:RoomProp["color"],amount:number)=>`rgb(${color.map(v=>Math.round(v*Math.max(.06,Math.min(1.65,amount)))).join(",")})`;
 function polygon(ctx:CanvasRenderingContext2D,points:Vertex[],camera:Camera,fill:string|CanvasGradient){
   ctx.beginPath();points.forEach(([x,y,z],i)=>{const p=project(x,y,z);if(i)ctx.lineTo(p.x+camera.x,p.y+camera.y);else ctx.moveTo(p.x+camera.x,p.y+camera.y);});
   ctx.closePath();ctx.fillStyle=fill;ctx.fill();
@@ -44,7 +44,7 @@ function drawShadow(ctx:CanvasRenderingContext2D,cube:RoomProp,origin:Point,came
 }
 function drawCube(ctx:CanvasRenderingContext2D,c:RoomProp,camera:Camera,amount:number){
   const {minX:x0,minY:y0,maxX:x1,maxY:y1,height:z}=c;
-  const brightness=.72+amount*.42;
+  const brightness=.08+amount*.95;
   const faces:{points:Vertex[];shade:number}[]=[
     {points:[[x1,y0,0],[x1,y1,0],[x1,y1,z],[x1,y0,z]],shade:brightness*.9},
     {points:[[x0,y1,0],[x1,y1,0],[x1,y1,z],[x0,y1,z]],shade:brightness*.82},
@@ -54,7 +54,7 @@ function drawCube(ctx:CanvasRenderingContext2D,c:RoomProp,camera:Camera,amount:n
     polygon(ctx,face.points,camera,lit(c.color,face.shade));
     ctx.beginPath();face.points.forEach(([x,y,height],index)=>{const point=project(x,y,height);
       if(index)ctx.lineTo(point.x+camera.x,point.y+camera.y);else ctx.moveTo(point.x+camera.x,point.y+camera.y);});
-    ctx.closePath();ctx.strokeStyle=`rgba(184,169,137,${Math.min(.28,.1+amount*.12)})`;ctx.lineWidth=.7;ctx.stroke();
+    ctx.closePath();ctx.strokeStyle=`rgba(184,169,137,${Math.min(.25,.025+amount*.18)})`;ctx.lineWidth=.7;ctx.stroke();
   }
 }
 export function drawProps(ctx:CanvasRenderingContext2D,player:ActorState,flashlight:Flashlight,camera:Camera,room:Room,beforeDepth:number|null){

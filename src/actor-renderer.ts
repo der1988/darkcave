@@ -66,8 +66,8 @@ export function drawActors(
   const lightOrigin = flashlight.origin(player);
   drawBrotherShadow(ctx, player, brother, flashlight, camera, room);
   const actors = [
-    { actor: player, child: false, light: 0.58 + flashlight.power() * 0.24 },
-    { actor: brother, child: true, light: 0.3 + flashlight.at(brother, lightOrigin, room) * 0.65 },
+    { actor: player, child: false, light: 0.18 + flashlight.brightness * 0.18 },
+    { actor: brother, child: true, light: 0.06 + flashlight.at(brother, lightOrigin, room) * 0.82 },
   ].sort((a, b) => a.actor.x + a.actor.y - b.actor.x - b.actor.y);
   for (const { actor, child, light } of actors) {
     const screen = project(actor.x, actor.y);

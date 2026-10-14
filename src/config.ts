@@ -30,9 +30,9 @@ export const LIGHT = {
 
 export const ROOM_STYLE = {
   background: "#040607",
-  floor: "#090b0b",
-  backWall: "#0d1110",
-  sideWall: "#0b0e0d",
-  edge: "rgba(82, 92, 87, .11)",
+  floor: "#030404",
+  backWall: "#050706",
+  sideWall: "#040605",
+  edge: "rgba(75, 84, 80, .055)",
   wallHeight: 1.35,
 } as const;

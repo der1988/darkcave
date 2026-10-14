@@ -47,7 +47,7 @@ function drawSurface(
     const perpendicularX=-directionY;
     const perpendicularY=directionX;
     const endRadius=flashlight.beamRadius(range);
-    for(const [width,alpha] of [[1.65,.035],[1.08,.06],[.62,.09]] as const){
+    for(const [width,alpha] of [[1.65,.05],[1.08,.08],[.62,.12]] as const){
       const left=project(target.x+perpendicularX*endRadius*width,target.y+perpendicularY*endRadius*width,.015);
       const right=project(target.x-perpendicularX*endRadius*width,target.y-perpendicularY*endRadius*width,.015);
       const gradient=ctx.createLinearGradient(ox,oy,(left.x+right.x)/2+camera.x,(left.y+right.y)/2+camera.y);
