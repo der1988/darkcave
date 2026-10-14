@@ -35,7 +35,7 @@ npm run test:browser
 
 - WASD / arrow keys: move
 - Mouse: aim the flashlight and set its reach on the floor
-- Space: toggle the flashlight
+- F or Space: toggle the flashlight
 - Shift: move faster
 
-The room uses continuous surfaces with restrained ambient visibility. The flashlight adds a warm central beam with broad, softer spill. The protagonist does not cast a projected shadow; the younger brother casts one only while illuminated.
+The room uses continuous surfaces with restrained ambient visibility. The flashlight combines a warm hotspot, a broad corona and weak local spill, with wall and solid-occluder ray tests. It follows mouse aim with slight inertia and movement sway. The protagonist does not cast a projected shadow; the younger brother casts one only while illuminated.

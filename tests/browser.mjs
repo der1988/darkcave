@@ -38,6 +38,10 @@ try {
   assert.equal((await state()).torchOn, false);
   await page.keyboard.press("Space");
   assert.equal((await state()).torchOn, true);
+  await page.keyboard.press("f");
+  assert.equal((await state()).torchOn, false);
+  await page.keyboard.press("f");
+  assert.equal((await state()).torchOn, true);
 
   await page.mouse.move(1100, 400);
   const aimed = await state();

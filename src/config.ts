@@ -12,9 +12,17 @@ export const LIGHT = {
   initialAngle: -Math.PI / 4,
   initialRange: 4,
   minRange: 0.4,
-  maxRange: 16,
-  spotBaseRadius: 0.68,
-  spotGrowth: 0.055,
+  maxRange: 11,
+  mainBeamDegrees: 30,
+  coronaScale: 1.7,
+  hotspotScale: 0.42,
+  localSpillRadius: 1.35,
+  aimResponse: 11,
+  rangeResponse: 15,
+  walkSway: 0.012,
+  runSway: 0.022,
+  idleSway: 0.0025,
+  beamSamples: 7,
 } as const;
 
 export const ROOM_STYLE = {

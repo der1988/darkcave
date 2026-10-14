@@ -8,6 +8,7 @@ const GAME_KEYS = [
   "arrowleft",
   "arrowright",
   " ",
+  "f",
 ];
 
 export class InputState {
@@ -18,7 +19,7 @@ export class InputState {
     addEventListener("keydown", (event) => {
       const key = event.key.toLowerCase();
       if (GAME_KEYS.includes(key)) event.preventDefault();
-      if (key === " " && !event.repeat) toggleFlashlight();
+      if ((key === " " || key === "f") && !event.repeat) toggleFlashlight();
       this.keys.add(key === "shift" ? "shift" : key);
     });
     addEventListener("keyup", (event) =>

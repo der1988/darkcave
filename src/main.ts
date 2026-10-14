@@ -5,11 +5,12 @@ import { screenToWorld } from "./geometry";
 import { InputState } from "./input";
 import { loadNativeGame } from "./native";
 import { SceneRenderer } from "./scene-renderer";
+import { playSwitchClick } from "./switch-sound";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const game = await loadNativeGame();
 const flashlight = new Flashlight();
-const input = new InputState(() => flashlight.toggle());
+const input = new InputState(() => playSwitchClick(flashlight.toggle()));
 const renderer = new SceneRenderer(canvas, game, flashlight);
 let lastFrame = performance.now();
 
@@ -18,6 +19,7 @@ function frame(now: number) {
   lastFrame = now;
   const movement = input.movement();
   game.update(dt, movement.horizontal, movement.vertical, movement.running);
+  flashlight.update(dt, game.player(), movement.running, now / 1000);
   renderer.render(now);
   requestAnimationFrame(frame);
 }
