@@ -1,18 +1,17 @@
 /// <reference types="vite/client" />
 
-import type { Point } from "./world";
+import type { ActorState } from "./native";
 
 declare global {
   interface Window {
     __liminal?: {
       snapshot(): {
-        player: Point;
-        brother: Point;
+        player: ActorState;
+        brother: ActorState;
         torchOn: boolean;
         angle: number;
         lightRange: number;
       };
-      place(position: Point): void;
     };
   }
 }

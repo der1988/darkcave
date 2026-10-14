@@ -1,8 +1,8 @@
-import { project } from "./world";
-
 function directionFrame(angle: number) {
-  const p = project(Math.cos(angle), Math.sin(angle));
-  return (Math.round(Math.atan2(p.y, p.x) / (Math.PI / 4)) + 8) % 8;
+  const cosine = Math.cos(angle);
+  const sine = Math.sin(angle);
+  const screenAngle = Math.atan2((cosine + sine) * 0.5, cosine - sine);
+  return (Math.round(screenAngle / (Math.PI / 4)) + 8) % 8;
 }
 
 export function drawPerson(

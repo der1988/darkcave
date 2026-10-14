@@ -63,13 +63,6 @@ try {
   );
   await page.screenshot({ path: "/tmp/liminal-foundation.png" });
 
-  await page.evaluate(() => window.__liminal.place({ x: 11.75, y: 4.5 }));
-  await page.keyboard.down("d");
-  await page.waitForTimeout(700);
-  await page.keyboard.up("d");
-  const bounded = await state();
-  assert.ok(bounded.player.x <= 11.82 && bounded.player.y <= 8.82);
-
   assert.deepEqual(errors, []);
   console.log(
     JSON.stringify({

@@ -1,42 +1,38 @@
 import "./style.css";
-import { Companion } from "./companion";
-import {
-  beam,
-  flashlightPower,
-  MAX_LIGHT_RANGE,
-  MIN_LIGHT_RANGE,
-  type Lamp,
-} from "./light";
-import { movementSpeed, movementVector } from "./movement";
+import { loadNativeGame, type ActorState } from "./native";
 import { drawPerson } from "./player-sprite";
-import {
-  BROTHER_START,
-  PLAYER_START,
-  ROOM,
-  move,
-  project,
-  screenToWorld,
-  type Point,
-} from "./world";
 
+type Point = { x: number; y: number };
+type SurfacePoint = [number, number, number];
+
+const ISO_X = 32;
+const ISO_Y = 16;
+const ISO_Z = 32;
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const ctx = canvas.getContext("2d", { alpha: false })!;
-ctx.imageSmoothingEnabled = false;
-
-const player = { ...PLAYER_START };
-const brother = new Companion(BROTHER_START);
+const game = await loadNativeGame();
+const ROOM = game.room;
 const keys = new Set<string>();
+
 let width = 0;
 let height = 0;
 let offsetX = 0;
 let offsetY = 0;
-let angle = -Math.PI / 2;
-let lightRange = 4;
+let torchAngle = -Math.PI / 4;
+let torchRange = 4;
 let torchOn = true;
-let playerHeading = angle;
-let playerStride = 0;
-let playerMoving = false;
-let last = performance.now();
+let lastFrame = performance.now();
+
+function project(x: number, y: number, z = 0): Point {
+  return { x: (x - y) * ISO_X, y: (x + y) * ISO_Y - z * ISO_Z };
+}
+
+function screenToWorld(x: number, y: number): Point {
+  return {
+    x: x / (ISO_X * 2) + y / (ISO_Y * 2),
+    y: y / (ISO_Y * 2) - x / (ISO_X * 2),
+  };
+}
 
 function resize() {
   width = Math.max(320, Math.ceil(innerWidth / 2));
@@ -45,12 +41,6 @@ function resize() {
   canvas.height = height;
   ctx.imageSmoothingEnabled = false;
 }
-
-function lamp(): Lamp {
-  return { ...player, angle, range: lightRange, on: torchOn };
-}
-
-type SurfacePoint = [number, number, number];
 
 function traceSurface(points: SurfacePoint[]) {
   ctx.beginPath();
@@ -62,181 +52,165 @@ function traceSurface(points: SurfacePoint[]) {
   ctx.closePath();
 }
 
-function drawLitSurface(
+function flashlightPower() {
+  const distance = Math.max(0, Math.min(1, (torchRange - 0.5) / 15.5));
+  return 1.45 - distance * distance * 0.95;
+}
+
+function lightAt(point: Point) {
+  if (!torchOn) return 0;
+  const player = game.player();
+  const dx = point.x - player.x;
+  const dy = point.y - player.y;
+  const distance = Math.hypot(dx, dy);
+  if (distance > torchRange) return 0;
+  const difference = Math.abs(
+    Math.atan2(Math.sin(Math.atan2(dy, dx) - torchAngle), Math.cos(Math.atan2(dy, dx) - torchAngle)),
+  );
+  const lateral = Math.max(0, 1 - difference / 0.82);
+  const edge = Math.min(1, Math.max(0, (torchRange - distance) / 0.35));
+  return flashlightPower() * lateral * lateral * edge;
+}
+
+function drawSurface(
   points: SurfacePoint[],
-  color: [number, number, number],
-  surfaceStrength: number,
+  ambient: string,
+  torchColor: [number, number, number],
+  strength: number,
 ) {
   traceSurface(points);
-  ctx.fillStyle = "#000";
+  ctx.fillStyle = ambient;
   ctx.fill();
-  if (!torchOn) return;
 
   ctx.save();
   traceSurface(points);
   ctx.clip();
-
-  const origin = project(player.x, player.y, 0.36);
-  const end = project(
-    player.x + Math.cos(angle) * lightRange,
-    player.y + Math.sin(angle) * lightRange,
-  );
+  const player = game.player();
+  const origin = project(player.x, player.y, 0.34);
   const ox = origin.x + offsetX;
   const oy = origin.y + offsetY;
-  const dx = end.x + offsetX - ox;
-  const dy = end.y + offsetY - oy;
-  const screenAngle = Math.atan2(dy, dx);
-  const radius = Math.max(1, Math.hypot(dx, dy));
-  const targetPower = flashlightPower(lightRange) * surfaceStrength;
 
-  for (let layer = 0; layer < 12; layer++) {
-    const halfAngle = 0.76 - layer * 0.047;
-    ctx.beginPath();
-    ctx.moveTo(ox, oy);
-    ctx.arc(ox, oy, radius, screenAngle - halfAngle, screenAngle + halfAngle);
-    ctx.closePath();
-    const gradient = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
-    const alpha = targetPower * 0.085;
-    gradient.addColorStop(0, `rgba(${color.join(",")},${alpha})`);
-    gradient.addColorStop(0.62, `rgba(${color.join(",")},${alpha * 0.78})`);
-    gradient.addColorStop(0.9, `rgba(${color.join(",")},${alpha * 0.35})`);
-    gradient.addColorStop(1, `rgba(${color.join(",")},0)`);
-    ctx.fillStyle = gradient;
-    ctx.fill();
+  const ambientGlow = ctx.createRadialGradient(ox, oy, 0, ox, oy, 155);
+  ambientGlow.addColorStop(0, "rgba(42,48,49,.24)");
+  ambientGlow.addColorStop(0.55, "rgba(30,35,37,.12)");
+  ambientGlow.addColorStop(1, "rgba(16,19,21,0)");
+  ctx.fillStyle = ambientGlow;
+  ctx.fillRect(0, 0, width, height);
+
+  if (torchOn) {
+    const end = project(
+      player.x + Math.cos(torchAngle) * torchRange,
+      player.y + Math.sin(torchAngle) * torchRange,
+    );
+    const dx = end.x + offsetX - ox;
+    const dy = end.y + offsetY - oy;
+    const screenAngle = Math.atan2(dy, dx);
+    const radius = Math.max(1, Math.hypot(dx, dy));
+    const power = flashlightPower() * strength;
+
+    for (let layer = 0; layer < 14; layer++) {
+      const halfAngle = 0.86 - layer * 0.047;
+      ctx.beginPath();
+      ctx.moveTo(ox, oy);
+      ctx.arc(ox, oy, radius, screenAngle - halfAngle, screenAngle + halfAngle);
+      ctx.closePath();
+      const glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
+      const alpha = power * 0.074;
+      glow.addColorStop(0, `rgba(${torchColor.join(",")},${alpha})`);
+      glow.addColorStop(0.55, `rgba(${torchColor.join(",")},${alpha * 0.78})`);
+      glow.addColorStop(0.87, `rgba(${torchColor.join(",")},${alpha * 0.34})`);
+      glow.addColorStop(1, `rgba(${torchColor.join(",")},0)`);
+      ctx.fillStyle = glow;
+      ctx.fill();
+    }
   }
   ctx.restore();
 }
 
-function drawFloor() {
-  drawLitSurface(
-    [
-      [ROOM.x, ROOM.y, 0],
-      [ROOM.x + ROOM.w, ROOM.y, 0],
-      [ROOM.x + ROOM.w, ROOM.y + ROOM.h, 0],
-      [ROOM.x, ROOM.y + ROOM.h, 0],
-    ],
-    [112, 107, 84],
+function drawRoom() {
+  drawSurface(
+    [[0, 0, 0], [ROOM.width, 0, 0], [ROOM.width, ROOM.height, 0], [0, ROOM.height, 0]],
+    "#0b0d0e",
+    [174, 166, 127],
     1,
   );
-}
 
-function drawWalls() {
-  const h = 1.3;
-  drawLitSurface(
-    [[0, 0, 0], [ROOM.w, 0, 0], [ROOM.w, 0, h], [0, 0, h]],
-    [134, 127, 98],
-    0.78,
+  const wallHeight = 1.35;
+  drawSurface(
+    [[0, 0, 0], [ROOM.width, 0, 0], [ROOM.width, 0, wallHeight], [0, 0, wallHeight]],
+    "#101314",
+    [184, 176, 137],
+    0.82,
   );
-  drawLitSurface(
-    [[0, ROOM.h, 0], [ROOM.w, ROOM.h, 0], [ROOM.w, ROOM.h, h], [0, ROOM.h, h]],
-    [120, 115, 91],
-    0.67,
-  );
-  drawLitSurface(
-    [[0, 0, 0], [0, ROOM.h, 0], [0, ROOM.h, h], [0, 0, h]],
-    [126, 120, 94],
-    0.72,
-  );
-  drawLitSurface(
-    [[ROOM.w, 0, 0], [ROOM.w, ROOM.h, 0], [ROOM.w, ROOM.h, h], [ROOM.w, 0, h]],
-    [126, 120, 94],
+  drawSurface(
+    [[0, 0, 0], [0, ROOM.height, 0], [0, ROOM.height, wallHeight], [0, 0, wallHeight]],
+    "#0e1112",
+    [165, 159, 128],
     0.72,
   );
 }
 
-function characterLight(p: Point) {
-  return Math.max(0.12, beam(lamp(), p, 0.45));
-}
-
-function drawGroundShadow(
-  p: Point,
-  direction: Point,
-  length: number,
-  width: number,
-  opacity: number,
-) {
-  const magnitude = Math.hypot(direction.x, direction.y) || 1;
-  const dx = direction.x / magnitude;
-  const dy = direction.y / magnitude;
-  const px = -dy;
-  const py = dx;
-  const points: Point[] = [
-    { x: p.x + px * width, y: p.y + py * width },
-    { x: p.x - px * width, y: p.y - py * width },
-    { x: p.x + dx * length - px * width * 0.25, y: p.y + dy * length - py * width * 0.25 },
-    { x: p.x + dx * (length + 0.18), y: p.y + dy * (length + 0.18) },
-    { x: p.x + dx * length + px * width * 0.25, y: p.y + dy * length + py * width * 0.25 },
+function drawBrotherShadow(brother: ActorState) {
+  const illumination = lightAt(brother);
+  if (illumination < 0.08) return;
+  const player = game.player();
+  const dx = brother.x - player.x;
+  const dy = brother.y - player.y;
+  const magnitude = Math.hypot(dx, dy) || 1;
+  const ux = dx / magnitude;
+  const uy = dy / magnitude;
+  const px = -uy;
+  const py = ux;
+  const length = 0.55 + Math.min(1.1, illumination * 0.7);
+  const width = 0.12;
+  const points = [
+    { x: brother.x + px * width, y: brother.y + py * width },
+    { x: brother.x - px * width, y: brother.y - py * width },
+    { x: brother.x + ux * length - px * 0.025, y: brother.y + uy * length - py * 0.025 },
+    { x: brother.x + ux * (length + 0.12), y: brother.y + uy * (length + 0.12) },
+    { x: brother.x + ux * length + px * 0.025, y: brother.y + uy * length + py * 0.025 },
   ];
   ctx.beginPath();
   points.forEach((point, index) => {
-    const screen = project(point.x, point.y, 0.005);
+    const screen = project(point.x, point.y, 0.004);
     if (index) ctx.lineTo(screen.x + offsetX, screen.y + offsetY);
     else ctx.moveTo(screen.x + offsetX, screen.y + offsetY);
   });
   ctx.closePath();
-  const base = project(p.x, p.y, 0.005);
-  const tip = project(p.x + dx * (length + 0.18), p.y + dy * (length + 0.18), 0.005);
-  const gradient = ctx.createLinearGradient(
+  const base = project(brother.x, brother.y);
+  const tip = project(brother.x + ux * length, brother.y + uy * length);
+  const shadow = ctx.createLinearGradient(
     base.x + offsetX,
     base.y + offsetY,
     tip.x + offsetX,
     tip.y + offsetY,
   );
-  gradient.addColorStop(0, `rgba(0,0,0,${opacity})`);
-  gradient.addColorStop(0.55, `rgba(0,0,0,${opacity * 0.62})`);
-  gradient.addColorStop(1, "rgba(0,0,0,0)");
-  ctx.fillStyle = gradient;
+  shadow.addColorStop(0, "rgba(0,0,0,.48)");
+  shadow.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = shadow;
   ctx.fill();
 }
 
-function drawCharacterShadows() {
-  if (!torchOn) return;
-  const power = flashlightPower(lightRange);
-  drawGroundShadow(
-    player,
-    { x: Math.cos(angle), y: Math.sin(angle) },
-    0.7 + power * 0.55,
-    0.18,
-    Math.min(0.62, 0.25 + power * 0.2),
-  );
+function drawActors(now: number) {
+  const player = game.player();
+  const brother = game.brother();
+  const actors = [
+    { actor: player, child: false, light: 0.58 + flashlightPower() * 0.24 },
+    { actor: brother, child: true, light: 0.3 + lightAt(brother) * 0.65 },
+  ].sort((a, b) => a.actor.x + a.actor.y - b.actor.x - b.actor.y);
 
-  const childLight = beam(lamp(), brother.position, 0.38);
-  if (childLight > 0.03) {
-    drawGroundShadow(
-      brother.position,
-      {
-        x: brother.position.x - player.x,
-        y: brother.position.y - player.y,
-      },
-      0.55 + childLight * 0.9,
-      0.13,
-      Math.min(0.58, 0.2 + childLight * 0.34),
-    );
-  }
-}
-
-function drawCharacters() {
-  const figures = [
-    { p: player, child: false, heading: playerHeading, stride: playerStride },
-    {
-      p: brother.position,
-      child: true,
-      heading: brother.heading,
-      stride: brother.stride,
-    },
-  ].sort((a, b) => a.p.x + a.p.y - (b.p.x + b.p.y));
-  for (const figure of figures) {
-    const screen = project(figure.p.x, figure.p.y);
+  for (const { actor, child, light } of actors) {
+    const screen = project(actor.x, actor.y);
     drawPerson(
       ctx,
       Math.round(screen.x + offsetX),
       Math.round(screen.y + offsetY),
-      figure.heading,
-      figure.stride,
-      figure.child,
-      characterLight(figure.p),
-      performance.now() / 1000,
-      figure.child ? brother.moving : playerMoving,
+      actor.heading,
+      actor.stride,
+      child,
+      Math.min(1.15, light),
+      now / 1000,
+      actor.moving,
     );
   }
 }
@@ -248,59 +222,34 @@ function update(dt: number) {
   const vertical =
     Number(keys.has("s") || keys.has("arrowdown")) -
     Number(keys.has("w") || keys.has("arrowup"));
-  const direction = movementVector(horizontal, vertical);
-  const running = keys.has("shift");
-  playerMoving = false;
-  if (direction.x || direction.y) {
-    const speed = movementSpeed(running);
-    const before = { ...player };
-    move(player, direction.x * speed * dt, direction.y * speed * dt);
-    const travelled = Math.hypot(player.x - before.x, player.y - before.y);
-    if (travelled) {
-      playerHeading = Math.atan2(direction.y, direction.x);
-      playerStride += travelled * 8;
-      playerMoving = true;
-    }
-  }
-  brother.update(dt, player, running);
+  game.update(dt, horizontal, vertical, keys.has("shift"));
 }
 
-function render() {
-  ctx.fillStyle = "#000";
+function render(now: number) {
+  ctx.fillStyle = "#030506";
   ctx.fillRect(0, 0, width, height);
+  const player = game.player();
   const center = project(player.x, player.y);
   offsetX = width / 2 - center.x;
-  offsetY = height / 2 - center.y + 20;
-  drawFloor();
-  drawCharacterShadows();
-  drawWalls();
-  drawCharacters();
+  offsetY = height / 2 - center.y + 24;
+  drawRoom();
+  drawBrotherShadow(game.brother());
+  drawActors(now);
 }
 
 function frame(now: number) {
-  const dt = Math.min(0.04, (now - last) / 1000);
-  last = now;
+  const dt = Math.min(0.04, (now - lastFrame) / 1000);
+  lastFrame = now;
   update(dt);
-  render();
+  render(now);
   requestAnimationFrame(frame);
 }
 
 addEventListener("resize", resize);
+addEventListener("blur", () => keys.clear());
 addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
-  if (
-    [
-      "w",
-      "a",
-      "s",
-      "d",
-      "arrowup",
-      "arrowdown",
-      "arrowleft",
-      "arrowright",
-      " ",
-    ].includes(key)
-  )
+  if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", " "].includes(key))
     event.preventDefault();
   if (key === " " && !event.repeat) torchOn = !torchOn;
   keys.add(key === "shift" ? "shift" : key);
@@ -309,19 +258,14 @@ addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
 canvas.addEventListener("pointermove", (event) => {
   const rect = canvas.getBoundingClientRect();
   const sx = ((event.clientX - rect.left) / rect.width) * width - width / 2;
-  const sy =
-    ((event.clientY - rect.top) / rect.height) * height - (height / 2 + 20);
-  const world = screenToWorld(sx, sy);
-  const cursorDistance = Math.hypot(world.x, world.y);
-  if (cursorDistance > 0.05) {
-    angle = Math.atan2(world.y, world.x);
-    lightRange = Math.max(
-      MIN_LIGHT_RANGE,
-      Math.min(MAX_LIGHT_RANGE, cursorDistance),
-    );
+  const sy = ((event.clientY - rect.top) / rect.height) * height - (height / 2 + 24);
+  const target = screenToWorld(sx, sy);
+  const distance = Math.hypot(target.x, target.y);
+  if (distance > 0.04) {
+    torchAngle = Math.atan2(target.y, target.x);
+    torchRange = Math.max(0.4, Math.min(16, distance));
   }
 });
-canvas.addEventListener("pointerdown", () => canvas.focus());
 
 resize();
 requestAnimationFrame(frame);
@@ -329,11 +273,10 @@ requestAnimationFrame(frame);
 if (import.meta.env.DEV)
   window.__liminal = {
     snapshot: () => ({
-      player: { ...player },
-      brother: { ...brother.position },
+      player: game.player(),
+      brother: game.brother(),
       torchOn,
-      angle,
-      lightRange,
+      angle: torchAngle,
+      lightRange: torchRange,
     }),
-    place: (p: Point) => Object.assign(player, p),
   };
