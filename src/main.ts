@@ -1,3 +1,4 @@
+import { FootstepAudio } from "./footstep-audio";
 import "./style.css";
 import { InputState } from "./input";
 import { createGame } from "./game";
@@ -10,6 +11,9 @@ const input = new InputState(() => renderer.torch.toggle());
 canvas.addEventListener("pointermove", (event) =>
   renderer.aim(event.clientX, event.clientY),
 );
+const footstepAudio = new FootstepAudio();
+addEventListener("keydown", () => footstepAudio.unlock());
+canvas.addEventListener("pointerdown", () => footstepAudio.unlock());
 let lastFrame = performance.now();
 
 function frame(now: number) {
@@ -17,6 +21,7 @@ function frame(now: number) {
   lastFrame = now;
   const movement = input.movement();
   game.update(dt, movement.horizontal, movement.vertical, movement.stealth);
+  footstepAudio.play(game.takeFootsteps());
   renderer.render(now);
   requestAnimationFrame(frame);
 }
@@ -30,5 +35,7 @@ if (import.meta.env.DEV)
       player: game.player(),
       brother: game.brother(),
       torchOn: renderer.torch.on,
+      clicker: game.clicker(),
+      dialogue: game.dialogue(),
     }),
   };

@@ -1,5 +1,7 @@
 /// <reference types="vite/client" />
 
+import type { ClickerState } from "./clicker";
+import type { DialogueLine } from "./dialogue";
 import type { ActorState } from "./game";
 
 declare global {
@@ -9,6 +11,8 @@ declare global {
         player: ActorState;
         brother: ActorState;
         torchOn: boolean;
+        clicker: ClickerState;
+        dialogue: DialogueLine | null;
       };
     };
   }

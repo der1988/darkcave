@@ -58,3 +58,36 @@ export function drawActors(
     );
   }
 }
+
+/** The creature is readable only where the torch reaches it, never through a wall. */
+export function drawClicker(
+  ctx: CanvasRenderingContext2D,
+  camera: Point,
+  game: Game,
+  torch: Flashlight,
+) {
+  const actor = game.clicker(),
+    light = torch.at({ ...actor, z: 0.3 }, game.player());
+  if (light < 0.05 || actorOpacity(actor) < 1) return;
+  const p = project(actor.x, actor.y),
+    x = Math.round(p.x + camera.x),
+    y = Math.round(p.y + camera.y),
+    step = actor.moving ? Math.round(Math.sin(actor.stride) * 2) : 0;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, light * 1.7);
+  ctx.fillStyle = "#342d28";
+  ctx.fillRect(x - 4, y - 12, 7, 9);
+  ctx.fillRect(x - 3 + step, y - 5, 2, 5);
+  ctx.fillRect(x + 2 - step, y - 5, 2, 5);
+  ctx.fillStyle = "#71675a";
+  ctx.fillRect(x - 5, y - 21, 9, 8);
+  ctx.fillRect(x - 7, y - 19, 3, 4);
+  ctx.fillRect(x + 3, y - 18, 3, 5);
+  ctx.fillStyle = "#a39173";
+  ctx.fillRect(x - 4, y - 22, 3, 4);
+  ctx.fillRect(x + 1, y - 20, 3, 3);
+  ctx.fillStyle = "#4c4035";
+  ctx.fillRect(x - 6, y - 12, 2, 8);
+  ctx.fillRect(x + 3, y - 12, 2, 8);
+  ctx.restore();
+}

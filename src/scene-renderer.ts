@@ -4,7 +4,8 @@ import { project, type Point } from "./geometry";
 import { ROOM } from "./room";
 import { RoomRenderer } from "./room-renderer";
 import { Flashlight } from "./lighting";
-import { drawActors } from "./actor-renderer";
+import { drawDialogue } from "./dialogue-renderer";
+import { drawActors, drawClicker } from "./actor-renderer";
 
 /** Canvas sizing, fixed isometric camera, and frame composition only. */
 export class SceneRenderer {
@@ -57,6 +58,8 @@ export class SceneRenderer {
     this.ctx.fillStyle = ROOM_STYLE.background;
     this.ctx.fillRect(0, 0, this.width, this.height);
     this.surfaces.draw(this.ctx, this.camera, this.game.player(), this.torch);
+    drawClicker(this.ctx, this.camera, this.game, this.torch);
     drawActors(this.ctx, this.camera, this.game, this.torch, now);
+    drawDialogue(this.ctx, this.camera, this.game, this.width);
   }
 }

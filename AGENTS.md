@@ -12,6 +12,11 @@ Read only the modules relevant to the requested change.
 - Isometric projection: `src/geometry.ts`
 - Camera, canvas sizing and frame composition: `src/scene-renderer.ts`
 - Visual tuning: `src/config.ts`
+- Clicker hearing, investigation and wandering: `src/clicker.ts`
+- Grid navigation around walls and furniture: `src/navigation.ts`
+- Dialogue timing and text: `src/dialogue.ts`
+- Character-anchored speech bubbles: `src/dialogue-renderer.ts`
+- Browser-safe quiet footstep audio: `src/footstep-audio.ts`
 - Keyboard input: `src/input.ts`
 - Startup wiring: `src/main.ts`
 

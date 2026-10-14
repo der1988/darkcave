@@ -1,3 +1,5 @@
+import { Clicker, type ClickerState, type Footstep } from "./clicker";
+import { Dialogue, type DialogueLine } from "./dialogue";
 import { ROOM, DOORS, roomAt } from "./room";
 import { clamp, move } from "./movement";
 export type ActorState = {
@@ -18,6 +20,9 @@ export type Game = {
   ): void;
   player(): ActorState;
   brother(): ActorState;
+  clicker(): ClickerState;
+  dialogue(): DialogueLine | null;
+  takeFootsteps(): Footstep[];
 };
 function actor(x: number, y: number): ActorState {
   return {
@@ -80,10 +85,16 @@ function followTarget(brother: ActorState, player: ActorState) {
 export function createGame(): Game {
   const player = actor(1.9, 1.55),
     brother = actor(1.48, 1.78);
+  const clicker = new Clicker(),
+    dialogue = new Dialogue();
+  const footsteps: Footstep[] = [];
+  const travel = { player: 0, brother: 0 };
   return {
     room: ROOM,
     update(dt, horizontal, vertical, stealth) {
       dt = clamp(dt, 0, 0.04);
+      const beforePlayer = { ...player },
+        beforeBrother = { ...brother };
       player.moving = brother.moving = false;
       player.stealth = brother.stealth = stealth;
       const dx = horizontal + vertical,
@@ -105,7 +116,29 @@ export function createGame(): Game {
           Math.min(gap - 0.5, (stealth ? 1.25 : 2.3) * dt),
         );
       }
+      for (const [source, actor, before] of [
+        ["player", player, beforePlayer],
+        ["brother", brother, beforeBrother],
+      ] as const) {
+        if (stealth) {
+          travel[source] = 0;
+          continue;
+        }
+        travel[source] += Math.hypot(actor.x - before.x, actor.y - before.y);
+        if (travel[source] >= 0.48) {
+          travel[source] %= 0.48;
+          const step = { x: actor.x, y: actor.y, source };
+          footsteps.push(step);
+          clicker.hear(step);
+          if (footsteps.length > 24) footsteps.shift();
+        }
+      }
+      clicker.update(dt);
+      dialogue.update(dt, stealth);
     },
+    clicker: () => clicker.snapshot(),
+    dialogue: () => dialogue.snapshot(),
+    takeFootsteps: () => footsteps.splice(0),
     player: () => ({ ...player }),
     brother: () => ({ ...brother }),
   };

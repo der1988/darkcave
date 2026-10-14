@@ -50,7 +50,8 @@ try {
       walked.player.y - walked.brother.y,
     ) < 0.65,
   );
-  await page.waitForTimeout(100);
+  await page.waitForFunction(() => window.__liminal?.snapshot().dialogue !== null);
+  assert.ok((await state()).dialogue?.text);
   await page.screenshot({ path: "/tmp/liminal-foundation.png" });
 
   assert.deepEqual(errors, []);
@@ -60,6 +61,7 @@ try {
       mallScene: "rendered",
       flashlightToggle: "passed",
       brother: "passed",
+      dialogue: "passed",
       errors,
     }),
   );
