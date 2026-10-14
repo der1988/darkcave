@@ -10,7 +10,7 @@ export const VIEW = {
 
 export const LIGHT = {
   initialAngle: -Math.PI / 4,
-  initialRange: 4,
+  initialRange: 6,
   minRange: 0.4,
   maxRange: 11,
   mainBeamDegrees: 30,
@@ -30,9 +30,9 @@ export const LIGHT = {
 
 export const ROOM_STYLE = {
   background: "#040607",
-  floor: "#0e1111",
-  backWall: "#141817",
-  sideWall: "#111514",
-  edge: "rgba(91, 101, 96, .16)",
+  floor: "#090b0b",
+  backWall: "#0d1110",
+  sideWall: "#0b0e0d",
+  edge: "rgba(82, 92, 87, .11)",
   wallHeight: 1.35,
 } as const;

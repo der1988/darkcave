@@ -32,7 +32,15 @@ test("aim follows its target immediately", () => {
   const flashlight = new Flashlight();
   flashlight.aim({ x: 4, y: 0 });
   assert.equal(flashlight.angle, 0);
-  assert.equal(flashlight.range, 4 - 0.2);
+  assert.equal(flashlight.range, 6);
+});
+
+test("mouse distance does not change flashlight range", () => {
+  const flashlight = new Flashlight();
+  flashlight.aim({ x: .5, y: 0 });
+  const near=flashlight.range;
+  flashlight.aim({ x: 10, y: 0 });
+  assert.equal(flashlight.range,near);
 });
 
 test("the light origin is the animated lens position", () => {

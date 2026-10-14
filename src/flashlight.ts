@@ -95,11 +95,6 @@ export class Flashlight {
     this.desiredAngle = Math.atan2(target.y, target.x);
     this.baseAngle = this.desiredAngle;
     this.motionAngle = 0;
-    this.desiredRange = Math.max(
-      LIGHT.minRange,
-      Math.min(LIGHT.maxRange, distance - LIGHT.lensForwardOffset),
-    );
-    this.actualRange = this.desiredRange;
   }
 
   update(dt: number, motion: LightMotion, running: boolean, time: number) {

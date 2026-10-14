@@ -30,8 +30,8 @@ function drawSurface(
   const oy = origin.y + camera.y;
   const spillRadius = LIGHT.localSpillRadius * VIEW.isoX * 1.8;
   const ambientGlow = ctx.createRadialGradient(ox, oy, 0, ox, oy, spillRadius);
-  ambientGlow.addColorStop(0, `rgba(66,70,65,${.035+flashlight.brightness*.235})`);
-  ambientGlow.addColorStop(0.38, `rgba(39,43,40,${.018+flashlight.brightness*.112})`);
+  ambientGlow.addColorStop(0, `rgba(66,70,65,${.025+flashlight.brightness*.21})`);
+  ambientGlow.addColorStop(0.38, `rgba(39,43,40,${.012+flashlight.brightness*.09})`);
   ambientGlow.addColorStop(0.72, `rgba(25,28,27,${.008+flashlight.brightness*.027})`);
   ambientGlow.addColorStop(1, "rgba(16,19,21,0)");
   ctx.fillStyle = ambientGlow;
@@ -85,8 +85,8 @@ function drawSurface(
   const darknessRadius=Math.max(viewport.width,viewport.height)*.72;
   const distanceDarkness=ctx.createRadialGradient(ox,oy,spillRadius*.35,ox,oy,darknessRadius);
   distanceDarkness.addColorStop(0,"rgba(0,0,0,0)");
-  distanceDarkness.addColorStop(.42,"rgba(0,0,0,.035)");
-  distanceDarkness.addColorStop(1,"rgba(0,0,0,.3)");
+  distanceDarkness.addColorStop(.35,"rgba(0,0,0,.055)");
+  distanceDarkness.addColorStop(1,"rgba(0,0,0,.42)");
   ctx.fillStyle=distanceDarkness;
   ctx.fillRect(0,0,viewport.width,viewport.height);
   ctx.restore();
