@@ -1,6 +1,6 @@
 # LIMINAL — TypeScript foundation
 
-This is a deliberately small isometric foundation: one room, two brothers, movement, stealth and daylight entering through windows.
+This is a deliberately small isometric foundation: five connected rooms, two brothers, movement, stealth and daylight entering through one facade.
 
 The complete simulation and renderer use TypeScript. There is no native compiler or WebAssembly layer.
 
@@ -15,7 +15,7 @@ npm run dev
 
 ## Modular structure
 
-Visual constants live in `src/config.ts`; the single room lives in `src/room.ts`. Gameplay, window lighting, actors and input remain separate TypeScript modules. `src/main.ts` only connects them.
+Visual constants live in `src/config.ts`; the house layout, walls, doors and windows live in `src/room.ts`. Gameplay, window lighting, actors and input remain separate TypeScript modules. `src/main.ts` only connects them.
 
 `AGENTS.md` contains a task-to-file map so targeted changes can begin without loading unrelated source files.
 
@@ -32,4 +32,4 @@ npm run test:browser
 - WASD / arrow keys: move in the isometric room
 - Shift: silent stealth movement
 
-The current scene intentionally contains one room with two windows. Their slowly shifting daylight and character shadows provide the only illumination.
+The house contains a bedroom, bathroom, central corridor, living room and kitchen. All windows share one facade, so their parallel light comes from one sun or moon direction.
