@@ -13,9 +13,8 @@ export const LIGHT = {
   initialRange: 4,
   minRange: 0.4,
   maxRange: 16,
-  coneWidth: 0.82,
-  edgeFade: 0.35,
-  layers: 14,
+  spotBaseRadius: 0.68,
+  spotGrowth: 0.055,
 } as const;
 
 export const ROOM_STYLE = {

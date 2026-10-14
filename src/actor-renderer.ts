@@ -3,14 +3,17 @@ import { project, type Camera, type Point } from "./geometry";
 import type { ActorState } from "./native";
 import { drawPerson } from "./player-sprite";
 
+type Room = { width: number; height: number };
+
 function drawBrotherShadow(
   ctx: CanvasRenderingContext2D,
   player: ActorState,
   brother: ActorState,
   flashlight: Flashlight,
   camera: Camera,
+  room: Room,
 ) {
-  const illumination = flashlight.at(brother, player);
+  const illumination = flashlight.at(brother, player, room);
   if (illumination < 0.08) return;
   const dx = brother.x - player.x;
   const dy = brother.y - player.y;
@@ -56,11 +59,12 @@ export function drawActors(
   flashlight: Flashlight,
   camera: Camera,
   now: number,
+  room: Room,
 ) {
-  drawBrotherShadow(ctx, player, brother, flashlight, camera);
+  drawBrotherShadow(ctx, player, brother, flashlight, camera, room);
   const actors = [
     { actor: player, child: false, light: 0.58 + flashlight.power() * 0.24 },
-    { actor: brother, child: true, light: 0.3 + flashlight.at(brother, player) * 0.65 },
+    { actor: brother, child: true, light: 0.3 + flashlight.at(brother, player, room) * 0.65 },
   ].sort((a, b) => a.actor.x + a.actor.y - b.actor.x - b.actor.y);
   for (const { actor, child, light } of actors) {
     const screen = project(actor.x, actor.y);

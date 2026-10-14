@@ -9,6 +9,9 @@ export class SceneRenderer {
   readonly ctx: CanvasRenderingContext2D;
   width = 0;
   height = 0;
+  get room() {
+    return this.game.room;
+  }
 
   constructor(
     readonly canvas: HTMLCanvasElement,
@@ -51,6 +54,14 @@ export class SceneRenderer {
       camera,
       this,
     );
-    drawActors(this.ctx, player, brother, this.flashlight, camera, now);
+    drawActors(
+      this.ctx,
+      player,
+      brother,
+      this.flashlight,
+      camera,
+      now,
+      this.game.room,
+    );
   }
 }

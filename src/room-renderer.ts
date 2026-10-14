@@ -1,4 +1,4 @@
-import { LIGHT, ROOM_STYLE } from "./config";
+import { ROOM_STYLE, VIEW } from "./config";
 import { project, traceSurface, type Camera, type SurfacePoint } from "./geometry";
 import type { Flashlight } from "./flashlight";
 import type { ActorState } from "./native";
@@ -15,7 +15,7 @@ function drawSurface(
   player: ActorState,
   flashlight: Flashlight,
   camera: Camera,
-  viewport: { width: number; height: number },
+  viewport: { width: number; height: number; room: Room },
 ) {
   traceSurface(ctx, points, camera);
   ctx.fillStyle = ambient;
@@ -35,30 +35,23 @@ function drawSurface(
   ctx.fillRect(0, 0, viewport.width, viewport.height);
 
   if (flashlight.on) {
-    const end = project(
-      player.x + Math.cos(flashlight.angle) * flashlight.range,
-      player.y + Math.sin(flashlight.angle) * flashlight.range,
-    );
-    const dx = end.x + camera.x - ox;
-    const dy = end.y + camera.y - oy;
-    const angle = Math.atan2(dy, dx);
-    const radius = Math.max(1, Math.hypot(dx, dy));
-    for (let layer = 0; layer < LIGHT.layers; layer++) {
-      const halfAngle = 0.86 - layer * 0.047;
-      ctx.beginPath();
-      ctx.moveTo(ox, oy);
-      ctx.arc(ox, oy, radius, angle - halfAngle, angle + halfAngle);
-      ctx.closePath();
-      const glow = ctx.createRadialGradient(ox, oy, 0, ox, oy, radius);
-      const alpha = flashlight.power() * strength * 0.074;
-      const rgb = torchColor.join(",");
-      glow.addColorStop(0, `rgba(${rgb},${alpha})`);
-      glow.addColorStop(0.55, `rgba(${rgb},${alpha * 0.78})`);
-      glow.addColorStop(0.87, `rgba(${rgb},${alpha * 0.34})`);
-      glow.addColorStop(1, `rgba(${rgb},0)`);
-      ctx.fillStyle = glow;
-      ctx.fill();
-    }
+    const range = flashlight.effectiveRange(player, viewport.room);
+    const target = flashlight.target(player, viewport.room);
+    const spot = project(target.x, target.y, 0.02);
+    const sx = spot.x + camera.x;
+    const sy = spot.y + camera.y;
+    const radius = flashlight.spotRadius(range) * VIEW.isoX;
+    const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, radius);
+    const alpha = Math.min(0.92, flashlight.power(range) * strength * 0.68);
+    const rgb = torchColor.join(",");
+    glow.addColorStop(0, `rgba(${rgb},${alpha})`);
+    glow.addColorStop(0.28, `rgba(${rgb},${alpha * 0.82})`);
+    glow.addColorStop(0.68, `rgba(${rgb},${alpha * 0.32})`);
+    glow.addColorStop(1, `rgba(${rgb},0)`);
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(sx, sy, radius, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
 }
@@ -69,7 +62,7 @@ export function drawRoom(
   player: ActorState,
   flashlight: Flashlight,
   camera: Camera,
-  viewport: { width: number; height: number },
+  viewport: { width: number; height: number; room: Room },
 ) {
   const common = [player, flashlight, camera, viewport] as const;
   drawSurface(
