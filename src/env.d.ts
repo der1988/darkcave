@@ -8,6 +8,7 @@ declare global {
       snapshot(): {
         player: ActorState;
         brother: ActorState;
+        torchOn: boolean;
       };
     };
   }

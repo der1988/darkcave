@@ -33,6 +33,12 @@ try {
   const state = () => page.evaluate(() => window.__liminal!.snapshot());
 
   const initial = await state();
+  assert.equal(initial.torchOn, true);
+  await page.keyboard.press("Space");
+  assert.equal((await state()).torchOn, false);
+  await page.keyboard.press("Space");
+  assert.equal((await state()).torchOn, true);
+  await page.mouse.move(900, 270);
   await page.keyboard.down("d");
   await page.waitForTimeout(700);
   await page.keyboard.up("d");
@@ -52,6 +58,7 @@ try {
     JSON.stringify({
       movement: "passed",
       windowLight: "rendered",
+      flashlightToggle: "passed",
       brother: "passed",
       errors,
     }),

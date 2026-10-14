@@ -5,8 +5,11 @@ import { SceneRenderer } from "./scene-renderer";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#world")!;
 const game = createGame();
-const input = new InputState();
 const renderer = new SceneRenderer(canvas, game);
+const input = new InputState(() => renderer.torch.toggle());
+canvas.addEventListener("pointermove", (event) =>
+  renderer.aim(event.clientX, event.clientY),
+);
 let lastFrame = performance.now();
 
 function frame(now: number) {
@@ -26,5 +29,6 @@ if (import.meta.env.DEV)
     snapshot: () => ({
       player: game.player(),
       brother: game.brother(),
+      torchOn: renderer.torch.on,
     }),
   };
