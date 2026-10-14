@@ -42,15 +42,13 @@ function drawShadow(ctx:CanvasRenderingContext2D,cube:RoomProp,origin:Point,came
   polygon(ctx,expanded(footprint,.025),camera,"rgba(2,3,4,.1)");
   polygon(ctx,footprint,camera,`rgba(2,3,4,${.3+amount*.16})`);ctx.restore();
 }
-function drawCube(ctx:CanvasRenderingContext2D,c:RoomProp,camera:Camera,amount:number,origin:Point){
+function drawCube(ctx:CanvasRenderingContext2D,c:RoomProp,camera:Camera,amount:number){
   const {minX:x0,minY:y0,maxX:x1,maxY:y1,height:z}=c;
-  const cx=(x0+x1)/2,cy=(y0+y1)/2,distance=Math.hypot(origin.x-cx,origin.y-cy)||1;
-  const lx=(origin.x-cx)/distance,ly=(origin.y-cy)/distance;
-  const sideLight=(nx:number,ny:number)=>.64+amount*(.16+Math.max(0,nx*lx+ny*ly)*.46);
+  const brightness=.72+amount*.42;
   const faces:{points:Vertex[];shade:number}[]=[
-    {points:[[x0,y0,0],[x1,y0,0],[x1,y0,z],[x0,y0,z]],shade:sideLight(0,-1)},
-    {points:[[x0,y0,0],[x0,y1,0],[x0,y1,z],[x0,y0,z]],shade:sideLight(-1,0)},
-    {points:[[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],shade:.8+amount*.3},
+    {points:[[x0,y0,0],[x1,y0,0],[x1,y0,z],[x0,y0,z]],shade:brightness*.9},
+    {points:[[x0,y0,0],[x0,y1,0],[x0,y1,z],[x0,y0,z]],shade:brightness*.82},
+    {points:[[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]],shade:brightness},
   ];
   for(const face of faces){
     polygon(ctx,face.points,camera,lit(c.color,face.shade));
@@ -64,5 +62,5 @@ export function drawProps(ctx:CanvasRenderingContext2D,player:ActorState,flashli
     if(beforeDepth===null?depth<=player.x+player.y:depth>beforeDepth)continue;
     const samples=[[cube.minX,cube.minY],[cube.maxX,cube.minY],[cube.maxX,cube.maxY],[cube.minX,cube.maxY],[(cube.minX+cube.maxX)/2,(cube.minY+cube.maxY)/2]];
     const light=Math.max(...samples.map(([x,y])=>flashlight.at({x,y},origin,room,cube)));
-    drawShadow(ctx,cube,origin,camera,light);drawCube(ctx,cube,camera,light,origin);}
+    drawShadow(ctx,cube,origin,camera,light);drawCube(ctx,cube,camera,light);}
 }
