@@ -1,7 +1,5 @@
 import "./style.css";
-import { VIEW } from "./config";
 import { Flashlight } from "./flashlight";
-import { screenToWorld } from "./geometry";
 import { InputState } from "./input";
 import { createGame } from "./game";
 import { SceneRenderer } from "./scene-renderer";
@@ -30,14 +28,7 @@ function frame(now: number) {
 addEventListener("resize", () => renderer.resize());
 canvas.addEventListener("pointermove", (event) => {
   const rect = canvas.getBoundingClientRect();
-  const x = ((event.clientX - rect.left) / rect.width) * renderer.width;
-  const y = ((event.clientY - rect.top) / rect.height) * renderer.height;
-  flashlight.aim(
-    screenToWorld(
-      x - renderer.width / 2,
-      y - (renderer.height / 2 + VIEW.cameraY),
-    ),
-  );
+  renderer.aimFromPointer(event.clientX,event.clientY,rect);
 });
 
 requestAnimationFrame(frame);
