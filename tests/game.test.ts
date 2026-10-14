@@ -2,16 +2,15 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createGame } from "../src/game.ts";
 
-test("the player moves horizontally and can jump",()=>{
-  const game=createGame(),start=game.player();game.update(.04,1,-1,false);
-  assert.ok(game.player().x>start.x);assert.ok(game.player().y>start.y);
-  assert.equal(game.player().grounded,false);
+test("screen-relative movement is normalized",()=>{
+  const horizontal=createGame(),diagonal=createGame(),start=horizontal.player();horizontal.update(.04,1,0,false);diagonal.update(.04,1,1,false);
+  assert.ok(Math.abs(Math.hypot(horizontal.player().x-start.x,horizontal.player().y-start.y)-Math.hypot(diagonal.player().x-start.x,diagonal.player().y-start.y))<.0001);
 });
 test("the player remains inside the room",()=>{
   const game=createGame();for(let i=0;i<500;i++)game.update(.04,-1,-1,true);
-  assert.ok(game.player().x>=.179&&game.player().y>=0);
+  assert.ok(game.player().x>=.219&&game.player().y>=.219);
   for(let i=0;i<1000;i++)game.update(.04,1,1,true);
-  assert.ok(game.player().x<=game.room.width-.179&&game.player().y<=game.room.height-.249);
+  assert.ok(game.player().x<=game.room.width-.219&&game.player().y<=game.room.height-.219);
 });
 test("the younger brother follows at a short distance",()=>{
   const game=createGame();for(let i=0;i<140;i++)game.update(1/60,1,0,false);
