@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "echo 'Static Godot Web export: no dependencies'",
+  "buildCommand": "test -s web/index.html && test -s web/index.wasm && test -s web/index.pck",
+  "outputDirectory": "web",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [{"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}]
+    },
+    {
+      "source": "/(.*).wasm",
+      "headers": [{"key": "Content-Type", "value": "application/wasm"}]
+    }
+  ]
+}

@@ -10,6 +10,12 @@
 - 62 controlli superati su Linux/Godot 4.6.3 (43 esistenti e 19 nella nuova suite `tests/child_follow_test.gd`): camminata continua, corsa/arresto, inversioni, auto/porta, attesa/postura, mano, collisioni e assenza di teletrasporti.
 - Limite intenzionale: durante una corsa ininterrotta il padre può ancora distanziare il figlio; il recupero si completa rallentando o fermandosi.
 
+## Pubblicazione Web
+
+- Preset Web Godot 4.6.3 senza thread, esportazione inclusa in `web/`, script riproducibile `tools/export_web.sh` e pubblicazione statica configurata in `vercel.json`.
+- Export release riuscito; avvio, rendering WebGL 2 e input movimento/Q/F verificati in Chromium su Linux, senza errori JavaScript/Godot.
+- Deploy Vercel remoto non verificato da questo ambiente; browser Safari/Firefox e dispositivi mobili non verificati.
+
 ## 0.1 · Completato
 
 - Nuovo progetto Godot Compatibility nella stessa repository; vecchia versione conservata nel ramo `backup/liminal-before-father-and-son-2026-10-15`.
@@ -26,4 +32,4 @@
 - Prova manuale su macOS e Windows, inclusi tastiera, trackpad e prestazioni.
 - Revisione con l'utente di proporzioni, leggibilità e ritmo della pattuglia prima di ampliare il prototipo.
 
-Esportazioni Mac/Windows/Web non ancora eseguite; nessuna dichiarazione di verifica su quelle piattaforme.
+Esportazioni native Mac/Windows non ancora eseguite; nessuna dichiarazione di verifica su quelle piattaforme.
