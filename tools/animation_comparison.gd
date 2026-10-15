@@ -18,20 +18,23 @@ func render_comparison() -> void:
 	background.color = Color("20292d")
 	background.size = Vector2(1280,720)
 	root.add_child(background)
-	text_at(background,"FATHER & SON · 0.6B — CINQUE POSE",Vector2(40,24),28)
-	text_at(background,"Sprite del gioco · 24×48 pixel · ingrandimento 6× nearest-neighbor · stessa linea dei piedi",Vector2(40,65),17)
+	text_at(background,"FATHER & SON — ANIMAZIONI FORNITE",Vector2(40,24),28)
+	text_at(background,"Celle padre 48×64, figlio 40×48 · ingrandimento 4× nearest-neighbor · stessa linea dei piedi",Vector2(40,65),17)
 	var labels = ["FERMO","CAMMINATA","CORSA","ACCUCCIATO","FURTIVO"]
 	for row in 2:
-		var sheet = load("res://assets/characters/" + ("father" if row == 0 else "child") + ".png") as Texture2D
+		var actor = load("res://scenes/actors/" + ("father" if row == 0 else "child") + ".tscn").instantiate()
+		var art = actor.get_node("Sprite3D") as CharacterSprite
 		for gait in 5:
+			var sheet = art.sheets[gait]
+			var cell = sheet.get_size() / Vector2(CharacterSprite.FRAME_COUNTS[gait],4)
 			var atlas = AtlasTexture.new()
 			atlas.atlas = sheet
-			atlas.region = Rect2(18 * 24, gait * 48, 24,48)
+			atlas.region = Rect2(Vector2(0,cell.y*3),cell)
 			var sprite = TextureRect.new()
 			sprite.texture = atlas
 			sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			sprite.position = Vector2(76+gait*240,95+row*300)
-			sprite.size = Vector2(144,288)
+			sprite.position = Vector2(148+gait*240-cell.x*2,375+row*300-(art.feet_y+1)*4)
+			sprite.size = cell * 4
 			background.add_child(sprite)
 			if row == 0:
 				text_at(background,labels[gait],Vector2(60+gait*240,388),19)
@@ -40,6 +43,7 @@ func render_comparison() -> void:
 		line.position = Vector2(40,95+row*300+282)
 		line.size = Vector2(1200,1)
 		background.add_child(line)
+		actor.free()
 	text_at(background,"PADRE",Vector2(40,110),14)
 	text_at(background,"FIGLIO",Vector2(40,430),14)
 	await process_frame

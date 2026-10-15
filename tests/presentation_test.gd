@@ -49,7 +49,9 @@ func run() -> void:
 	await ticks(60)
 	await process_frame
 	check(not game.father.sprite.no_depth_test and game.father.sprite.modulate.a > .99, "Opaque depth-tested rendering returns after leaving cover")
-	check(game.father.sprite.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST and is_equal_approx(game.child.sprite.pixel_size,.045) and game.child.sprite.offset.y == 1, "Logical pixel scale and corrected foot anchor remain stable")
+	var father_idle = game.father.sprite.sheets[0].get_image().get_region(Rect2i(0,0,48,64)).get_used_rect()
+	var child_idle = game.child.sprite.sheets[0].get_image().get_region(Rect2i(0,0,40,48)).get_used_rect()
+	check(game.father.sprite.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST and game.child.sprite.texture_filter == BaseMaterial3D.TEXTURE_FILTER_NEAREST and absf(father_idle.size.y*game.father.sprite.pixel_size-1.8)<0.02 and absf(child_idle.size.y*game.child.sprite.pixel_size-1.26)<0.02 and game.child.sprite.offset.y == 1, "Nearest pixels preserve both actors' world heights despite different source canvases")
 	game.end_run(PrototypeGame.Phase.COMPLETE)
 	await process_frame
 	await press_h()

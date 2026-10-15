@@ -17,5 +17,6 @@ Valgono GAME_DESIGN.md e la richiesta corrente; il vecchio gioco è abbandonato.
 - Rumori: `scripts/noise_bus.gd`; passi: `scripts/footstep_emitter.gd`; lattina: `scripts/metal_distraction.gd`. Audio WAV originali in `assets/audio/`.
 - Camera: `scripts/camera_rig.gd`; partita/obiettivo: `scripts/game.gd`; HUD: `scripts/hud.gd`.
 - Livello: `scenes/environment/station.tscn`; attori: `scenes/actors/`; sprite: `assets/characters/`.
+- Animazioni attuali: `scripts/character_sprite.gd`, sette PNG per attore in `assets/characters/supplied/spritesheets/`, riferiti dalle scene. Originali Aseprite in `art/characters/supplied/` (esclusi dall’export). `tools/build_character_sprites.gd` genera solo i vecchi fogli, non quelli forniti dall’utente.
 - Navmesh già inclusa. Dopo modifiche agli ostacoli: `godot --headless --path . --script tools/bake_navigation.gd`.
 - Test: `godot --headless --fixed-fps 60 --path . --script tests/prototype_test.gd` e `tests/stealth_route_test.gd`.

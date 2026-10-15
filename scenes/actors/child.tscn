@@ -1,7 +1,13 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/child.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/characters/child.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/characters/supplied/spritesheets/child_idle.png" id="Art_idle"]
+[ext_resource type="Texture2D" path="res://assets/characters/supplied/spritesheets/child_walk.png" id="Art_walk"]
+[ext_resource type="Texture2D" path="res://assets/characters/supplied/spritesheets/child_run.png" id="Art_run"]
+[ext_resource type="Texture2D" path="res://assets/characters/supplied/spritesheets/child_crouch_idle.png" id="Art_crouch_idle"]
+[ext_resource type="Texture2D" path="res://assets/characters/supplied/spritesheets/child_crouch_walk.png" id="Art_crouch_walk"]
+[ext_resource type="Texture2D" path="res://assets/characters/supplied/spritesheets/child_hand_idle.png" id="Art_hand_idle"]
+[ext_resource type="Texture2D" path="res://assets/characters/supplied/spritesheets/child_hand_walk.png" id="Art_hand_walk"]
 [ext_resource type="Script" path="res://scripts/character_sprite.gd" id="Animation"]
 
 [ext_resource type="Script" path="res://scripts/footstep_emitter.gd" id="Footsteps"]
@@ -23,13 +29,15 @@ position = Vector3(0, 0.6, 0)
 shape = SubResource("Body")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
-position = Vector3(0, 1.04, 0)
-texture = ExtResource("2")
-hframes = 24
-vframes = 9
+position = Vector3(0, 0.8208, 0)
+texture = ExtResource("Art_idle")
+hframes = 2
+vframes = 4
 script = ExtResource("Animation")
+sheets = Array[Texture2D]([ExtResource("Art_idle"), ExtResource("Art_walk"), ExtResource("Art_run"), ExtResource("Art_crouch_idle"), ExtResource("Art_crouch_walk"), ExtResource("Art_hand_idle"), ExtResource("Art_hand_walk")])
+feet_y = 44.0
 child_proportions = true
-pixel_size = 0.045
+pixel_size = 0.0382
 offset = Vector2(0, 1)
 modulate = Color(1.23, 1.13, 1.0, 1)
 billboard = 1

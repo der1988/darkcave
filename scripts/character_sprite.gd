@@ -1,11 +1,15 @@
 class_name CharacterSprite
 extends Sprite3D
 
-# Baked 24x48 pixel poses, six columns per facing and one row per gait.
+# Supplied sheets: one texture per state, four direction rows, N frame columns.
 # Only presentation lives here: no velocity, navigation or collision writes.
 enum Gait { IDLE, WALK, RUN, CROUCH_IDLE, CROUCH_WALK }
-const FRAME_COUNTS = [2, 6, 6, 2, 6]
+const FRAME_COUNTS = [2, 6, 6, 2, 6, 2, 6]
+const FPS = [4.0, 9.0, 13.0, 4.0, 6.0, 4.0, 9.0]
+@export var sheets: Array[Texture2D] = []
+@export var feet_y: float = 58.0
 @export var child_proportions: bool = false
+var animation_index: int = -1
 var gait: Gait = Gait.IDLE
 var phase: float = 0.0
 var idle_time: float = 0.0
@@ -39,32 +43,37 @@ func animate(actor: HumanActor, delta: float, displacement: Vector3) -> void:
 	else:
 		orientation = 1 if screen.y < 0 else 0
 	if travelling:
-		# Complete left/right cycle in metres. Children take shorter, faster steps.
-		var stride = 1.5 if child_proportions else 1.8
-		if gait == Gait.RUN:
-			stride = 1.8 if child_proportions else 2.3
-		elif gait == Gait.CROUCH_WALK:
-			stride = 1.125 if child_proportions else 1.35
-		phase = fposmod(phase + distance / stride, 1.0)
+		# Pack FPS at nominal speed; physical travel scales the cycle continuously.
+		phase = fposmod(phase + distance / cycle_distance(), 1.0)
 		idle_time = 0.0
 	else:
 		idle_time += delta
 		phase = 0.0
-	var row: int = gait
-	hand_pose = _holding_hand(actor)
+	var state: int = gait
+	# The pack has no crouched HAND sheets: keep the actual crouched poses.
+	hand_pose = _holding_hand(actor) and not actor.crouched
 	if hand_pose:
-		# Same lower-body poses; only the contact arm is held quietly to the side.
-		row = {Gait.IDLE: 5, Gait.WALK: 6, Gait.CROUCH_IDLE: 7, Gait.CROUCH_WALK: 8}.get(gait, row)
+		state = 5 if gait == Gait.IDLE else 6
 	flip_h = false
 	if hand_pose and orientation < 2:
 		var partner = actor.child if actor is Father else actor.father
 		var offset = partner.global_position - actor.global_position
 		flip_h = offset.x - offset.z < 0.0
-	var pose = int(phase * FRAME_COUNTS[gait]) if travelling else int(idle_time * 0.65) % 2
-	frame = row * 24 + orientation * 6 + pose
+	if animation_index != state:
+		frame = 0
+		texture = sheets[state]
+		hframes = FRAME_COUNTS[state]
+		vframes = 4
+		animation_index = state
+	var pose = int(phase * hframes) if travelling else int(idle_time * FPS[state]) % hframes
+	frame = orientation * hframes + pose
 	# All poses share a painted foot baseline; crouching never scales the body.
 	scale = Vector3.ONE
-	position.y = 1.04
+	position.y = (feet_y - texture.get_height() / float(vframes) * 0.5 - offset.y) * pixel_size + 0.095
+
+func cycle_distance() -> float:
+	var nominal_speed = [0.0, 2.35 if child_proportions else 2.6, 3.35 if child_proportions else 4.2, 0.0, 1.2 if child_proportions else 1.25][gait]
+	return nominal_speed * FRAME_COUNTS[gait] / FPS[gait]
 
 func _holding_hand(actor: HumanActor) -> bool:
 	var companion: ChildCompanion

@@ -1,0 +1,247 @@
+{
+  "project": "Father & Son",
+  "source": "Original father idle by user aaa.aseprite (front/back/right); new animation poses and child drafted programmatically",
+  "direction_order": [
+    "front",
+    "back",
+    "left",
+    "right"
+  ],
+  "sheet_layout": "rows=front,back,left,right; columns=frames within state",
+  "character_data": {
+    "father": {
+      "frame_size": [
+        48,
+        64
+      ],
+      "directions": [
+        "front",
+        "back",
+        "left",
+        "right"
+      ],
+      "states": [
+        {
+          "name": "idle",
+          "frames": 2,
+          "fps": 4,
+          "columns": 2,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/father_idle.png"
+        },
+        {
+          "name": "walk",
+          "frames": 6,
+          "fps": 9,
+          "columns": 6,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/father_walk.png"
+        },
+        {
+          "name": "run",
+          "frames": 6,
+          "fps": 13,
+          "columns": 6,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/father_run.png"
+        },
+        {
+          "name": "crouch_idle",
+          "frames": 2,
+          "fps": 4,
+          "columns": 2,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/father_crouch_idle.png"
+        },
+        {
+          "name": "crouch_walk",
+          "frames": 6,
+          "fps": 6,
+          "columns": 6,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/father_crouch_walk.png"
+        },
+        {
+          "name": "hand_idle",
+          "frames": 2,
+          "fps": 4,
+          "columns": 2,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/father_hand_idle.png"
+        },
+        {
+          "name": "hand_walk",
+          "frames": 6,
+          "fps": 9,
+          "columns": 6,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/father_hand_walk.png"
+        }
+      ],
+      "feet_y": 58,
+      "animation_total": 120
+    },
+    "child": {
+      "frame_size": [
+        40,
+        48
+      ],
+      "directions": [
+        "front",
+        "back",
+        "left",
+        "right"
+      ],
+      "states": [
+        {
+          "name": "idle",
+          "frames": 2,
+          "fps": 4,
+          "columns": 2,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/child_idle.png"
+        },
+        {
+          "name": "walk",
+          "frames": 6,
+          "fps": 9,
+          "columns": 6,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/child_walk.png"
+        },
+        {
+          "name": "run",
+          "frames": 6,
+          "fps": 13,
+          "columns": 6,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/child_run.png"
+        },
+        {
+          "name": "crouch_idle",
+          "frames": 2,
+          "fps": 4,
+          "columns": 2,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/child_crouch_idle.png"
+        },
+        {
+          "name": "crouch_walk",
+          "frames": 6,
+          "fps": 6,
+          "columns": 6,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/child_crouch_walk.png"
+        },
+        {
+          "name": "hand_idle",
+          "frames": 2,
+          "fps": 4,
+          "columns": 2,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/child_hand_idle.png"
+        },
+        {
+          "name": "hand_walk",
+          "frames": 6,
+          "fps": 9,
+          "columns": 6,
+          "rows": 4,
+          "directions": [
+            "front",
+            "back",
+            "left",
+            "right"
+          ],
+          "path": "spritesheets/child_hand_walk.png"
+        }
+      ],
+      "feet_y": 44,
+      "animation_total": 120
+    }
+  },
+  "notes": [
+    "Spritesheets have transparent background and fixed cell sizes.",
+    "This is a prototype art pass; revise silhouettes and movement in Aseprite before final game integration.",
+    "Do not replace current game sheets without adapting frame selection.",
+    "Godot Sprite3D supports texture filtering nearest; animation state map is in metadata.json."
+  ]
+}

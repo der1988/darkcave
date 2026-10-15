@@ -1,0 +1,28 @@
+GIMP Palette
+Name: Father & Son — The Road (24)
+Columns: 6
+# 24-colour pixel art palette for Aseprite
+ 20  30  34	01 Carbone
+ 31  42  48	02 Ombra
+ 43  57  64	03 Ardesia
+ 58  74  82	04 Asfalto
+ 82  99 107	05 Grigio freddo
+112 129 136	06 Nebbia
+152 165 163	07 Luce nebbia
+196 203 195	08 Polvere chiara
+ 40  54  48	09 Muschio scuro
+ 59  78  69	10 Verde profondo
+ 89 108  93	11 Salvia consumata
+131 147 129	12 Salvia luce
+ 48  44  41	13 Nero caldo
+ 74  67  58	14 Cappotto ombra
+101  91  74	15 Cappotto base
+131 116  95	16 Cappotto luce
+164 149 119	17 Tessuto chiaro
+196 179 150	18 Beige polvere
+ 88  64  54	19 Pelle ombra
+121  86  71	20 Pelle scura
+156 112  91	21 Pelle base
+188 148 117	22 Pelle luce
+137  88  75	23 Ruggine
+210 190 136	24 Ocra spento

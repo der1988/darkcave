@@ -1,5 +1,15 @@
 # Roadmap · 0.6B
 
+## 0.6B · Integrazione ZIP animazioni dell’utente
+
+- Importati direttamente tutti i 14 PNG di `father_son_animazioni_complete.zip`, senza ridisegno o ricampionamento; confronto byte per byte con lo ZIP riuscito. Conservati metadata originali, palette, README e tre sorgenti Aseprite; gli originali editabili in `art/characters/supplied/` sono esclusi dall’export.
+- Le due scene referenziano sette fogli per attore: idle, walk, run, crouch_idle, crouch_walk, hand_idle, hand_walk. Quattro righe fronte/schiena/sinistra/destra, due o sei colonne secondo lo stato. Celle padre 48×64 e figlio 40×48: adattati pixel_size e baseline per conservare altezza nel mondo e appoggio dei piedi; nessuno squash del crouch.
+- `character_sprite.gd` commuta texture/griglia con reset sicuro dell’indice prima dei cambi 6→2 colonne. FPS di riferimento 4/9/13/4/6/4/9 dal pacchetto; camminata/corsa/stealth restano legate alla distanza fisica effettiva e alla velocità nominale. HAND usa i fogli dedicati; in HAND accovacciato usa le pose stealth fornite, perché manca una variante di contatto accovacciata nel pacchetto.
+- IA, movimento fisico, collisioni, navmesh, nemico, camera, HUD, livello e audio invariati. Il vecchio autore procedurale non alimenta più i personaggi attuali; i PNG ricevuti sono la sorgente grafica del gioco.
+- 239/239 controlli superati: tutti i 178 controlli di gameplay/presentazione e 61 sulle animazioni. Aggiornati i controlli sulla vecchia griglia e il test di presentazione che assumeva pixel_size .045: ora verifica le altezze visive nel mondo, la baseline e nearest-neighbor con canvas differenti. Verificati griglie dei sette stati, righe direzionali, timing idle, passaggio HAND walk/idle, fallback stealth, muro fisico e assenza di modifiche alla fisica da parte dell’animazione.
+- Nuove prove visive in `screenshots/animation-pack/`: scena allo zoom normale, tavola delle pose effettive e video Godot da 20 s a scala costante. Import/export Web release riusciti; Chromium/WebGL 2: avvio, movimento e H verificati senza errori. Export Web aggiornato per la pubblicazione GitHub autorizzata; esito del deploy Vercel remoto da verificare.
+- Limiti: qualità e differenze fra pose originali del padre e pose dinamiche restano quelle del pacchetto; non introdotte nuove pose o IK. Nessuna animazione HAND accovacciata dedicata.
+
 ## 0.6B · Rifinitura dal riferimento fornito
 
 - Riprese le caratteristiche del foglio indicato dall’utente: padre con barba, cappotto lungo diviso sulle gambe, zaino e scarponi; bambino con giacca oliva, berretto lavorato, sciarpa bordeaux e piccolo zaino. Palette terrosa e desaturata, senza aumentare la risoluzione delle celle o la scala in gioco.
