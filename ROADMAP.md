@@ -1,4 +1,18 @@
-# Roadmap · 0.6
+# Roadmap · 0.6B
+
+## 0.6B · Pose e timing dei protagonisti
+
+- Analisi 0.6: celle 24×48, 12 frame (quattro orientamenti con un fermo e due passi), ciclo unico a 8 frame/s per camminata e corsa; crouch ottenuto con scala Y 0.72 e abbassamento dello sprite. Il tempo di animazione non dipendeva dalla distanza percorsa.
+- Stesso Sprite3D, stessa scala .045, palette sobria, quattro orientamenti e punto d’appoggio. Nuovi fogli 576×432, con celle sempre 24×48: due pose ferme, sei di camminata, sei di corsa, due accovacciate ferme, sei furtive per orientamento. Le righe aggiuntive modificano soltanto il braccio in HAND.
+- Padre: riposo lievemente curvo, gambe alternate e braccia in controfase, busto inclinato/falcata più ampia e gomiti piegati correndo; ginocchia realmente piegate e baricentro basso nello stealth. Furtivo distinto dall’accovacciamento fermo per busto avanzato, braccia raccolte e trasferimento del peso. Nessuna compressione verticale dei nuovi sprite.
+- Bambino disegnato con testa, torso, sciarpa e arti propri; gambe più corte, ciclo più rapido, corsa più raccolta e piccola irregolarità dipinta nelle pose di passaggio. Non è l’immagine del padre rimpicciolita.
+- `character_sprite.gd` seleziona le pose usando lo spostamento XZ effettivo di `move_and_slide()`. Cicli in metri, isteresi per partenza/arresto e passaggio camminata/corsa; il ciclo si ferma contro i muri e mantiene la fase fra le andature. Ancoraggio costante e pixel nearest-neighbor. Il nemico continua a usare i suoi fogli e il timing precedenti.
+- HAND conserva integralmente il movimento: braccio di contatto più quieto quando vicini, lato corretto nelle viste frontali/posteriori; posa sospesa se il contatto è lontano, in pericolo o in fila nei passaggi stretti. Nessun aggancio fisico o allineamento forzato delle mani.
+- IA del figlio/nemico, padre, furtività, audio/udito, camera, HUD, livello e navmesh verificati invariati tramite hash; nelle scene attori cambiano solo griglia e script Sprite3D. Corpo/capsula, accelerazione e `drive()` restano invariati.
+- 220/220 controlli su Godot 4.6.3/Linux: tutti i 178 precedenti più 42 in `tests/animation_test.gd` (andature, quattro orientamenti, distanza percorsa, isteresi, posa reale crouch, muro fisico, HAND/WAIT/passaggio stretto, nemico legacy e assenza di scritture fisiche dall’animazione). Import ed export Web release riusciti; Chromium/WebGL 2: avvio, movimento e H verificati senza errori.
+- Verifica visiva su rendering Compatibility: cinque pose singole confrontate, sequenze registrate dal gioco a scala costante (camera size 4 solo nel test), due secondi per andatura in ordine idle/walk/run/crouch idle/crouch walk. Video separati da 10 s e montaggio padre+figlio da 20 s in `screenshots/0.6b/`; confronto PNG dei veri frame dell’atlante a scala intera 6×. Prova controllata con IA sospesa e movimento fisico degli attori, non un filmato di gameplay autonomo del compagno. Escluso dal montaggio mezzo secondo di assestamento per stato.
+- Arte riproducibile in `tools/build_character_sprites.gd`, regia di prova in `tools/animation_demo.gd`, tavola in `tools/animation_comparison.gd`. Export Web aggiornato incluso nella pubblicazione GitHub autorizzata della 0.6B; esito del deploy Vercel remoto da verificare.
+- Limiti: quattro orientamenti cardinali visuali, sei pose per ciclo senza interpolazione; resta possibile uno scorrimento residuo dei piedi, soprattutto in diagonale o nelle sterzate. Le mani sono suggerite dalla posa, senza contatto anatomico/IK. Verificati Linux e Chromium; Safari/Firefox e sistemi nativi Mac/Windows non verificati.
 
 ## 0.6 · Udito, passi e distrazione
 

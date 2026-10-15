@@ -26,6 +26,17 @@ func drive(direction: Vector3, speed: float, delta: float) -> void:
 	update_visual(delta)
 
 func update_visual(delta: float) -> void:
+	if sprite is CharacterSprite:
+		sprite.animate(self, delta, get_position_delta())
+	else:
+		_update_legacy_sprite(delta)
+	# Each actor scene owns its capsule resource, so crouching is independent.
+	var capsule = body_shape.shape as CapsuleShape3D
+	capsule.height = standing_height * 0.66 if crouched else standing_height
+	body_shape.position.y = capsule.height / 2.0
+
+# The enemy keeps its existing sheet and timing.
+func _update_legacy_sprite(delta: float) -> void:
 	animation_time += delta * (8.0 if moving else 1.0)
 	var screen = Vector2(facing.x - facing.z, facing.x + facing.z)
 	var direction: int = 0
@@ -37,10 +48,6 @@ func update_visual(delta: float) -> void:
 	sprite.frame = direction * 3 + frame
 	sprite.scale.y = 0.72 if crouched else 1.0
 	sprite.position.y = 0.76 if crouched else 1.04
-	# Each actor scene owns its capsule resource, so crouching is independent.
-	var capsule = body_shape.shape as CapsuleShape3D
-	capsule.height = standing_height * 0.66 if crouched else standing_height
-	body_shape.position.y = capsule.height / 2.0
 
 func sight_point() -> Vector3:
 	return global_position + Vector3.UP * (0.72 if crouched else 1.45)

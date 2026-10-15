@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/child.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/characters/child.png" id="2"]
+[ext_resource type="Script" path="res://scripts/character_sprite.gd" id="Animation"]
 
 [ext_resource type="Script" path="res://scripts/footstep_emitter.gd" id="Footsteps"]
 [ext_resource type="AudioStream" path="res://assets/audio/child_step.wav" id="StepAudio"]
@@ -24,7 +25,10 @@ shape = SubResource("Body")
 [node name="Sprite3D" type="Sprite3D" parent="."]
 position = Vector3(0, 1.04, 0)
 texture = ExtResource("2")
-hframes = 12
+hframes = 24
+vframes = 9
+script = ExtResource("Animation")
+child_proportions = true
 pixel_size = 0.045
 offset = Vector2(0, 1)
 modulate = Color(1.23, 1.13, 1.0, 1)
