@@ -44,5 +44,9 @@ func render_comparison() -> void:
 	text_at(background,"FIGLIO",Vector2(40,430),14)
 	await process_frame
 	await RenderingServer.frame_post_draw
-	assert(root.get_texture().get_image().save_png("res://screenshots/0.6b/confronto-pose.png") == OK)
+	var output = "res://screenshots/0.6b/confronto-pose.png"
+	for argument in OS.get_cmdline_user_args():
+		if argument.begins_with("--output="):
+			output = argument.trim_prefix("--output=")
+	assert(root.get_texture().get_image().save_png(output) == OK)
 	quit()

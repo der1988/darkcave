@@ -1,5 +1,13 @@
 # Roadmap · 0.6B
 
+## 0.6B · Rifinitura dal riferimento fornito
+
+- Riprese le caratteristiche del foglio indicato dall’utente: padre con barba, cappotto lungo diviso sulle gambe, zaino e scarponi; bambino con giacca oliva, berretto lavorato, sciarpa bordeaux e piccolo zaino. Palette terrosa e desaturata, senza aumentare la risoluzione delle celle o la scala in gioco.
+- Corsa con busto più avanzato e sei posizioni dei gomiti, passaggio e recupero delle braccia riconoscibili; falde del cappotto e sciarpa arretrano durante il movimento. Camminata con lieve flessione dei gomiti e stealth con ginocchia piegate, passi corti e carico in avanti. Le proporzioni del bambino restano specifiche.
+- Solo PNG e autore offline delle pose (`tools/build_character_sprites.gd`): conservati griglia 576×432 / celle 24×48, quattro orientamenti, baseline e tutte le righe HAND. `character_sprite.gd`, IA, movimento, collisioni, navigazione, camera, ambiente, HUD e audio invariati. Il generatore della tavola accetta `--output=` per conservare le anteprime precedenti.
+- Tutti i 220 controlli esistenti nuovamente superati su Godot 4.6.3/Linux; import ed export Web release riusciti. Chromium/WebGL 2: avvio, movimento e richiamo comandi con H verificati senza errori. Verifica visiva di orientamenti/pose e nuove registrazioni della scena reale a zoom costante: `screenshots/0.6b-reference/confronto-pose.png` e `animazioni-riferimento.mp4` (padre 10 s, figlio 10 s). Prove controllate con IA sospesa come per la precedente verifica delle animazioni.
+- Export Web aggiornato incluso nella pubblicazione GitHub autorizzata di questa rifinitura; esito del deploy Vercel remoto da verificare. Restano i limiti della pixel art a bassa risoluzione: dettaglio semplificato rispetto al riferimento e quattro orientamenti, senza IK delle mani.
+
 ## 0.6B · Pose e timing dei protagonisti
 
 - Analisi 0.6: celle 24×48, 12 frame (quattro orientamenti con un fermo e due passi), ciclo unico a 8 frame/s per camminata e corsa; crouch ottenuto con scala Y 0.72 e abbassamento dello sprite. Il tempo di animazione non dipendeva dalla distanza percorsa.
