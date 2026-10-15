@@ -12,7 +12,16 @@ func run() -> void:
 	if entered:
 		command("interact")
 		check(game.resource_collected, "Water recovered during live patrol")
-		for destination in [Vector3(-6.5, 0, -0.1), Vector3(-6.5, 0, -9.6), Vector3(8.3, 0, -9.6), Vector3(8.3, 0, -8.5)]:
+		for destination in [Vector3(-6.5, 0, -0.1), Vector3(-6.5, 0, -9.6), Vector3(1, 0, -9.6)]:
+			if not await navigate_father(destination):
+				break
+		# Rendezvous behind the shop, then cross together while the patrol is far
+		# south. The 0.4 child deliberately refuses the previous exposed crossing.
+		for i in 900:
+			if game.child.position.distance_to(game.father.position) < 1.4 and not game.child.danger.is_active() and game.enemy.position.z > 2.0:
+				break
+			await physics_frame
+		for destination in [Vector3(8.3, 0, -9.6), Vector3(8.3, 0, -8.5)]:
 			if not await navigate_father(destination):
 				break
 		for i in 1000:

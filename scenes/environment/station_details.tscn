@@ -1,0 +1,613 @@
+[gd_scene load_steps=79 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Ink"]
+albedo_color = Color(0.14, 0.2, 0.23, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Trim"]
+albedo_color = Color(0.44, 0.51, 0.51, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Chalk"]
+albedo_color = Color(0.62, 0.65, 0.6, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Rust"]
+albedo_color = Color(0.39, 0.27, 0.23, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Red"]
+albedo_color = Color(0.43, 0.27, 0.26, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Paper"]
+albedo_color = Color(0.58, 0.59, 0.51, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Shelf"]
+albedo_color = Color(0.33, 0.39, 0.39, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Lamp"]
+albedo_color = Color(0.6, 0.6, 0.48, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Tail"]
+albedo_color = Color(0.35, 0.2, 0.19, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Roof"]
+albedo_color = Color(0.44, 0.5, 0.49, 1)
+roughness = 1.0
+
+[sub_resource type="BoxMesh" id="Detail1"]
+material = SubResource("Chalk")
+size = Vector3(7, 0.07, 0.25)
+
+[sub_resource type="BoxMesh" id="Detail2"]
+material = SubResource("Trim")
+size = Vector3(7.006, 0.25, 0.256)
+
+[sub_resource type="BoxMesh" id="Detail3"]
+material = SubResource("Chalk")
+size = Vector3(0.25, 0.07, 5.9)
+
+[sub_resource type="BoxMesh" id="Detail4"]
+material = SubResource("Trim")
+size = Vector3(0.256, 0.25, 5.906000000000001)
+
+[sub_resource type="BoxMesh" id="Detail5"]
+material = SubResource("Chalk")
+size = Vector3(2.7, 0.07, 0.25)
+
+[sub_resource type="BoxMesh" id="Detail6"]
+material = SubResource("Trim")
+size = Vector3(2.706, 0.25, 0.256)
+
+[sub_resource type="BoxMesh" id="Detail7"]
+material = SubResource("Chalk")
+size = Vector3(2.9, 0.07, 0.25)
+
+[sub_resource type="BoxMesh" id="Detail8"]
+material = SubResource("Trim")
+size = Vector3(2.9059999999999997, 0.25, 0.256)
+
+[sub_resource type="BoxMesh" id="Detail9"]
+material = SubResource("Chalk")
+size = Vector3(0.25, 0.07, 5.6)
+
+[sub_resource type="BoxMesh" id="Detail10"]
+material = SubResource("Trim")
+size = Vector3(0.256, 0.25, 5.606)
+
+[sub_resource type="BoxMesh" id="Detail11"]
+material = SubResource("Shelf")
+size = Vector3(1.9, 1.14, 0.07)
+
+[sub_resource type="BoxMesh" id="Detail12"]
+material = SubResource("Shelf")
+size = Vector3(0.07, 1.14, 0.55)
+
+[sub_resource type="BoxMesh" id="Detail13"]
+material = SubResource("Shelf")
+size = Vector3(0.07, 1.14, 0.55)
+
+[sub_resource type="BoxMesh" id="Detail14"]
+material = SubResource("Trim")
+size = Vector3(1.9, 0.055, 0.55)
+
+[sub_resource type="BoxMesh" id="Detail15"]
+material = SubResource("Trim")
+size = Vector3(1.9, 0.055, 0.55)
+
+[sub_resource type="BoxMesh" id="Detail16"]
+material = SubResource("Trim")
+size = Vector3(1.9, 0.055, 0.55)
+
+[sub_resource type="BoxMesh" id="Detail17"]
+material = SubResource("Paper")
+size = Vector3(1.9, 0.025, 0.55)
+
+[sub_resource type="BoxMesh" id="Detail18"]
+material = SubResource("Shelf")
+size = Vector3(1.6, 0.9, 0.07)
+
+[sub_resource type="BoxMesh" id="Detail19"]
+material = SubResource("Shelf")
+size = Vector3(0.07, 0.9, 0.48)
+
+[sub_resource type="BoxMesh" id="Detail20"]
+material = SubResource("Shelf")
+size = Vector3(0.07, 0.9, 0.48)
+
+[sub_resource type="BoxMesh" id="Detail21"]
+material = SubResource("Trim")
+size = Vector3(1.6, 0.055, 0.48)
+
+[sub_resource type="BoxMesh" id="Detail22"]
+material = SubResource("Trim")
+size = Vector3(1.6, 0.055, 0.48)
+
+[sub_resource type="BoxMesh" id="Detail23"]
+material = SubResource("Trim")
+size = Vector3(1.6, 0.055, 0.48)
+
+[sub_resource type="BoxMesh" id="Detail24"]
+material = SubResource("Paper")
+size = Vector3(1.6, 0.025, 0.48)
+
+[sub_resource type="BoxMesh" id="Detail25"]
+material = SubResource("Ink")
+size = Vector3(1.5, 0.035, 0.7)
+
+[sub_resource type="BoxMesh" id="Detail26"]
+material = SubResource("Ink")
+size = Vector3(1.32, 0.018, 0.012)
+
+[sub_resource type="BoxMesh" id="Detail27"]
+material = SubResource("Ink")
+size = Vector3(1.32, 0.018, 0.012)
+
+[sub_resource type="BoxMesh" id="Detail28"]
+material = SubResource("Trim")
+size = Vector3(1.76, 0.055, 0.012)
+
+[sub_resource type="BoxMesh" id="Detail29"]
+material = SubResource("Roof")
+size = Vector3(1.28, 0.025, 1.08)
+
+[sub_resource type="BoxMesh" id="Detail30"]
+material = SubResource("Trim")
+size = Vector3(1.68, 0.09, 0.03)
+
+[sub_resource type="BoxMesh" id="Detail31"]
+material = SubResource("Trim")
+size = Vector3(1.68, 0.09, 0.03)
+
+[sub_resource type="BoxMesh" id="Detail32"]
+material = SubResource("Ink")
+size = Vector3(0.7, 0.16, 0.02)
+
+[sub_resource type="BoxMesh" id="Detail33"]
+material = SubResource("Lamp")
+size = Vector3(0.24, 0.16, 0.025)
+
+[sub_resource type="BoxMesh" id="Detail34"]
+material = SubResource("Tail")
+size = Vector3(0.24, 0.12, 0.02)
+
+[sub_resource type="BoxMesh" id="Detail35"]
+material = SubResource("Trim")
+size = Vector3(0.012, 0.035, 3.22)
+
+[sub_resource type="BoxMesh" id="Detail36"]
+material = SubResource("Ink")
+size = Vector3(0.012, 0.29, 0.02)
+
+[sub_resource type="BoxMesh" id="Detail37"]
+material = SubResource("Roof")
+size = Vector3(0.055, 0.5, 0.07)
+
+[sub_resource type="BoxMesh" id="Detail38"]
+material = SubResource("Lamp")
+size = Vector3(0.24, 0.16, 0.025)
+
+[sub_resource type="BoxMesh" id="Detail39"]
+material = SubResource("Tail")
+size = Vector3(0.24, 0.12, 0.02)
+
+[sub_resource type="BoxMesh" id="Detail40"]
+material = SubResource("Trim")
+size = Vector3(0.012, 0.035, 3.22)
+
+[sub_resource type="BoxMesh" id="Detail41"]
+material = SubResource("Ink")
+size = Vector3(0.012, 0.29, 0.02)
+
+[sub_resource type="BoxMesh" id="Detail42"]
+material = SubResource("Roof")
+size = Vector3(0.055, 0.5, 0.07)
+
+[sub_resource type="BoxMesh" id="Detail43"]
+material = SubResource("Rust")
+size = Vector3(0.38, 0.01, 0.26)
+
+[sub_resource type="BoxMesh" id="Detail44"]
+material = SubResource("Paper")
+size = Vector3(0.4, 0.1, 0.01)
+
+[sub_resource type="BoxMesh" id="Detail45"]
+material = SubResource("Red")
+size = Vector3(0.558, 0.21, 0.506)
+
+[sub_resource type="BoxMesh" id="Detail46"]
+material = SubResource("Chalk")
+size = Vector3(0.56, 0.04, 0.51)
+
+[sub_resource type="BoxMesh" id="Detail47"]
+material = SubResource("Paper")
+size = Vector3(0.19, 0.035, 0.009)
+
+[sub_resource type="BoxMesh" id="Detail48"]
+material = SubResource("Rust")
+size = Vector3(0.1, 0.1, 0.012)
+
+[sub_resource type="BoxMesh" id="Detail49"]
+material = SubResource("Ink")
+size = Vector3(0.025, 0.42, 0.025)
+
+[sub_resource type="BoxMesh" id="Detail50"]
+material = SubResource("Ink")
+size = Vector3(0.025, 0.025, 0.09)
+
+[sub_resource type="BoxMesh" id="Detail51"]
+material = SubResource("Ink")
+size = Vector3(0.025, 0.24, 0.025)
+
+[sub_resource type="BoxMesh" id="Detail52"]
+material = SubResource("Red")
+size = Vector3(0.558, 0.21, 0.506)
+
+[sub_resource type="BoxMesh" id="Detail53"]
+material = SubResource("Chalk")
+size = Vector3(0.56, 0.04, 0.51)
+
+[sub_resource type="BoxMesh" id="Detail54"]
+material = SubResource("Paper")
+size = Vector3(0.19, 0.035, 0.009)
+
+[sub_resource type="BoxMesh" id="Detail55"]
+material = SubResource("Rust")
+size = Vector3(0.1, 0.1, 0.012)
+
+[sub_resource type="BoxMesh" id="Detail56"]
+material = SubResource("Ink")
+size = Vector3(0.025, 0.42, 0.025)
+
+[sub_resource type="BoxMesh" id="Detail57"]
+material = SubResource("Ink")
+size = Vector3(0.025, 0.025, 0.09)
+
+[sub_resource type="BoxMesh" id="Detail58"]
+material = SubResource("Ink")
+size = Vector3(0.025, 0.24, 0.025)
+
+[sub_resource type="BoxMesh" id="Detail59"]
+material = SubResource("Paper")
+size = Vector3(0.12, 0.008, 0.18)
+
+[sub_resource type="BoxMesh" id="Detail60"]
+material = SubResource("Paper")
+size = Vector3(0.12, 0.008, 0.18)
+
+[sub_resource type="BoxMesh" id="Detail61"]
+material = SubResource("Paper")
+size = Vector3(0.12, 0.008, 0.18)
+
+[sub_resource type="BoxMesh" id="Detail62"]
+material = SubResource("Paper")
+size = Vector3(0.12, 0.008, 0.18)
+
+[sub_resource type="BoxMesh" id="Detail63"]
+material = SubResource("Paper")
+size = Vector3(0.12, 0.008, 0.18)
+
+[sub_resource type="BoxMesh" id="Detail64"]
+material = SubResource("Paper")
+size = Vector3(0.12, 0.008, 0.18)
+
+[sub_resource type="BoxMesh" id="Detail65"]
+material = SubResource("Ink")
+size = Vector3(0.07, 0.035, 0.36)
+
+[sub_resource type="BoxMesh" id="Detail66"]
+material = SubResource("Ink")
+size = Vector3(0.07, 0.035, 0.36)
+
+[sub_resource type="BoxMesh" id="Detail67"]
+material = SubResource("Ink")
+size = Vector3(0.07, 0.035, 0.36)
+
+[sub_resource type="BoxMesh" id="Detail68"]
+material = SubResource("Ink")
+size = Vector3(0.07, 0.035, 0.36)
+
+[node name="VisualDetails" type="Node3D"]
+
+[node name="BackCap" type="MeshInstance3D" parent="."]
+position = Vector3(0.5, 1.7650000000000001, -7)
+mesh = SubResource("Detail1")
+
+[node name="BackDamp" type="MeshInstance3D" parent="."]
+position = Vector3(0.5, 0.16, -7)
+mesh = SubResource("Detail2")
+
+[node name="LeftCap" type="MeshInstance3D" parent="."]
+position = Vector3(-3, 1.7650000000000001, -4.1)
+mesh = SubResource("Detail3")
+
+[node name="LeftDamp" type="MeshInstance3D" parent="."]
+position = Vector3(-3, 0.16, -4.1)
+mesh = SubResource("Detail4")
+
+[node name="FrontLCap" type="MeshInstance3D" parent="."]
+position = Vector3(-1.65, 1.2650000000000001, -1)
+mesh = SubResource("Detail5")
+
+[node name="FrontLDamp" type="MeshInstance3D" parent="."]
+position = Vector3(-1.65, 0.16, -1)
+mesh = SubResource("Detail6")
+
+[node name="FrontRCap" type="MeshInstance3D" parent="."]
+position = Vector3(2.55, 1.2650000000000001, -1)
+mesh = SubResource("Detail7")
+
+[node name="FrontRDamp" type="MeshInstance3D" parent="."]
+position = Vector3(2.55, 0.16, -1)
+mesh = SubResource("Detail8")
+
+[node name="RightCap" type="MeshInstance3D" parent="."]
+position = Vector3(4, 1.7650000000000001, -4.2)
+mesh = SubResource("Detail9")
+
+[node name="RightDamp" type="MeshInstance3D" parent="."]
+position = Vector3(4, 0.16, -4.2)
+mesh = SubResource("Detail10")
+
+[node name="CoverBack" type="MeshInstance3D" parent="."]
+position = Vector3(-0.9, 0.57, -3.0399999999999996)
+mesh = SubResource("Detail11")
+
+[node name="CoverEnd-1" type="MeshInstance3D" parent="."]
+position = Vector3(-1.815, 0.57, -2.8)
+mesh = SubResource("Detail12")
+
+[node name="CoverEnd1" type="MeshInstance3D" parent="."]
+position = Vector3(0.014999999999999902, 0.57, -2.8)
+mesh = SubResource("Detail13")
+
+[node name="CoverShelf0" type="MeshInstance3D" parent="."]
+position = Vector3(-0.9, 0.06, -2.8)
+mesh = SubResource("Detail14")
+
+[node name="CoverShelf1" type="MeshInstance3D" parent="."]
+position = Vector3(-0.9, 0.5700000000000001, -2.8)
+mesh = SubResource("Detail15")
+
+[node name="CoverShelf2" type="MeshInstance3D" parent="."]
+position = Vector3(-0.9, 1.08, -2.8)
+mesh = SubResource("Detail16")
+
+[node name="CoverDust" type="MeshInstance3D" parent="."]
+position = Vector3(-0.9, 1.0999999999999999, -2.8)
+mesh = SubResource("Detail17")
+
+[node name="BackBack" type="MeshInstance3D" parent="."]
+position = Vector3(-1.6, 0.45, -5.705)
+mesh = SubResource("Detail18")
+
+[node name="BackEnd-1" type="MeshInstance3D" parent="."]
+position = Vector3(-2.365, 0.45, -5.5)
+mesh = SubResource("Detail19")
+
+[node name="BackEnd1" type="MeshInstance3D" parent="."]
+position = Vector3(-0.8350000000000001, 0.45, -5.5)
+mesh = SubResource("Detail20")
+
+[node name="BackShelf0" type="MeshInstance3D" parent="."]
+position = Vector3(-1.6, 0.06, -5.5)
+mesh = SubResource("Detail21")
+
+[node name="BackShelf1" type="MeshInstance3D" parent="."]
+position = Vector3(-1.6, 0.45, -5.5)
+mesh = SubResource("Detail22")
+
+[node name="BackShelf2" type="MeshInstance3D" parent="."]
+position = Vector3(-1.6, 0.8400000000000001, -5.5)
+mesh = SubResource("Detail23")
+
+[node name="BackDust" type="MeshInstance3D" parent="."]
+position = Vector3(-1.6, 0.86, -5.5)
+mesh = SubResource("Detail24")
+
+[node name="CounterTop" type="MeshInstance3D" parent="."]
+position = Vector3(2.7, 1.105, -2.5)
+mesh = SubResource("Detail25")
+
+[node name="CounterSeam0.3" type="MeshInstance3D" parent="."]
+position = Vector3(2.7, 0.3, -2.143)
+mesh = SubResource("Detail26")
+
+[node name="CounterSeam0.65" type="MeshInstance3D" parent="."]
+position = Vector3(2.7, 0.65, -2.143)
+mesh = SubResource("Detail27")
+
+[node name="CrateBand" type="MeshInstance3D" parent="."]
+position = Vector3(-0.2, 0.73, 4.055)
+mesh = SubResource("Detail28")
+
+[node name="CarRoof" type="MeshInstance3D" parent="."]
+position = Vector3(-3.7, 1.283, 1.9)
+mesh = SubResource("Detail29")
+
+[node name="FrontBumper" type="MeshInstance3D" parent="."]
+position = Vector3(-3.7, 0.34, 3.708)
+mesh = SubResource("Detail30")
+
+[node name="BackBumper" type="MeshInstance3D" parent="."]
+position = Vector3(-3.7, 0.34, 0.292)
+mesh = SubResource("Detail31")
+
+[node name="Grille" type="MeshInstance3D" parent="."]
+position = Vector3(-3.7, 0.54, 3.711)
+mesh = SubResource("Detail32")
+
+[node name="Headlight-1" type="MeshInstance3D" parent="."]
+position = Vector3(-4.33, 0.62, 3.717)
+mesh = SubResource("Detail33")
+
+[node name="Taillight-1" type="MeshInstance3D" parent="."]
+position = Vector3(-4.33, 0.61, 0.283)
+mesh = SubResource("Detail34")
+
+[node name="SideTrim-1" type="MeshInstance3D" parent="."]
+position = Vector3(-4.58, 0.53, 2)
+mesh = SubResource("Detail35")
+
+[node name="DoorSeam-1" type="MeshInstance3D" parent="."]
+position = Vector3(-4.58, 0.65, 1.91)
+mesh = SubResource("Detail36")
+
+[node name="CabinPillar-1" type="MeshInstance3D" parent="."]
+position = Vector3(-4.43, 1, 1.89)
+mesh = SubResource("Detail37")
+
+[node name="Headlight1" type="MeshInstance3D" parent="."]
+position = Vector3(-3.0700000000000003, 0.62, 3.717)
+mesh = SubResource("Detail38")
+
+[node name="Taillight1" type="MeshInstance3D" parent="."]
+position = Vector3(-3.0700000000000003, 0.61, 0.283)
+mesh = SubResource("Detail39")
+
+[node name="SideTrim1" type="MeshInstance3D" parent="."]
+position = Vector3(-2.8200000000000003, 0.53, 2)
+mesh = SubResource("Detail40")
+
+[node name="DoorSeam1" type="MeshInstance3D" parent="."]
+position = Vector3(-2.8200000000000003, 0.65, 1.91)
+mesh = SubResource("Detail41")
+
+[node name="CabinPillar1" type="MeshInstance3D" parent="."]
+position = Vector3(-2.97, 1, 1.89)
+mesh = SubResource("Detail42")
+
+[node name="HoodWear" type="MeshInstance3D" parent="."]
+position = Vector3(-3.95, 0.846, 3.15)
+mesh = SubResource("Detail43")
+
+[node name="License" type="MeshInstance3D" parent="."]
+position = Vector3(-3.7, 0.32, 3.73)
+mesh = SubResource("Detail44")
+
+[node name="PumpRed0" type="MeshInstance3D" parent="."]
+position = Vector3(1, 0.39, 0.3)
+mesh = SubResource("Detail45")
+
+[node name="PumpTop0" type="MeshInstance3D" parent="."]
+position = Vector3(1, 1.29, 0.3)
+mesh = SubResource("Detail46")
+
+[node name="PumpDigits0" type="MeshInstance3D" parent="."]
+position = Vector3(1, 0.92, 0.572)
+mesh = SubResource("Detail47")
+
+[node name="PumpRust0" type="MeshInstance3D" parent="."]
+position = Vector3(0.85, 0.21, 0.556)
+mesh = SubResource("Detail48")
+
+[node name="Hose0_0" type="MeshInstance3D" parent="."]
+position = Vector3(1.3, 0.88, 0.43)
+mesh = SubResource("Detail49")
+
+[node name="Hose0_1" type="MeshInstance3D" parent="."]
+position = Vector3(1.3, 0.66, 0.4)
+mesh = SubResource("Detail50")
+
+[node name="Hose0_2" type="MeshInstance3D" parent="."]
+position = Vector3(1.3, 0.78, 0.35)
+mesh = SubResource("Detail51")
+
+[node name="PumpRed1" type="MeshInstance3D" parent="."]
+position = Vector3(2.6, 0.39, 0.3)
+mesh = SubResource("Detail52")
+
+[node name="PumpTop1" type="MeshInstance3D" parent="."]
+position = Vector3(2.6, 1.29, 0.3)
+mesh = SubResource("Detail53")
+
+[node name="PumpDigits1" type="MeshInstance3D" parent="."]
+position = Vector3(2.6, 0.92, 0.572)
+mesh = SubResource("Detail54")
+
+[node name="PumpRust1" type="MeshInstance3D" parent="."]
+position = Vector3(2.45, 0.21, 0.556)
+mesh = SubResource("Detail55")
+
+[node name="Hose1_0" type="MeshInstance3D" parent="."]
+position = Vector3(2.9, 0.88, 0.43)
+mesh = SubResource("Detail56")
+
+[node name="Hose1_1" type="MeshInstance3D" parent="."]
+position = Vector3(2.9, 0.66, 0.4)
+mesh = SubResource("Detail57")
+
+[node name="Hose1_2" type="MeshInstance3D" parent="."]
+position = Vector3(2.9, 0.78, 0.35)
+mesh = SubResource("Detail58")
+
+[node name="StationName" type="Label3D" parent="."]
+position = Vector3(5.5, 2.2, -6.423)
+text = "N O R D"
+font_size = 20
+pixel_size = 0.008
+outline_size = 0
+modulate = Color(0.27, 0.31, 0.3, 1)
+
+[node name="ShopLettering" type="Label3D" parent="."]
+position = Vector3(0.5, 1.46, -6.861)
+text = "ALIMENTARI"
+font_size = 27
+pixel_size = 0.008
+outline_size = 0
+modulate = Color(0.39, 0.44, 0.42, 1)
+
+[node name="Scrap0" type="MeshInstance3D" parent="."]
+position = Vector3(-5.2, 0.061, 4.7)
+mesh = SubResource("Detail59")
+rotation_degrees = Vector3(0, 0, 0)
+
+[node name="Scrap1" type="MeshInstance3D" parent="."]
+position = Vector3(-4.9, 0.061, -0.5)
+mesh = SubResource("Detail60")
+rotation_degrees = Vector3(0, 37, 0)
+
+[node name="Scrap2" type="MeshInstance3D" parent="."]
+position = Vector3(0.4, 0.061, 2.1)
+mesh = SubResource("Detail61")
+rotation_degrees = Vector3(0, 74, 0)
+
+[node name="Scrap3" type="MeshInstance3D" parent="."]
+position = Vector3(3.7, 0.061, -0.7)
+mesh = SubResource("Detail62")
+rotation_degrees = Vector3(0, 111, 0)
+
+[node name="Scrap4" type="MeshInstance3D" parent="."]
+position = Vector3(1.3, 0.091, -4.8)
+mesh = SubResource("Detail63")
+rotation_degrees = Vector3(0, 148, 0)
+
+[node name="Scrap5" type="MeshInstance3D" parent="."]
+position = Vector3(-7.9, 0.061, 1.6)
+mesh = SubResource("Detail64")
+rotation_degrees = Vector3(0, 185, 0)
+
+[node name="Verge0" type="MeshInstance3D" parent="."]
+position = Vector3(-4.47, 0.04, 6.4)
+mesh = SubResource("Detail65")
+rotation_degrees = Vector3(0, 0, 0)
+
+[node name="Verge1" type="MeshInstance3D" parent="."]
+position = Vector3(-4.47, 0.04, 4.8)
+mesh = SubResource("Detail66")
+rotation_degrees = Vector3(0, 9, 0)
+
+[node name="Verge2" type="MeshInstance3D" parent="."]
+position = Vector3(-4.47, 0.04, -2.1)
+mesh = SubResource("Detail67")
+rotation_degrees = Vector3(0, 18, 0)
+
+[node name="Verge3" type="MeshInstance3D" parent="."]
+position = Vector3(-4.47, 0.04, -8.6)
+mesh = SubResource("Detail68")
+rotation_degrees = Vector3(0, 27, 0)

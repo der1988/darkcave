@@ -1,4 +1,79 @@
-# Roadmap · 0.2
+# Roadmap · 0.6
+
+## 0.6 · Udito, passi e distrazione
+
+- Preparazione: verificati branch `work`, stato Git e presenza di 0.5/0.5B nel workspace; tutte le modifiche locali precedenti preservate.
+- `NoiseBus` comunica eventi discreti con posizione, raggio, tipo e sorgente; nessuna dipendenza dall’output audio. Nessun autoload o framework aggiuntivo.
+- `FootstepEmitter` riusato come nodo figlio dei due attori: distanza fisica realmente percorsa, cadenza minima 0.28 s, nessun evento da immobilità o spinta contro un muro. Padre: 0.4 m accovacciato, 2.5 camminando, 6 correndo; figlio: 0.3 / 1.8 / 4. Velocità reale e postura determinano il rumore, anche in HAND o durante il recupero della distanza; IA e velocità dei personaggi non modificate.
+- Udito in `enemy.gd` integrato negli stati INVESTIGATE/SEARCH della 0.5. `last_heard` e `last_seen` distinti, nessun inseguimento automatico della sorgente invisibile. Vista prioritaria; un rumore non interrompe CHASE. Ricerca locale centrata sulla posizione udita quando l’investigazione è acustica.
+- Un raggio fisico per evento nel raggio: ostacoli attenuano la portata al 55%, senza rendere l’udito equivalente alla vista. Soglia e attenuazione modificabili nell’Inspector.
+- Aggiornamenti filtrati da cooldown 1.5 s, spostamento minimo della stessa sorgente 1.25 m e margine di significatività 0.3; rumori chiaramente più forti possono sostituire uno stimolo debole. Conservato soltanto un identificatore per filtrare ripetizioni, non un bersaglio da seguire.
+- Una lattina sul bordo del bancone: E da vicino la fa cadere, un solo impatto da 8 m per partita e oggetto fermo a terra. Caduta animata semplice, senza RigidBody, nuove collisioni o inventario. Fra lattina e acqua viene scelta l’interazione raggiungibile più vicina, con priorità all’acqua a parità di distanza; obiettivo e condizioni finali invariati.
+- Tre piccoli WAV mono originali e asciutti: passi padre, passi figlio e impatto metallico. AudioStreamPlayer3D e ascoltatore presso il padre, distinto dalla camera. Nei test headless viene omessa la riproduzione senza altoparlanti, ma gli eventi logici restano attivi; la silenziosità/mute non disabilita l’udito dell’IA.
+- `tests/noise_test.gd`: 33 controlli su passi reali/immobilità, corsa/crouch, figlio e HAND, raggi, attenuazione, memoria udita, priorità visiva, cooldown, caduta unica, selezione vicina e indipendenza dall’audio. Tutti i 145 controlli precedenti superati senza modificare le suite: totale 178/178, inclusa vittoria con pattuglia attiva e comportamento del figlio sotto minaccia.
+- Import e Web release riusciti; in Chromium verificati avvio, input e segnale audio effettivo dopo gesto utente, senza disabilitare le restrizioni di autoplay e senza errori. Non eseguiti ascolto soggettivo o prove native Mac/Windows. Esportazione Web inclusa per la pubblicazione su Vercel tramite GitHub; esito del deploy remoto da verificare.
+- Limiti: attenuazione con un solo raggio, nessuna propagazione attorno alle porte/materiali, audio sobrio senza variazioni di superficie; la lattina è una distrazione animata monouso, non un oggetto fisico lanciabile. La distrazione non garantisce una fuga.
+
+## 0.5B · Rifinitura visiva e cinematografica
+
+- Inquadratura iniziale 12.5 invece di 14 (personaggi circa 12% più grandi), con stessi orientamento, inseguimento fluido e zoom manuale 10–22. Nessuna modifica alla geometria per adattare la camera.
+- Fogli sprite e animazioni intatti: leggere tinte fredde sul padre e più calde sul figlio; offset di un pixel per allineare meglio i piedi alle superfici visive. Scala logica .045 e nearest-neighbor conservati.
+- Due soli soggetti di leggibilità dichiarati nella scena: se un ostacolo copre il torso dalla camera, padre/figlio appaiono attenuati al 42%, con fade breve. Il depth test normale ritorna quando sono liberi. Nessuna trasparenza delle pareti o visualizzazione del nemico attraverso ostacoli; il controllo è esclusivamente grafico.
+- Intonaco con poche colature/scrostature, pavimento interno separato dal cemento esterno tramite un materiale SVG leggero; asfalto invariato. Ombre più definite, riempimento ambientale leggermente ridotto e foschia esistente meno intensa, senza nuovi effetti pesanti.
+- HUD con margini coerenti, obiettivo prioritario, stato del figlio attenuato, narrazione/interazione separati dalla fascia dei comandi. Comandi iniziali per 7 s, poi richiamo “H · Comandi”; H mostra/nasconde la fascia senza sospendere o modificare la simulazione. Etichette dei tasti generate dalle stesse associazioni usate dall’input.
+- `tests/presentation_test.gd`: 12 controlli su timer/H fisico, movimento con comandi visibili, fine partita, limiti zoom, sagome solo dei protagonisti e ripristino della resa opaca.
+- IA di padre/figlio/nemico, logica di gioco, navmesh, texture della strada e fogli sprite verificati invariati tramite hash; nodi/formazioni fisiche del livello confrontati prima/dopo senza differenze.
+- Tre screenshot nativi 1280×720 in `screenshots/0.5b/` (strada a zoom normale, esterno, interno), con ZIP. Controllati anche zoom 10/22, personaggi vicini ai muri e narrazione insieme ai comandi. Scatti di composizione con attori posizionati e nemico fermo.
+- 145/145 controlli superati su Godot 4.6.3/Linux (133 precedenti più 12 nuovi); import ed export Web release riusciti. In Chromium/WebGL 2 verificati avvio, movimento e H che mostra/nasconde realmente i comandi, senza errori. Nessun push o deploy della 0.5B.
+- Limiti: la sagoma usa un semplice raggio al torso, senza maschere per le singole parti del corpo; la verifica visiva non copre ogni posizione possibile del livello. Nessun cambio alla percezione usata dall’IA.
+
+## 0.5 · Memoria e investigazione del nemico
+
+- `enemy.gd` estende la macchina a stati con INVESTIGATE, SEARCH e RETURN, conservando PATROL e CHASE. Una nuova osservazione interrompe immediatamente qualunque ricerca o ritorno; viene mantenuto il bersaglio attuale se ancora visibile, evitando continui cambi fra padre e figlio.
+- `last_seen` viene aggiornata soltanto quando `can_see()` conferma un avvistamento. Alla perdita di vista il riferimento al bersaglio viene cancellato e il nemico raggiunge l’ultima posizione realmente vista, proiettata sulla navmesh.
+- Investigazione a 2.1 m/s, ricerca a 1.0, ritorno a 1.4; mantenute pattuglia 1.6 e inseguimento 3.1. Accelerazione e recupero del passo graduali, pause e rotazioni leggibili usando gli sprite esistenti.
+- Fino a tre punti deterministici vicini all’ultima osservazione, proiettati sulla navmesh e scartati se irraggiungibili o con percorso oltre 4.5 m. Pause di 0.65 s e ricerca limitata a 5.5 s; tempi/velocità modificabili nell’editor.
+- Timeout di investigazione 6 s e ritorno 14 s per evitare blocchi; ritorno al punto di pattuglia con percorso valido più breve, senza spostamenti forzati. Se nessun punto locale è valido, il nemico osserva sul posto prima di rinunciare.
+- Vista pubblica `can_see()` / `can_see_point()`, distanza 7 m, cono 75°, raycast, cattura fisica e IA del figlio 0.4 preservati. Nessun cambiamento a livello, camera, arte, input o obiettivi; nessun udito o indicatore di allerta.
+- Nuova suite `tests/enemy_memory_test.gd`: 23 verifiche di pattuglia, memoria, investigazione, punti validi/deterministici, ricerca fisica, riavvistamento di entrambi i personaggi, ritorno e integrazione col figlio che trova riparo. Le suite precedenti non sono state modificate per la 0.5.
+- Verifica finale: 133/133 controlli superati su Godot 4.6.3/Linux (110 precedenti e 23 nuovi); export Web release e avvio/input in Chromium/WebGL 2 riusciti senza errori. Nessun push o deploy della 0.5.
+- Limiti: ricerca locale deterministica e breve, senza previsione delle vie di fuga; un bersaglio può essere ritrovato legittimamente se il nemico gira attorno alla copertura. I timeout fanno rinunciare a tragitti bloccati, senza teletrasporti.
+
+## 0.4 · Reazione del figlio al pericolo
+
+- `child_danger.gd` separa i sottostati CALM / SEEK_COVER / HIDDEN / HOLD dall’intenzione FOLLOW / WAIT / HAND; il controller è aggiornato da `child.gd`, con riscontro nello stato già mostrato dall’HUD.
+- Vista condivisa con il nemico (stesso cono, distanza e raggi contro la geometria); pericolo anche entro 2.6 m con linea libera, soglia di rilascio 3.4 m. Le pareti impediscono reazioni attraverso ostacoli solidi.
+- Controlli a 5 Hz del percorso nativo nei prossimi 2.4 m: il bambino non lascia un riparo per attraversare un tratto sorvegliato. Valuta anche l’altezza che avrebbe tornando alla postura normale, evitando ripetuti cicli nascondi/alzati.
+- 18 Marker3D di copertura presso auto, scaffali, cassa, pompe e muri; nessuna modifica al layout, alla navmesh o alle collisioni. Selezione entro 3.6 m, proiezione sulla navmesh, percorso raggiungibile e breve (massimo 4.5 m), riparo verificato con raggi fisici. Un bambino già nascosto scarta tragitti esposti; se già esposto può percorrere un breve tratto scoperto per raggiungere il riparo.
+- Il bambino si accovaccia con l’animazione esistente e raggiunge il riparo con CharacterBody3D/NavigationAgent3D. Senza un riparo valido si ferma; nessuna invulnerabilità o teletrasporto.
+- Ripresa dopo 2 s di sicurezza continua; Q cambia l’intenzione senza annullare la prudenza, F richiede sempre vicinanza e linea libera. Durante il pericolo il contatto HAND è sospeso; se il padre si allontana, al termine il ricongiungimento avviene in FOLLOW. WAIT e la sua postura vengono ripristinati quando sicuri.
+- 25 controlli nuovi in `tests/child_danger_test.gd`: vista, vicinanza, muri, copertura reale, attraversamento esposto, isteresi temporale, ricongiungimento, Q/F/HAND/WAIT e collisioni. Le suite di movimento, seguito e mano rimangono invariate.
+- Il test di partita con pattuglia attiva attende ora il figlio dietro il distributore e attraversa quando il nemico è lontano: il vecchio percorso presupponeva che il bambino seguisse comunque in una zona esposta. Conservate le verifiche di acqua, nemico attivo e vittoria di entrambi.
+- Verifica finale: 110/110 controlli superati su Linux/Godot 4.6.3 (40 base, 3 partita con pattuglia, 19 seguito, 23 mano, 25 pericolo). Export Web release riuscito; avvio/input in Chromium e stato di riparo nell’HUD nativo verificati. Nessun push o deploy della 0.4.
+- Limiti: previsione locale rispetto alla posizione/orientamento attuali del nemico, punti di copertura espliciti e nessuna previsione della pattuglia. Una minaccia che si avvicina può invalidare un riparo; senza una via breve e sicura il bambino può restare fermo ed essere catturato.
+
+## 0.3B · Prima art pass controllata
+
+- Padre e figlio: nuovi sprite originali, silhouette sottili, cappotto consumato, accenti ocra contenuti e palette coordinata. Conservati fogli da 288×48 pixel, 12 frame, scala, punti di appoggio e animazioni esistenti.
+- Materiali leggeri in SVG a bassa risoluzione: asfalto segnato, cemento, intonaco irregolare, vernice consumata e segnaletica sbiadita; campionamento nearest-neighbor.
+- `station_details.tscn` separa dettagli solo visivi: scaffali vuoti, copertine dei muri, auto con abitacolo rastremato/ruote/fanali, pompe e tubi, insegne e pochi fogli abbandonati.
+- Palette fredda, luce direzionale più radente e foschia leggera compatibile con Compatibility/Web; zoom iniziale da 16 a 14, senza cambiare rotazione, comandi o limiti dello zoom.
+- HUD meno invadente: obiettivo prioritario, stato del figlio leggibile, titolo e controlli più discreti; stessa logica e informazioni.
+- Corpi fisici, forme di collisione, trasformazioni e navmesh verificati identici prima/dopo l’art pass. Gameplay, IA e movimento della 0.3A conservati.
+- 85 controlli esistenti superati su Godot 4.6.3/Linux: movimento, FOLLOW/HAND/WAIT, interazione, nemico, vittoria, sconfitta e riavvio. Import ed export Web release riusciti; avvio, rendering e input verificati in Chromium/WebGL 2 senza errori.
+- Tre screenshot rappresentativi in `screenshots/0.3b/`: strada, esterno e interno, con archivio ZIP. Scatti con personaggi posizionati per la composizione e nemico fermo; non sostituiscono i test di gameplay.
+- Prima direzione artistica, non asset definitivi; nessuna animazione nuova, esportazione nativa Mac/Windows o pubblicazione remota della 0.3B.
+
+## 0.3A · Mano nella mano coordinata
+
+- F sceglie il lato più vicino e il bambino raggiunge fisicamente un posto laterale a circa 0.85 m; orientamento smorzato durante curve e inversioni.
+- Il bambino combina il movimento del padre con la correzione del posto; il padre adegua gradualmente il passo alla separazione. Rimossa la brusca riduzione a 0.4.
+- Arresto stabile con soglie distinte di assestamento/ripartenza; nessun aggancio rigido, teletrasporto o nuova animazione.
+- Posto proiettato sulla navmesh e verificato contro i muri; formazione temporaneamente in fila nei punti stretti, con ritorno laterale dopo 0.5 s di spazio libero. Piccola deviazione fisica intorno al padre quando occorre cambiare lato.
+- Accovacciamento condiviso in HAND; F torna a FOLLOW, Q termina HAND e passa a WAIT. Controller FOLLOW 0.2 e ambiente invariati.
+- 85 controlli automatizzati superati su Linux/Godot 4.6.3: 62 precedenti più 23 in `tests/hand_coordination_test.gd`, incluse andata/ritorno dalla porta, auto, velocità condivisa, inversioni, arresti, modalità, collisioni e assenza di teletrasporti.
+- Export Web rigenerato e avviato in Chromium/WebGL 2 senza errori; input movimento/Q/F verificati. Screenshot nativi acquisiti su display virtuale. Nessun push o deploy della 0.3A eseguito.
+- Il contatto è approssimato tramite distanza e formazione: mani e braccia non sono ancora allineate da animazioni dedicate. Nei passaggi stretti il contatto può interrompersi temporaneamente.
 
 ## 0.2 · Movimento e IA del figlio
 

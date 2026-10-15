@@ -3,8 +3,8 @@
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1"]
 
 [sub_resource type="Theme" id="Theme"]
-default_font_size = 16
-Label/colors/font_color = Color(0.83, 0.84, 0.77, 1)
+default_font_size = 14
+Label/colors/font_color = Color(0.79, 0.83, 0.81, 1)
 Label/colors/font_shadow_color = Color(0.08, 0.1, 0.1, 0.8)
 Label/constants/shadow_offset_x = 1
 Label/constants/shadow_offset_y = 1
@@ -21,8 +21,8 @@ border_color = Color(0.38, 0.43, 0.37, 1)
 script = ExtResource("1")
 
 [node name="Margin" type="MarginContainer" parent="."]
-offset_left = 22.0
-offset_top = 18.0
+offset_left = 28.0
+offset_top = 22.0
 offset_right = 600.0
 offset_bottom = 110.0
 mouse_filter = 2
@@ -30,12 +30,13 @@ theme = SubResource("Theme")
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 5
+theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="Margin/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "FATHER & SON · 0.1"
+theme_override_font_sizes/font_size = 11
+modulate = Color(0.72, 0.79, 0.79, 0.8)
+text = "FATHER & SON   /   0.6"
 
 [node name="Objective" type="Label" parent="Margin/VBox"]
 layout_mode = 2
@@ -43,7 +44,8 @@ text = "Trova una risorsa nel distributore."
 
 [node name="ChildStatus" type="Label" parent="Margin/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+modulate = Color(0.82, 0.87, 0.86, 0.9)
+theme_override_font_sizes/font_size = 11
 text = "FIGLIO · Segue"
 
 [node name="Bottom" type="VBoxContainer" parent="."]
@@ -51,29 +53,61 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 22.0
-offset_top = -104.0
-offset_right = -22.0
-offset_bottom = -16.0
+offset_left = 28.0
+offset_top = -110.0
+offset_right = -28.0
+offset_bottom = -70.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 theme = SubResource("Theme")
-theme_override_constants/separation = 5
+theme_override_constants/separation = 4
 
 [node name="Narrative" type="Label" parent="Bottom"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
+modulate = Color(0.85, 0.86, 0.79, 0.95)
 horizontal_alignment = 1
 
 [node name="Hint" type="Label" parent="Bottom"]
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="Controls" type="Label" parent="Bottom"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "WASD · Movimento    SHIFT · Corsa    CTRL · Accovacciati    E · Interagisci\nQ · Segui / Aspetta    F · Mano    Rotellina · Zoom    R · Ricomincia alla fine"
+[node name="Controls" type="Label" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 28.0
+offset_top = -48.0
+offset_right = -28.0
+offset_bottom = -16.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme = SubResource("Theme")
+modulate = Color(0.72, 0.79, 0.79, 0.8)
+theme_override_font_sizes/font_size = 10
 horizontal_alignment = 1
+
+[node name="ControlsHint" type="Label" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -110.0
+offset_top = -32.0
+offset_right = -28.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+theme = SubResource("Theme")
+modulate = Color(0.72, 0.79, 0.79, 0.8)
+theme_override_font_sizes/font_size = 10
+text = "H · Comandi"
+horizontal_alignment = 2
 
 [node name="EndPanel" type="PanelContainer" parent="."]
 visible = false

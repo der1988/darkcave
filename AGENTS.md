@@ -13,7 +13,8 @@ Valgono GAME_DESIGN.md e la richiesta corrente; il vecchio gioco è abbandonato.
 
 - Input e trasformazione WASD: `scripts/controls.gd`.
 - Movimento/collisioni/animazioni comuni: `scripts/human_actor.gd`; padre: `scripts/father.gd`.
-- Compagno e comandi Q/F: `scripts/child.gd`; nemico e visibilità: `scripts/enemy.gd`.
+- Compagno e comandi Q/F: `scripts/child.gd`; reazione al pericolo: `scripts/child_danger.gd`; nemico e visibilità: `scripts/enemy.gd`.
+- Rumori: `scripts/noise_bus.gd`; passi: `scripts/footstep_emitter.gd`; lattina: `scripts/metal_distraction.gd`. Audio WAV originali in `assets/audio/`.
 - Camera: `scripts/camera_rig.gd`; partita/obiettivo: `scripts/game.gd`; HUD: `scripts/hud.gd`.
 - Livello: `scenes/environment/station.tscn`; attori: `scenes/actors/`; sprite: `assets/characters/`.
 - Navmesh già inclusa. Dopo modifiche agli ostacoli: `godot --headless --path . --script tools/bake_navigation.gd`.

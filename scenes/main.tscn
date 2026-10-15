@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/game.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/environment/station.tscn" id="2"]
@@ -8,14 +8,19 @@
 [ext_resource type="Script" path="res://scripts/camera_rig.gd" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="7"]
 
+[ext_resource type="Script" path="res://scripts/noise_bus.gd" id="Noise"]
+
 [sub_resource type="Environment" id="Environment"]
 background_mode = 1
-background_color = Color(0.22, 0.27, 0.28, 1)
+background_color = Color(0.19, 0.24, 0.28, 1)
 ambient_light_source = 3
-ambient_light_color = Color(0.66, 0.72, 0.7, 1)
-ambient_light_energy = 0.7
+ambient_light_color = Color(0.67, 0.75, 0.82, 1)
+ambient_light_energy = 0.56
 reflected_light_source = 2
 tonemap_mode = 0
+fog_enabled = true
+fog_light_color = Color(0.26, 0.32, 0.36, 1)
+fog_density = 0.005
 
 [node name="FatherAndSon" type="Node3D"]
 script = ExtResource("1")
@@ -24,11 +29,11 @@ script = ExtResource("1")
 environment = SubResource("Environment")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-rotation_degrees = Vector3(-55, -25, 0)
-light_color = Color(0.84, 0.85, 0.77, 1)
-light_energy = 0.75
+rotation_degrees = Vector3(-43, -32, 0)
+light_color = Color(0.87, 0.91, 0.94, 1)
+light_energy = 0.8
 shadow_enabled = true
-shadow_blur = 2.0
+shadow_blur = 1.5
 
 [node name="Level" parent="." instance=ExtResource("2")]
 
@@ -43,14 +48,18 @@ position = Vector3(5.8, 0, 3.4)
 
 [node name="CameraRig" type="Node3D" parent="."]
 script = ExtResource("6")
+readability_targets = Array[NodePath]([NodePath("../Father"), NodePath("../Child")])
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
 position = Vector3(14, 14, 14)
 rotation_degrees = Vector3(-35.264, 45, 0)
 projection = 1
-size = 16.0
+size = 12.5
 near = 0.1
 far = 90.0
 current = true
 
 [node name="HUD" parent="." instance=ExtResource("7")]
+
+[node name="NoiseBus" type="Node" parent="."]
+script = ExtResource("Noise")

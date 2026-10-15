@@ -7,6 +7,8 @@ enum Phase { PLAYING, FAILED, COMPLETE }
 @onready var child: ChildCompanion = $Child
 @onready var enemy: PatrolEnemy = $Enemy
 @onready var rig: IsometricCameraRig = $CameraRig
+@onready var noises: NoiseBus = $NoiseBus
+@onready var metal_can: MetalDistraction = $Level/MetalCan
 @onready var hud: PrototypeHUD = $HUD
 var phase: Phase = Phase.PLAYING
 var resource_collected: bool = false
@@ -15,8 +17,16 @@ var narrative_time: float = 6.0
 
 func _ready() -> void:
 	Controls.configure()
+	noises.emitted.connect(enemy.hear_noise)
+	father.get_node("AudioListener3D").make_current()
+	father.get_node("Footsteps").bus = noises
+	child.get_node("Footsteps").bus = noises
+	metal_can.bus = noises
 	father.child = child
 	child.father = father
+	child.danger.enemy = enemy
+	for point in $Level/CoverPoints.get_children():
+		child.danger.cover_points.append(point.global_position)
 	enemy.characters = [father, child]
 	for point in $Level/Patrol.get_children():
 		enemy.patrol_points.append(point.global_position)
@@ -45,9 +55,27 @@ func resource_in_reach() -> bool:
 	var query = PhysicsRayQueryParameters3D.create(father.sight_point(), point, 1)
 	return get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
+func interaction_target() -> Node3D:
+	var selected: Node3D = $Level/Resource if not resource_collected and resource_in_reach() else null
+	if metal_can.in_reach(father):
+		if selected == null or father.global_position.distance_squared_to(metal_can.global_position) < father.global_position.distance_squared_to(selected.global_position):
+			selected = metal_can
+	return selected
+
+func interaction_hint() -> String:
+	var selected = interaction_target()
+	if selected == metal_can:
+		return "E · Fai cadere la lattina"
+	return "E · Raccogli la bottiglia d'acqua" if selected != null else ""
+
 func try_interact() -> bool:
-	if phase != Phase.PLAYING or resource_collected or not resource_in_reach():
+	if phase != Phase.PLAYING:
 		return false
+	var selected = interaction_target()
+	if selected == null:
+		return false
+	if selected == metal_can:
+		return metal_can.interact(father)
 	resource_collected = true
 	$Level/Resource.hide()
 	narrative = "«Una bottiglia d'acqua. Adesso andiamo, insieme.»"

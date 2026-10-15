@@ -1,50 +1,95 @@
-[gd_scene load_steps=73 format=3]
+[gd_scene load_steps=86 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/materials/shop_floor.svg" id="Art_shop_floor"]
 
 [ext_resource type="NavigationMesh" path="res://scenes/environment/navigation.tres" id="1"]
 
+[ext_resource type="Texture2D" path="res://assets/materials/asphalt.svg" id="Art_asphalt"]
+[ext_resource type="Texture2D" path="res://assets/materials/concrete.svg" id="Art_concrete"]
+[ext_resource type="Texture2D" path="res://assets/materials/plaster.svg" id="Art_wall"]
+[ext_resource type="Texture2D" path="res://assets/materials/painted_metal.svg" id="Art_car"]
+[ext_resource type="Texture2D" path="res://assets/materials/road_paint.svg" id="Art_line"]
+[ext_resource type="PackedScene" path="res://scenes/environment/station_details.tscn" id="Art_details"]
+[ext_resource type="ArrayMesh" path="res://assets/materials/car_cabin.obj" id="Art_cabin"]
+
+[ext_resource type="Script" path="res://scripts/metal_distraction.gd" id="CanScript"]
+[ext_resource type="AudioStream" path="res://assets/audio/metal_fall.wav" id="CanAudio"]
+
 [sub_resource type="StandardMaterial3D" id="Mat_grass"]
-albedo_color = Color(0.28, 0.34, 0.3, 1)
+albedo_color = Color(0.22, 0.27, 0.28, 1)
 roughness = 1.0
 
 [sub_resource type="StandardMaterial3D" id="Mat_asphalt"]
-albedo_color = Color(0.22, 0.25, 0.26, 1)
+albedo_color = Color(1, 1, 1, 1)
+albedo_texture = ExtResource("Art_asphalt")
+texture_filter = 0
 roughness = 1.0
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.18, 0.18, 0.18)
 
 [sub_resource type="StandardMaterial3D" id="Mat_concrete"]
-albedo_color = Color(0.39, 0.41, 0.37, 1)
+albedo_color = Color(1, 1, 1, 1)
+albedo_texture = ExtResource("Art_concrete")
+texture_filter = 0
 roughness = 1.0
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.28, 0.28, 0.28)
 
 [sub_resource type="StandardMaterial3D" id="Mat_wall"]
-albedo_color = Color(0.4, 0.43, 0.39, 1)
+albedo_color = Color(1, 1, 1, 1)
+albedo_texture = ExtResource("Art_wall")
+texture_filter = 0
 roughness = 1.0
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.28, 0.28, 0.28)
 
 [sub_resource type="StandardMaterial3D" id="Mat_wood"]
-albedo_color = Color(0.3, 0.27, 0.22, 1)
+albedo_color = Color(0.31, 0.32, 0.3, 1)
 roughness = 1.0
 
 [sub_resource type="StandardMaterial3D" id="Mat_metal"]
-albedo_color = Color(0.32, 0.36, 0.35, 1)
+albedo_color = Color(0.27, 0.34, 0.36, 1)
 roughness = 1.0
 
 [sub_resource type="StandardMaterial3D" id="Mat_pump"]
-albedo_color = Color(0.4, 0.38, 0.31, 1)
+albedo_color = Color(0.62, 0.65, 0.61, 1)
 roughness = 1.0
 
 [sub_resource type="StandardMaterial3D" id="Mat_dark"]
-albedo_color = Color(0.19, 0.23, 0.24, 1)
+albedo_color = Color(0.09, 0.13, 0.15, 1)
 roughness = 1.0
 
 [sub_resource type="StandardMaterial3D" id="Mat_car"]
-albedo_color = Color(0.34, 0.39, 0.38, 1)
+albedo_color = Color(1, 1, 1, 1)
+albedo_texture = ExtResource("Art_car")
+texture_filter = 0
 roughness = 1.0
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.28, 0.28, 0.28)
 
 [sub_resource type="StandardMaterial3D" id="Mat_glass"]
-albedo_color = Color(0.23, 0.3, 0.31, 1)
+albedo_color = Color(0.21, 0.3, 0.34, 1)
 roughness = 1.0
 
 [sub_resource type="StandardMaterial3D" id="Mat_line"]
-albedo_color = Color(0.53, 0.51, 0.43, 1)
+albedo_color = Color(1, 1, 1, 1)
+albedo_texture = ExtResource("Art_line")
+texture_filter = 0
 roughness = 1.0
+transparency = 2
+alpha_scissor_threshold = 0.5
+
+[sub_resource type="StandardMaterial3D" id="Mat_shop_floor"]
+albedo_texture = ExtResource("Art_shop_floor")
+texture_filter = 0
+roughness = 1.0
+uv1_triplanar = true
+uv1_world_triplanar = true
+uv1_scale = Vector3(0.35, 0.35, 0.35)
 
 [sub_resource type="BoxMesh" id="Box_1"]
 material = SubResource("Mat_grass")
@@ -90,7 +135,7 @@ material = SubResource("Mat_line")
 size = Vector3(0.12, 0.015, 1.1)
 
 [sub_resource type="BoxMesh" id="Box_11"]
-material = SubResource("Mat_concrete")
+material = SubResource("Mat_shop_floor")
 size = Vector3(7, 0.08, 6)
 
 [sub_resource type="BoxMesh" id="Box_12"]
@@ -268,6 +313,20 @@ size = Vector3(2.2, 0.015, 0.15)
 material = SubResource("Mat_metal")
 size = Vector3(0.09, 1.3, 0.09)
 
+[sub_resource type="CylinderMesh" id="Art_wheel"]
+material = SubResource("Mat_dark")
+top_radius = 0.25
+bottom_radius = 0.25
+height = 0.18
+radial_segments = 12
+
+[sub_resource type="CylinderMesh" id="CanMesh"]
+material = SubResource("Mat_metal")
+top_radius = 0.075
+bottom_radius = 0.075
+height = 0.2
+radial_segments = 10
+
 [node name="Level" type="Node3D"]
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
@@ -385,6 +444,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="NavigationRegion3D/CoverShelf"]
+visible = false
 mesh = SubResource("Box_17")
 
 [node name="Collision" type="CollisionShape3D" parent="NavigationRegion3D/CoverShelf"]
@@ -396,6 +456,7 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="NavigationRegion3D/BackShelf"]
+visible = false
 mesh = SubResource("Box_18")
 
 [node name="Collision" type="CollisionShape3D" parent="NavigationRegion3D/BackShelf"]
@@ -429,26 +490,31 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Mesh" type="MeshInstance3D" parent="NavigationRegion3D/CarCabin"]
-mesh = SubResource("Box_21")
+mesh = ExtResource("Art_cabin")
+material_override = SubResource("Mat_glass")
 
 [node name="Collision" type="CollisionShape3D" parent="NavigationRegion3D/CarCabin"]
 shape = SubResource("Shape_21")
 
 [node name="Wheel21" type="MeshInstance3D" parent="NavigationRegion3D"]
 position = Vector3(-4.55, 0.24, 0.9)
-mesh = SubResource("Box_22")
+mesh = SubResource("Art_wheel")
+rotation_degrees = Vector3(0, 0, 90)
 
 [node name="Wheel22" type="MeshInstance3D" parent="NavigationRegion3D"]
 position = Vector3(-4.55, 0.24, 3.1)
-mesh = SubResource("Box_23")
+mesh = SubResource("Art_wheel")
+rotation_degrees = Vector3(0, 0, 90)
 
 [node name="Wheel23" type="MeshInstance3D" parent="NavigationRegion3D"]
 position = Vector3(-2.85, 0.24, 0.9)
-mesh = SubResource("Box_24")
+mesh = SubResource("Art_wheel")
+rotation_degrees = Vector3(0, 0, 90)
 
 [node name="Wheel24" type="MeshInstance3D" parent="NavigationRegion3D"]
 position = Vector3(-2.85, 0.24, 3.1)
-mesh = SubResource("Box_25")
+mesh = SubResource("Art_wheel")
+rotation_degrees = Vector3(0, 0, 90)
 
 [node name="CrateCover" type="StaticBody3D" parent="NavigationRegion3D"]
 position = Vector3(-0.2, 0.5, 3.5)
@@ -594,3 +660,74 @@ font_size = 24
 outline_size = 4
 modulate = Color(0.73, 0.76, 0.65, 1)
 text = "USCITA"
+
+[node name="VisualDetails" parent="." instance=ExtResource("Art_details")]
+
+[node name="CoverPoints" type="Node3D" parent="."]
+
+[node name="CarWest" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-5.1, 0, 2)
+
+[node name="CarEast" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-2.3, 0, 2)
+
+[node name="CarRear" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-3.7, 0, -0.4)
+
+[node name="CarFront" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-3.7, 0, 4.35)
+
+[node name="CrateWest" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-1.65, 0, 3.5)
+
+[node name="CrateSouth" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-0.2, 0, 4.6)
+
+[node name="ShelfBack" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-0.9, 0, -3.7)
+
+[node name="ShelfWest" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-2.5, 0, -2.8)
+
+[node name="BackShelfFront" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-1.6, 0, -4.6)
+
+[node name="ShopRight" type="Marker3D" parent="CoverPoints"]
+position = Vector3(3.4, 0, -4.5)
+
+[node name="ShopWest" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-3.65, 0, -4.3)
+
+[node name="PumpWest" type="Marker3D" parent="CoverPoints"]
+position = Vector3(0.15, 0, 0.3)
+
+[node name="PumpSouth" type="Marker3D" parent="CoverPoints"]
+position = Vector3(2.6, 0, 1.2)
+
+[node name="CrateNorth" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-0.2, 0, 2.35)
+
+[node name="CrateEast" type="Marker3D" parent="CoverPoints"]
+position = Vector3(1.25, 0, 3.5)
+
+[node name="ShelfSouth" type="Marker3D" parent="CoverPoints"]
+position = Vector3(-0.9, 0, -1.9)
+
+[node name="PumpNorth" type="Marker3D" parent="CoverPoints"]
+position = Vector3(2.6, 0, -0.6)
+
+[node name="ShopNorth" type="Marker3D" parent="CoverPoints"]
+position = Vector3(3.2, 0, -7.8)
+
+[node name="MetalCan" type="Node3D" parent="."]
+position = Vector3(1.98, 1.17, -2.35)
+script = ExtResource("CanScript")
+
+[node name="Mesh" type="MeshInstance3D" parent="MetalCan"]
+mesh = SubResource("CanMesh")
+
+[node name="Audio" type="AudioStreamPlayer3D" parent="MetalCan"]
+stream = ExtResource("CanAudio")
+volume_db = -19.0
+unit_size = 2.5
+max_distance = 18.0

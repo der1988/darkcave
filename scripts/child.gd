@@ -6,6 +6,7 @@ signal mode_changed
 enum Mode { FOLLOW, WAIT, HAND }
 @export var walk_speed: float = 2.35
 @onready var agent: NavigationAgent3D = $NavigationAgent3D
+@onready var danger: ChildDanger = ChildDanger.new(self)
 var father: Father
 var mode: Mode = Mode.FOLLOW
 var route_timer: float = 0.0
@@ -24,34 +25,122 @@ var heading_initialized: bool = false
 var follow_direction: Vector3 = Vector3.ZERO
 var last_goal: Vector3 = Vector3.INF
 
+# HAND has its own formation state; FOLLOW keeps the 0.2 controller.
+const HAND_SPACING: float = 0.85
+var hand_heading: float = 0.0
+var hand_side: float = 1.0
+var hand_speed: float = 0.0
+var hand_settled: bool = false
+var hand_single_file: bool = false
+var hand_clear_time: float = 0.0
+
 func _physics_process(delta: float) -> void:
 	if not is_instance_valid(father):
 		return
-	# Waiting retains the child's own posture, even if the father crouches far away.
-	if not active or mode == Mode.WAIT:
+	if not active:
+		drive(Vector3.ZERO, 0.0, delta)
+		return
+	if NavigationServer3D.map_get_iteration_id(agent.get_navigation_map()) == 0:
+		return
+	if danger.update(delta):
+		return
+	# Outside danger, waiting retains the child's own posture even at a distance.
+	if mode == Mode.WAIT:
 		drive(Vector3.ZERO, 0.0, delta)
 		return
 	crouched = father.crouched
-	if NavigationServer3D.map_get_iteration_id(agent.get_navigation_map()) == 0:
-		return
 	if mode == Mode.HAND:
 		_update_hand(delta)
 		return
 	_update_follow(delta)
 
+func _begin_hand() -> void:
+	hand_heading = atan2(father.facing.z, father.facing.x)
+	var side = Vector3(-sin(hand_heading), 0, cos(hand_heading))
+	hand_side = 1.0 if (global_position - father.global_position).dot(side) >= 0.0 else -1.0
+	hand_speed = Vector2(velocity.x, velocity.z).length()
+	hand_settled = false
+	hand_single_file = false
+	hand_clear_time = 0.0
+
+# Shared pacing is continuous, rather than switching the father abruptly to 0.4.
+func hand_pace_scale() -> float:
+	var gap = Vector2(global_position.x - father.global_position.x, global_position.z - father.global_position.z).length()
+	return clampf(1.0 - maxf(0.0, gap - 1.05) * 0.8, 0.0, 1.0)
+
+func _hand_slot(desired: Vector3) -> Vector3:
+	var point = NavigationServer3D.map_get_closest_point(agent.get_navigation_map(), desired)
+	if Vector2(point.x - desired.x, point.z - desired.z).length() > 0.15:
+		return Vector3.INF
+	var query = PhysicsRayQueryParameters3D.create(father.sight_point(), point + Vector3.UP * 0.5, 1)
+	return point if get_world_3d().direct_space_state.intersect_ray(query).is_empty() else Vector3.INF
+
+func _hand_position(delta: float) -> Vector3:
+	var forward = Vector3(cos(hand_heading), 0, sin(hand_heading))
+	var side = Vector3(-forward.z, 0, forward.x) * hand_side
+	var lateral = _hand_slot(father.global_position + side * HAND_SPACING - forward * 0.1)
+	if not lateral.is_finite():
+		hand_single_file = true
+		hand_clear_time = 0.0
+	elif hand_single_file:
+		hand_clear_time += delta
+		if hand_clear_time > 0.5:
+			hand_single_file = false
+	if not hand_single_file:
+		return lateral
+	var rear = _hand_slot(father.global_position - forward * 0.95)
+	if rear.is_finite():
+		return rear
+	# If contact is obstructed, keep native routing to a projected rear slot.
+	return NavigationServer3D.map_get_closest_point(agent.get_navigation_map(), father.global_position - forward * 0.95)
+
 func _update_hand(delta: float) -> void:
-	# Keep the existing hand mode's distance, speed and navigation behavior.
-	agent.target_desired_distance = 0.6
-	if global_position.distance_to(father.global_position) <= 0.72:
+	var motion = Vector3(father.velocity.x, 0, father.velocity.z)
+	if motion.length() > 0.12:
+		hand_heading = lerp_angle(hand_heading, atan2(motion.z, motion.x), 1.0 - exp(-4.0 * delta))
+	var goal = _hand_position(delta)
+	var error = goal - global_position
+	error.y = 0.0
+	if motion.length() < 0.12 and error.length() < 0.18:
+		hand_settled = true
+	elif motion.length() > 0.12 or error.length() > 0.4:
+		hand_settled = false
+	if hand_settled:
+		hand_speed = move_toward(hand_speed, 0.0, 4.0 * delta)
 		drive(Vector3.ZERO, 0.0, delta)
 		return
+	# A route to the opposite side must go around the father's physical capsule.
+	var offset = global_position - father.global_position
+	offset.y = 0.0
+	if error.length_squared() > 0.01:
+		var along = clampf(-offset.dot(error) / error.length_squared(), 0.0, 1.0)
+		if (offset + error * along).length() < 0.6 and offset.length() > 0.1:
+			var tangent = Vector3(-offset.z, 0, offset.x).normalized()
+			if tangent.dot(error) < 0.0:
+				tangent = -tangent
+			var detour = _hand_slot(father.global_position + (offset.normalized() + tangent).normalized() * 0.95)
+			if detour.is_finite():
+				goal = detour
+				error = goal - global_position
+				error.y = 0.0
+	agent.target_desired_distance = 0.1
 	route_timer -= delta
 	if route_timer <= 0.0:
-		agent.target_position = father.global_position
-		route_timer = 0.18
-	var direction = agent.get_next_path_position() - global_position
-	direction.y = 0
-	drive(direction.normalized(), 1.2 if crouched else walk_speed, delta)
+		if not last_goal.is_finite() or goal.distance_to(last_goal) > 0.1:
+			agent.target_position = goal
+			last_goal = goal
+		route_timer = 0.1
+	var next = agent.get_next_path_position() - global_position
+	next.y = 0.0
+	var desired = motion + error * 3.0
+	# Follow the native path around geometry; feed-forward only on the final leg.
+	if next.distance_to(error) > 0.35 or hand_single_file:
+		desired = next.normalized() * (motion.length() + error.length() * 2.0)
+	if error.length() < 0.1 and motion.length() < 0.12:
+		desired = Vector3.ZERO
+	var limit = 1.65 if crouched else 2.8
+	hand_speed = move_toward(hand_speed, minf(limit, desired.length()), 4.0 * delta)
+	drive(desired.normalized(), hand_speed, delta)
 
 func _update_follow(delta: float) -> void:
 	var father_motion = Vector3(father.velocity.x, 0, father.velocity.z)
@@ -155,6 +244,7 @@ func toggle_hand() -> bool:
 		return false
 	mode = Mode.HAND
 	_reset_follow()
+	_begin_hand()
 	mode_changed.emit()
 	return true
 
@@ -162,6 +252,9 @@ func sight_point() -> Vector3:
 	return global_position + Vector3.UP * (0.5 if crouched else 1.0)
 
 func status_text() -> String:
+	if danger.is_active():
+		var reaction = "Al riparo" if danger.state == ChildDanger.State.HIDDEN else "Pericolo · Cerca riparo" if danger.state == ChildDanger.State.SEEK_COVER else "Pericolo · Fermo"
+		return reaction + " · " + ["Segue quando sicuro", "Aspetta", "Mano quando sicuro"][mode]
 	return ["Segue", "Aspetta", "Mano nella mano"][mode]
 
 # A small local sidestep prevents the child blocking a narrow doorway when the

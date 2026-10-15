@@ -1,4 +1,4 @@
-# Father & Son · prototipo 0.2
+# Father & Son · prototipo 0.6
 
 Una strada provinciale, un distributore abbandonato, un padre e suo figlio di otto anni. Recupera la bottiglia d'acqua nello scaffale del negozio e raggiungi l'uscita segnalata a nord-est insieme al bambino, evitando il pattugliatore.
 
@@ -33,9 +33,16 @@ Non occorrono npm, compilatori nativi o download di asset. Navmesh e scene sono 
 | Q | Il figlio aspetta / riprende a seguire |
 | F | Prendi / lascia la mano, quando siete vicini |
 | Rotellina | Zoom entro i limiti |
+| H | Mostra / nascondi i comandi (visibili inizialmente per 7 secondi) |
 | R | Ricomincia dopo vittoria o fallimento |
 
 La corsa può lasciare indietro il bambino. Prendergli la mano limita la velocità del padre. Le coperture funzionano tramite collisioni e linea di vista: essere accovacciati allo scoperto non protegge dal nemico. L'uscita richiede acqua ed entrambi i personaggi.
+
+Sotto minaccia il figlio si accovaccia, cerca un riparo vicino o si ferma se non trova un tragitto sicuro. Lo stato compare nell’HUD. Q e F conservano il comando richiesto, ma non forzano un’uscita dal riparo; la ripresa richiede due secondi senza minaccia e senza un tratto sorvegliato nel percorso immediato. Il contatto mano nella mano resta sospeso durante il pericolo: se il padre si allontana, il bambino si ricongiunge in FOLLOW quando può. Una copertura non garantisce salvezza se il nemico la aggira.
+
+Il nemico ricorda soltanto l’ultima posizione osservata: quando perde la vista la investiga, cerca brevemente nei dintorni e torna alla pattuglia. Le coperture e i percorsi alternativi possono interrompere davvero l’inseguimento.
+
+I passi reali emettono rumori discreti: camminare ha portata contenuta, correre si sente più lontano e accovacciarsi è quasi silenzioso. Il nemico investiga il punto udito senza conoscere gli spostamenti successivi della sorgente; i muri attenuano il rumore. Nel negozio, E può far cadere una lattina dal bancone una sola volta per partita: è una distrazione facoltativa e non sostituisce la raccolta dell’acqua. Il suggerimento contestuale indica l’interazione più vicina. Il primo clic/tasto abilita l’audio nel browser; il volume o il mute non influenzano lo stealth.
 
 ## Scene e verifiche
 
@@ -48,6 +55,11 @@ godot --headless --path . --editor --import --quit
 godot --headless --fixed-fps 60 --path . --script tests/prototype_test.gd
 godot --headless --fixed-fps 60 --path . --script tests/stealth_route_test.gd
 godot --headless --fixed-fps 60 --path . --script tests/child_follow_test.gd
+godot --headless --fixed-fps 60 --path . --script tests/hand_coordination_test.gd
+godot --headless --fixed-fps 60 --path . --script tests/child_danger_test.gd
+godot --headless --fixed-fps 60 --path . --script tests/enemy_memory_test.gd
+godot --headless --fixed-fps 60 --path . --script tests/presentation_test.gd
+godot --headless --fixed-fps 60 --path . --script tests/noise_test.gd
 ```
 
 I test usano movimento fisico e navigazione reali. La prima suite verifica anche vista/coperture, vittoria, fallimento e riavvio; la seconda completa una partita con il nemico attivo. Per rigenerare la navmesh dopo aver modificato gli ostacoli:
@@ -58,6 +70,6 @@ godot --headless --path . --script tools/bake_navigation.gd
 
 `tests/render_smoke.gd` richiede un display grafico e salva schermate in `user://` (o nella cartella indicata da `FATHER_SON_SCREENSHOT_DIR`). Non eseguirlo con rendering headless/dummy.
 
-Verificato su Linux con Godot **4.6.3**: importazione, 62 controlli e rendering Compatibility. macOS e Windows non sono stati eseguiti in questo ambiente.
+Verificato su Linux con Godot **4.6.3**: importazione, 178 controlli e rendering Compatibility. macOS e Windows non sono stati eseguiti in questo ambiente.
 
 La precedente versione è preservata nel ramo Git locale `backup/liminal-before-father-and-son-2026-10-15`. Nessun push è stato eseguito per questa sostituzione.
