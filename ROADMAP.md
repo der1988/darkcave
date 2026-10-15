@@ -1,6 +1,16 @@
-# Roadmap · 0.1
+# Roadmap · 0.2
 
-## Completato
+## 0.2 · Movimento e IA del figlio
+
+- Passo adattivo: 2.35 nominale, adeguamento alla camminata del padre fino a 2.6; recupero breve fino a 3.35 quando il distacco supera 2.3 m, disattivato sotto 1.35 m. Recupero accovacciato limitato a 1.65.
+- Partenza/arresto con soglie 1.45/1.05 m; accelerazione, frenata e direzione del seguito smorzate.
+- Posto laterale/arretrato validato sulla navmesh e contro i muri; alternative negli spazi stretti senza puntare al centro del padre. Percorsi stabili quando il padre è fermo.
+- In attesa il bambino conserva la propria postura, senza copiare l'accovacciamento del padre. Q/F e modalità mano mantenuti.
+- Modifiche di gioco concentrate in `scripts/child.gd`; nessuna modifica a livello, padre, motore o navigazione nativa.
+- 62 controlli superati su Linux/Godot 4.6.3 (43 esistenti e 19 nella nuova suite `tests/child_follow_test.gd`): camminata continua, corsa/arresto, inversioni, auto/porta, attesa/postura, mano, collisioni e assenza di teletrasporti.
+- Limite intenzionale: durante una corsa ininterrotta il padre può ancora distanziare il figlio; il recupero si completa rallentando o fermandosi.
+
+## 0.1 · Completato
 
 - Nuovo progetto Godot Compatibility nella stessa repository; vecchia versione conservata nel ramo `backup/liminal-before-father-and-son-2026-10-15`.
 - Distributore editabile, strada, auto e coperture fisiche; sprite originali padre/figlio/nemico.
