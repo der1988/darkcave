@@ -1,51 +1,50 @@
-# LIMINAL — TypeScript foundation
+# Father & Son · prototipo 0.1
 
-This is a deliberately small third-person foundation: two six-room mall wings joined by a central memory room, two brothers, movement, stealth, interior penumbra and a handheld flashlight.
+Una strada provinciale, un distributore abbandonato, un padre e suo figlio di otto anni. Recupera la bottiglia d'acqua nello scaffale del negozio e raggiungi l'uscita segnalata a nord-est insieme al bambino, evitando il pattugliatore.
 
-The complete simulation and renderer use TypeScript. There is no native compiler or WebAssembly layer.
+## Avvio su Mac
 
-## Run
+1. Installa **Godot 4.6 stabile, edizione Standard** da godotengine.org. Non serve .NET.
+2. Nel Project Manager scegli **Importa**, seleziona `project.godot` in questa cartella e aprilo. Attendi l'importazione degli sprite.
+3. Premi **F5** per giocare. Per F6 apri prima `scenes/main.tscn`. Su alcune tastiere Mac occorre tenere premuto **Fn**.
 
-Node.js 22.12+ and npm:
+Non occorrono npm, compilatori nativi o download di asset. Navmesh e scene sono già incluse. Il progetto usa Compatibility e può essere aperto anche su Windows. Le esportazioni richiedono i template di Godot e non sono state verificate qui.
+
+## Comandi
+
+| Tasto | Azione |
+| --- | --- |
+| WASD | Movimento in otto direzioni, relativo alla visuale |
+| Shift | Corsa |
+| Ctrl | Accovacciamento; il figlio si abbassa insieme al padre |
+| E | Raccogli la risorsa da vicino |
+| Q | Il figlio aspetta / riprende a seguire |
+| F | Prendi / lascia la mano, quando siete vicini |
+| Rotellina | Zoom entro i limiti |
+| R | Ricomincia dopo vittoria o fallimento |
+
+La corsa può lasciare indietro il bambino. Prendergli la mano limita la velocità del padre. Le coperture funzionano tramite collisioni e linea di vista: essere accovacciati allo scoperto non protegge dal nemico. L'uscita richiede acqua ed entrambi i personaggi.
+
+## Scene e verifiche
+
+`scenes/main.tscn` collega il livello, gli attori, la camera e l'HUD. Il livello si modifica direttamente nell'editor in `scenes/environment/station.tscn`; i comportamenti sono separati in `scripts/`. La mappa completa è in AGENTS.md.
+
+Con Godot nel PATH:
 
 ```sh
-npm ci
-npm run dev
+godot --headless --path . --editor --import --quit
+godot --headless --fixed-fps 60 --path . --script tests/prototype_test.gd
+godot --headless --fixed-fps 60 --path . --script tests/stealth_route_test.gd
 ```
 
-## Modular structure
-
-A perspective camera follows behind the brothers. Hold the right mouse button and drag to orbit; movement follows the camera direction. Rooms are 20% larger while character and furniture sizes remain fixed.
-
-Visual constants live in `src/config.ts`; the mall layout, walls, doors and storefronts live in `src/room.ts`. Gameplay, flashlight lighting, actors and input remain separate TypeScript modules. `src/main.ts` only connects them.
-
-`AGENTS.md` contains a task-to-file map so targeted changes can begin without loading unrelated source files.
-
-## Checks
+I test usano movimento fisico e navigazione reali. La prima suite verifica anche vista/coperture, vittoria, fallimento e riavvio; la seconda completa una partita con il nemico attivo. Per rigenerare la navmesh dopo aver modificato gli ostacoli:
 
 ```sh
-npm test
-npm run build
-npm run test:browser
+godot --headless --path . --script tools/bake_navigation.gd
 ```
 
-## Controls
+`tests/render_smoke.gd` richiede un display grafico e salva schermate in `user://` (o nella cartella indicata da `FATHER_SON_SCREENSHOT_DIR`). Non eseguirlo con rendering headless/dummy.
 
-- WASD / arrow keys: move relative to the camera
-- Shift: silent stealth movement
-- Mouse: aim flashlight
-- Right mouse drag: orbit the third-person camera
-- Space / F: toggle flashlight
-- E: use computer / collect memory / exit
-- Click a nearby stone or bottle: pick up into the free hand
-- Hold left mouse button and release: throw toward the cursor; holding longer increases power
+Verificato su Linux con Godot **4.6.3**: importazione, 43 controlli e rendering Compatibility. macOS e Windows non sono stati eseguiti in questo ambiente.
 
-The level follows the provided sketch: six rooms on each side and one memory bridge between them. Start in the upper-left room. The computer in the neighboring upper room opens the left memory door; use E nearby or click the terminal. The confirmation shows when the passage opens. The memory room leads directly into the right wing. Seven blind clickers occupy the marked danger rooms. The exit is in the upper-left room of the right wing. The disconnected areas above and below the bridge have no floor and cannot be crossed. Movement, light, sound routes and thrown objects share the locked door state.
-
-Use E to collect the memory in the central room and to finish at the exit. Existing stones, bottles, stealth, dialogue and spatial creature audio remain available.
-
-There are no windows or exterior light sources. Three.js renders actual walls, floors and stylized characters. A shadow-casting spotlight illuminates the environment; gameplay hearing, navigation and interactions keep using the same world-space simulation.
-
-Short Italian exchanges appear above the speaking brother and move with him. Exchanges are less frequent during stealth. Each clicker starts in a marked room and wanders there until it hears footsteps. Walking produces quiet footstep audio and matching gameplay sound events; stealth produces neither. Hearing has a limited range and follows routes through doors. The clicker investigates the last heard position, searches briefly, then resumes wandering. It is visible only in the flashlight and has no attack/damage behavior in this phase.
-
-Five loose stones and two empty bottles can be collected. One authoritative object state tracks ground, hand, flight and broken glass. Stones follow ballistic arcs, bounce, settle and can be recovered; bottles shatter on the first impact. Wall/furniture collisions and impacts emit gameplay sounds that can distract the blind clicker. Standing or moving in stealth creates no footstep events. After an unsuccessful search the creature chooses a patrol point away from its last heard position. Its original synthetic clicks and rasp are spatialized and audible even when it is hidden. Browser audio unlocks after the first keyboard/mouse gesture.
+La precedente versione è preservata nel ramo Git locale `backup/liminal-before-father-and-son-2026-10-15`. Nessun push è stato eseguito per questa sostituzione.

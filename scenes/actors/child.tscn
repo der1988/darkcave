@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/child.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/characters/child.png" id="2"]
+
+[sub_resource type="CapsuleShape3D" id="Body"]
+resource_local_to_scene = true
+radius = 0.23
+height = 1.2
+
+[node name="Child" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 11
+script = ExtResource("1")
+standing_height = 1.2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.6, 0)
+shape = SubResource("Body")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+position = Vector3(0, 1.04, 0)
+texture = ExtResource("2")
+hframes = 12
+pixel_size = 0.045
+billboard = 1
+texture_filter = 0
+alpha_cut = 1
+alpha_scissor_threshold = 0.5
+cast_shadow = 0
+
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.3
+path_height_offset = 0.2
+target_desired_distance = 0.6
+radius = 0.28
+height = 1.7
+avoidance_enabled = false

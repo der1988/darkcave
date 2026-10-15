@@ -1,4 +1,4 @@
-node_modules/
-dist/
-.vercel/
-*.local
+.godot/
+exports/
+*.log
+.DS_Store
