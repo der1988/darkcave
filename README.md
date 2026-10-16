@@ -1,4 +1,4 @@
-# Campo Libero · calcio isometrico 0.1
+# Campo Libero · calcio isometrico 0.2
 
 Un piccolo giocatore e un pallone su un campo verde senza confini. Prima prova arcade ispirata a Soccer Kid, con sprite e animazioni originali del progetto [footballgame](https://github.com/der1988/footballgame), in vista isometrica.
 
@@ -8,10 +8,11 @@ web/ contiene l’export Godot pronto per Vercel. Il push su main attiva il depl
 
 | Comando | Azione |
 | --- | --- |
-| WASD / frecce | Muovi in otto direzioni rispetto allo schermo |
+| Frecce | Muovi in otto direzioni rispetto allo schermo |
 | Shift | Scatta |
-| Spazio tenuto e rilasciato | Carica e tira nella direzione del giocatore |
-| E | Pallonetto |
+| A tenuto e rilasciato | Carica e tira nella direzione del giocatore |
+| D | Pallonetto corto |
+| S | Salta |
 | R | Richiama la palla ai piedi |
 | H | Mostra / nascondi i comandi |
 | Rotellina | Zoom |
@@ -37,3 +38,5 @@ Provenienza e conversione dei frame: assets/football/README.md. Originali editab
 Screenshot e video del gioco in screenshots/football/. Il piano fisico è infinito; la superficie verde segue il giocatore con coordinate della trama fisse nel mondo.
 
 La precedente scena Father & Son e i suoi test sono conservati nello storico del progetto e in scenes/main.tscn; non vengono istanziati dal nuovo avvio. Per riprodurre una sua suite usare, ad esempio, godot --headless --fixed-fps 60 --path . --script tests/prototype_test.gd.
+
+Il terreno alterna erba corta, zone secche, ciuffi alti e piccoli sassi decorativi in scala. Le decorazioni non cambiano le collisioni; venticinque settori vengono rigenerati deterministicamente durante il viaggio. Anteprime aggiornate in screenshots/football-02/.

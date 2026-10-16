@@ -32,7 +32,7 @@ func _physics_process(delta: float) -> void:
 
 func reachable(player: FootballPlayer) -> bool:
 	var gap = Vector2(position.x-player.position.x,position.z-player.position.z).length()
-	return gap<1.05 and position.y<0.75 and touch_lock<=0.0
+	return player.is_on_floor() and gap<1.05 and position.y<0.75 and touch_lock<=0.0
 
 func control_near(player: FootballPlayer, delta: float) -> void:
 	controlled = false
@@ -58,7 +58,7 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 	if not reachable(player):
 		return false
 	var force = clampf(power,0.0,1.0)
-	var speed = lerpf(5.0,15.0,force)
+	var speed = lerpf(2.6,4.2,force) if lob else lerpf(5.0,15.0,force)
 	linear_velocity = player.facing*speed+Vector3.UP*(lerpf(5.0,8.0,force) if lob else 0.8)
 	touch_lock = 0.4
 	controlled = false
@@ -69,6 +69,7 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 func recall(player: FootballPlayer) -> void:
 	# Explicit practice control; never used by dribbling or shooting.
 	pending_recall = player.global_position+player.facing*0.85+Vector3.UP*0.22
+	pending_recall.y = 0.22
 	touch_lock = 0.1
 	roll_phase = 0.0
 	controlled = false

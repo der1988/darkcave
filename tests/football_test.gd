@@ -88,7 +88,7 @@ func run() -> void:
 	await ticks(30)
 	command("shoot")
 	await ticks(80)
-	check(is_equal_approx(game.charge_time,0.85) and game.player.charging,"Held Space caps the charge and uses the charging stance")
+	check(is_equal_approx(game.charge_time,0.85) and game.player.charging,"Held A caps the charge and uses the charging stance")
 	var position_before = game.ball.position
 	command("shoot",false)
 	var charged_speed = Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()
@@ -101,6 +101,8 @@ func run() -> void:
 	command("recall")
 	await ticks(30)
 	check(game.attempt_kick(0.35,true),"A nearby ball accepts a lob")
+	check(absf(game.ball.linear_velocity.y-6.05)<0.01,"Short lob preserves its original vertical launch")
+	check(Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()<3.5,"Lob horizontal launch is shorter than the former 8.5")
 	var peak = 0.0
 	var bounced = false
 	var previous_vertical = 0.0
@@ -120,6 +122,16 @@ func run() -> void:
 	command("recall")
 	await ticks(20)
 	check(game.ball.position.distance_to(game.player.position)<1.1 and game.ball.position.y<0.35,"R reliably recalls an airborne native body at a physics boundary")
+	check(FootballControls.KEYS.shoot==[KEY_A] and FootballControls.KEYS.lob==[KEY_D] and FootballControls.KEYS.jump==[KEY_S],"A D S map to shot lob jump")
+	check(FootballControls.KEYS.left==[KEY_LEFT] and FootballControls.KEYS.down==[KEY_DOWN],"Movement arrows do not conflict with action keys")
+	check(game.player.jump(),"Grounded player can jump")
+	check(not game.player.jump(),"Repeated jump cannot stack impulses")
+	await ticks(12)
+	check(game.player.position.y>0.6 and not game.player.is_on_floor(),"Jump lifts the native character")
+	check(not game.ball.reachable(game.player) and not game.ball.controlled,"Airborne player cannot drag or kick a ground ball")
+	check(absf(game.player.shadow.global_position.y-0.012)<0.01 and absf(game.camera_rig.position.y)<0.01,"Jump shadow and camera stay grounded")
+	await ticks(60)
+	check(game.player.is_on_floor() and absf(game.player.position.y)<0.01,"Jump lands naturally on the floor")
 	command("help")
 	check(not game.help.visible,"H hides controls")
 	command("help")
@@ -135,6 +147,7 @@ func run() -> void:
 	check(game.player.is_on_floor() and absf(game.player.position.y)<0.1 and game.ball.position.y>0.19,"Infinite floor supports player and ball thousands of units away")
 	check(Vector2(game.grass.position.x-game.player.position.x,game.grass.position.z-game.player.position.z).length()<24.0,"Grass follows the player without a visible field boundary")
 	check(game.player.position.distance_to(game.ball.position)<1.2,"R recalls a lost ball beside the current player position")
+	check(game.get_node("Terrain").chunks.size()==25,"Infinite terrain keeps only twenty-five decorative chunks after travel")
 	game.queue_free()
 	await process_frame
 	print("RESULT football: ",checks-failures,"/",checks,"; max dribble gap=",largest_gap," max step=",max_step)

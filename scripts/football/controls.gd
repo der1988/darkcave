@@ -2,10 +2,10 @@ class_name FootballControls
 extends RefCounted
 
 const KEYS = {
-	"left": [KEY_A,KEY_LEFT], "right": [KEY_D,KEY_RIGHT],
-	"up": [KEY_W,KEY_UP], "down": [KEY_S,KEY_DOWN],
-	"sprint": [KEY_SHIFT], "shoot": [KEY_SPACE], "lob": [KEY_E],
-	"recall": [KEY_R], "help": [KEY_H],
+	"left": [KEY_LEFT], "right": [KEY_RIGHT],
+	"up": [KEY_UP], "down": [KEY_DOWN],
+	"sprint": [KEY_SHIFT], "shoot": [KEY_A], "lob": [KEY_D],
+	"jump": [KEY_S], "recall": [KEY_R], "help": [KEY_H],
 }
 
 static func configure() -> void:
@@ -13,6 +13,7 @@ static func configure() -> void:
 		var action = "football_"+name
 		if not InputMap.has_action(action):
 			InputMap.add_action(action)
+		InputMap.action_erase_events(action)
 		for key in KEYS[name]:
 			var event = InputEventKey.new()
 			event.physical_keycode = key
@@ -30,4 +31,4 @@ static func orientation(direction: Vector3) -> int:
 	return posmod(roundi(projected.angle()/(PI/4.0)),8)
 
 static func help_text() -> String:
-	return "WASD / Frecce · Muovi    %s · Scatta    %s · Carica e tira\n%s · Pallonetto    %s · Richiama palla    %s · Comandi    Rotellina · Zoom" % [OS.get_keycode_string(KEYS.sprint[0]),OS.get_keycode_string(KEYS.shoot[0]),OS.get_keycode_string(KEYS.lob[0]),OS.get_keycode_string(KEYS.recall[0]),OS.get_keycode_string(KEYS.help[0])]
+	return "Frecce · Muovi    %s · Scatta    %s · Carica e tira\n%s · Pallonetto    %s · Salta    %s · Richiama palla    %s · Comandi    Rotellina · Zoom" % [OS.get_keycode_string(KEYS.sprint[0]),OS.get_keycode_string(KEYS.shoot[0]),OS.get_keycode_string(KEYS.lob[0]),OS.get_keycode_string(KEYS.jump[0]),OS.get_keycode_string(KEYS.recall[0]),OS.get_keycode_string(KEYS.help[0])]

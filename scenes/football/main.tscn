@@ -1,9 +1,11 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/football/sandbox.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/football/ball.tscn" id="3"]
 [ext_resource type="Shader" path="res://assets/football/grass.gdshader" id="4"]
+
+[ext_resource type="Script" path="res://scripts/football/terrain.gd" id="5"]
 
 [sub_resource type="WorldBoundaryShape3D" id="Floor"]
 
@@ -38,6 +40,9 @@ shape = SubResource("Floor")
 [node name="Grass" type="MeshInstance3D" parent="."]
 mesh = SubResource("Grass")
 cast_shadow = 0
+
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("5")
 
 [node name="Player" parent="." instance=ExtResource("2")]
 

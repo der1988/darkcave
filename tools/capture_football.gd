@@ -12,7 +12,7 @@ func ticks(count: int) -> void:
 
 func shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
-	assert(root.get_texture().get_image().save_png("res://screenshots/football/"+name+".png")==OK)
+	assert(root.get_texture().get_image().save_png("res://screenshots/football-02/"+name+".png")==OK)
 
 func run() -> void:
 	game = load("res://scenes/football/main.tscn").instantiate()
@@ -34,7 +34,11 @@ func run() -> void:
 	Input.action_press("football_right")
 	await ticks(120)
 	Input.action_release("football_right")
-	await ticks(150)
+	await ticks(30)
+	game.player.jump()
+	await ticks(14)
+	await shot("04-salto")
+	await ticks(106)
 	game.queue_free()
 	await process_frame
 	quit()

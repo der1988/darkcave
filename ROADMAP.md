@@ -1,5 +1,14 @@
 # Roadmap · Campo Libero
 
+## Calcio isometrico · 0.2 · terreno e comandi
+
+- Terreno con variazioni naturali di erba corta e zone secche, ciuffi tridimensionali di erba alta e piccoli sassi in scala. Modulo decorativo separato, deterministico e limitato a 25 settori attorno al giocatore; nessuna modifica alle collisioni della palla.
+- Movimento con le frecce per evitare conflitti: A carica e rilascia il tiro, D esegue il pallonetto, S salta. Help generato dalla stessa configurazione degli input.
+- Pallonetto accorciato orizzontalmente (a potenza abituale: 3.16 contro 8.5), mantenendo la spinta verticale di 6.05. Tiro rasoterra invariato.
+- Salto fisico del giocatore con gravità, niente doppio salto; camera e ombra restano a terra. Durante il salto non si trascina né si calcia da remoto il pallone a terra. R richiama sempre il pallone al suolo.
+- Verificati 50/50 test del calcio e 239/239 regressioni storiche, totale 289/289. Import e export Web release completati. Chromium/WebGL: avvio, movimento, carica con A, pallonetto D, salto S, richiamo R e H; nessun errore console o scroll. Screenshot nativi e Web in `screenshots/football-02/`.
+- Limiti: erba alta e sassi sono decorativi; salto usa una posa originale esistente, senza nuove animazioni disegnate. Deploy Vercel remoto non verificato.
+
 ## Calcio isometrico · 0.1
 
 - Nuova direzione richiesta dall’utente: un solo calciatore piccolo, circa 32 pixel a 1280×720, su un campo verde senza bordi. Avvio in `scenes/football/main.tscn`; la precedente scena Father & Son resta conservata ma non viene caricata. Nessuna torcia, stanza, NPC o nemico nel nuovo gioco attivo.
