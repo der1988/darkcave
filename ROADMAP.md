@@ -1,5 +1,11 @@
 # Roadmap · Campo Libero
 
+## Analogico mobile più controllabile
+
+- Rimosso lo scatto automatico oltre 85% dello stick, che faceva salire bruscamente la velocità da camminata a corsa.
+- Risposta progressiva con esponente 1.35, deadzone 0.16 e massimo 85% della camminata: circa 3.98 unità/s. Eliminata la seconda deadzone nella lettura del movimento. Controlli PC e corsa Shift conservati.
+- 19/19 test dei controlli e 125/125 regressioni del calcio: totale 144/144. Verificati velocità fisica massima mobile, precisione a mezza corsa e assenza di scatto automatico. Export Web riuscito e prova touch in Chromium senza errori; fullscreen, cariche e portrait conservati. Anteprime in screenshots/football-15/.
+
 ## Scelta PC/smartphone e comandi touch
 
 - Selettore iniziale con PC/tastiera o Smartphone/touch. Gioco e IA sospesi fino alla scelta, comandi desktop conservati.

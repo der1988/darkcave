@@ -17,7 +17,7 @@ var motion_goal: Vector3 = Vector3.ZERO
 func _physics_process(delta: float) -> void:
 	if not controlled:
 		return
-	var input = Input.get_vector("football_left","football_right","football_up","football_down",0.15)
+	var input = Input.get_vector("football_left","football_right","football_up","football_down",0.0)
 	if Input.is_action_just_pressed("football_jump"):
 		jump()
 	drive(FootballControls.world_direction(input),Input.is_action_pressed("football_sprint"),delta)
