@@ -1,4 +1,17 @@
-# Roadmap · 0.6B
+# Roadmap · Campo Libero
+
+## Calcio isometrico · 0.1
+
+- Nuova direzione richiesta dall’utente: un solo calciatore piccolo, circa 32 pixel a 1280×720, su un campo verde senza bordi. Avvio in `scenes/football/main.tscn`; la precedente scena Father & Son resta conservata ma non viene caricata. Nessuna torcia, stanza, NPC o nemico nel nuovo gioco attivo.
+- Riferimento confermato: `der1988/footballgame`, commit `fdafcb36efea568e2003e3ae089a56b3da8daaa2`. Riutilizzati 48 frame originali del giocatore e 32 del pallone, otto direzioni. Palette indicizzata risolta secondo la maglia di casa, celle e maschere corporee conservate senza ricampionare; sostituita solo l’ombra piatta con contatto sul piano 3D. Sorgenti Aseprite conservati in `art/football/` e import riproducibile con `tools/import_football_art.gd`.
+- Godot/Compatibility mantenuto. Moduli separati per input, giocatore, palla e coordinamento del sandbox. Movimento WASD/frecce, Shift per scattare; animazione originale ferma/corsa guidata dallo spostamento effettivo e posa breve del piede quando si calcia.
+- Palla RigidBody3D nativa, massa 0.43, gravità, urti e rimbalzi. Controllo ravvicinato con velocità e punti intermedi attorno al corpo, senza agganci né teletrasporti durante il dribbling. Tiro caricato con Spazio, pallonetto con E e breve separazione dopo il calcio. R richiama esplicitamente la palla: reset applicato in `_integrate_forces` per restare affidabile anche dal browser mentre vola.
+- Pavimento fisico WorldBoundaryShape3D infinito; erba visiva ricentrata e shader con coordinate mondiali continue. Testato a 5.000 unità dall’origine senza cadute o bordo del campo. Camera ortografica isometrica fluida (size iniziale 34, limiti 24–46), HUD minimo, percentuale del tiro e comandi consultabili con H dalla configurazione comune.
+- 39/39 controlli nuovi: avvio, unico personaggio/assenza luci, scala e griglie originali, otto direzioni, camminata/scatto, controllo fisico della palla, inversioni improvvise, carica/rilascio, tiro a distanza rifiutato, gravità/rimbalzo, attrito, richiamo in volo, ombra a terra, H/focus e campo lontano dall’origine. Tutti i 239 controlli precedenti nuovamente superati senza modificarli: totale 278/278.
+- Anteprime native in `screenshots/football/` con sequenza da 10 s alla scala effettiva. Import/export Web release riusciti; in Chromium/WebGL 2 verificati avvio, movimento con frecce, H, carica/tiro, R dopo un tiro e successivo pallonetto, senza errori né scroll della pagina. Richiamo e palla sollevata verificati anche sulle immagini del browser; indicatore di carica ASCII per evitare glifi mancanti. Export Web aggiornato per la pubblicazione GitHub autorizzata; esito del deploy Vercel remoto da verificare.
+- Limiti della prima base: campo di prova libero, senza porte, squadre, punteggio o livelli; niente salto del personaggio o azioni da piattaforme ancora. Le pose di tiro sono quelle disponibili nella fonte (shoot diagonale / tackle cardinale); il pallonetto è fisico, non una nuova animazione disegnata.
+
+## Storico · Father & Son
 
 ## 0.6B · Integrazione ZIP animazioni dell’utente
 
