@@ -1,5 +1,11 @@
 # Roadmap · Campo Libero
 
+## Giocatore ridotto e pallonetto caricato
+
+- Camera iniziale mantenuta a 18, intervallo 12–34 invariato. Sprite ridotto esattamente del 25% rispetto alla versione precedente, con ancoraggio dei piedi corretto. Fisica e velocità conservate.
+- D ora carica il pallonetto e il rilascio lo esegue: durata massima 0.85 s, spinta verticale da 5 a 10. Velocità orizzontale fissa a 3.16: la carica regola l’altezza, pur aumentando naturalmente il tempo in volo. HUD distingue carica tiro/pallonetto; focus perso o R annullano la carica.
+- 64/64 test del calcio superati: aggiunti attesa durante carica, limite, impulso verticale, velocità orizzontale, altezza fisica raggiunta e annullamento al cambio focus. Anteprime native e Web in screenshots/football-06/. Export Web completato; avvio, comandi e carica/rilascio di D verificati in Chromium senza errori. Deploy Vercel remoto non verificato.
+
 ## Inquadratura ravvicinata
 
 - Zoom iniziale ortografico da 34 a 18: personaggio circa 1.9 volte più grande sullo schermo, senza cambiare sprite, fisica o velocità. Conservati orientamento isometrico e inseguimento fluido.

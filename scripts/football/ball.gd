@@ -64,8 +64,8 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 	if not (reachable(player) if lob else volley_reachable(player)):
 		return false
 	var force = clampf(power,0.0,1.0)
-	var speed = lerpf(2.6,4.2,force) if lob else lerpf(5.0,15.0,force)
-	linear_velocity = player.facing*speed+Vector3.UP*(lerpf(5.0,8.0,force) if lob else 0.8)
+	var speed = 3.16 if lob else lerpf(5.0,15.0,force)
+	linear_velocity = player.facing*speed+Vector3.UP*(lerpf(5.0,10.0,force) if lob else 0.8)
 	touch_lock = 0.4
 	controlled = false
 	sleeping = false

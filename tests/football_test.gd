@@ -47,7 +47,7 @@ func run() -> void:
 	game.desired_zoom = 18.0
 	var art = game.player.sprite.texture.get_image().get_region(Rect2i(0,0,61,61)).get_used_rect()
 	var height = art.size.y*game.player.sprite.pixel_size/game.camera.size*720.0
-	check(height>=72.0 and height<=82.0,"Close camera makes the player clearly readable at 1280x720")
+	check(height>=54.0 and height<=62.0,"Close camera makes the player clearly readable at 1280x720")
 	check(game.player.sprite.hframes==8 and game.player.sprite.vframes==6 and game.ball.sprite.hframes==8 and game.ball.sprite.vframes==4,"Original player and ball frames have valid packed grids")
 	for i in 8:
 		var angle = i*PI/4.0
@@ -113,7 +113,7 @@ func run() -> void:
 	command("recall")
 	await ticks(30)
 	check(game.attempt_kick(0.35,true),"A nearby ball accepts a lob")
-	check(absf(game.ball.linear_velocity.y-6.05)<0.01,"Short lob preserves its original vertical launch")
+	check(absf(game.ball.linear_velocity.y-6.75)<0.01,"Lob vertical launch follows its charge")
 	check(Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()<3.5,"Lob horizontal launch is shorter than the former 8.5")
 	var peak = 0.0
 	var bounced = false
@@ -149,7 +149,7 @@ func run() -> void:
 	game.player.facing = FootballControls.world_direction(Vector2.DOWN)
 	command("recall")
 	await ticks(30)
-	command("lob")
+	game.attempt_kick(0.35,true)
 	command("shoot")
 	Input.action_press("football_down")
 	await ticks(24)
@@ -179,6 +179,34 @@ func run() -> void:
 	command("shoot")
 	game._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	check(not game.charging and not game.player.charging,"Losing window focus cancels a pending kick")
+	command("recall")
+	await ticks(30)
+	command("lob")
+	await ticks(8)
+	check(game.charging_lob and game.ball.position.y<0.35,"Holding D charges without launching the ball")
+	command("lob",false)
+	var short_lob_up = game.ball.linear_velocity.y
+	var short_lob_forward = Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()
+	var short_peak = 0.0
+	for i in 150:
+		await physics_frame
+		short_peak = maxf(short_peak,game.ball.position.y)
+	command("recall")
+	await ticks(30)
+	command("lob")
+	await ticks(80)
+	check(is_equal_approx(game.charge_time,0.85),"Lob charge is capped when D stays held")
+	command("lob",false)
+	check(game.ball.linear_velocity.y>short_lob_up+3.0,"Long D hold launches higher than a short tap")
+	check(absf(Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()-short_lob_forward)<0.01,"Lob charge changes height without increasing horizontal launch speed")
+	var high_peak = 0.0
+	for i in 150:
+		await physics_frame
+		high_peak = maxf(high_peak,game.ball.position.y)
+	check(high_peak>short_peak+2.0,"Native lob trajectory reaches a visibly higher peak after longer hold")
+	command("lob")
+	game._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	check(not game.charging and not game.charging_lob,"Focus loss clears a charged lob without firing")
 	game.player.position = Vector3(5000,0.02,-5000)
 	game.player.velocity = Vector3.ZERO
 	await ticks(90)

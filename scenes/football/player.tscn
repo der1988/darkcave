@@ -29,11 +29,11 @@ position = Vector3(0,0.725,0)
 shape = SubResource("Body")
 
 [node name="Sprite3D" type="Sprite3D" parent="."]
-position = Vector3(0,0.85,0)
+position = Vector3(0,0.6375,0)
 texture = ExtResource("2")
 hframes = 8
 vframes = 6
-pixel_size = 0.1
+pixel_size = 0.075
 offset = Vector2(-0.5,0)
 billboard = 1
 texture_filter = 0

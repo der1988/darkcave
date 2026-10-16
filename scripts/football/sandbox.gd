@@ -10,6 +10,7 @@ extends Node3D
 @onready var feedback: Label = $HUD/Feedback
 var charge_time: float = 0.0
 var charging: bool = false
+var charging_lob: bool = false
 var desired_zoom: float = 18.0
 var feedback_time: float = 0.0
 
@@ -27,15 +28,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		feedback_time = 0.0
 		feedback.text = ""
 	elif event.is_action_pressed("football_shoot") and not event.is_echo():
-		charging = true
-		charge_time = 0.0
-		player.charging = true
-	elif event.is_action_released("football_shoot") and charging:
+		begin_charge(false)
+	elif event.is_action_released("football_shoot") and charging and not charging_lob:
 		attempt_kick(clampf(charge_time/0.85,0.0,1.0),false)
 		cancel_charge()
 	elif event.is_action_pressed("football_lob") and not event.is_echo():
+		begin_charge(true)
+	elif event.is_action_released("football_lob") and charging and charging_lob:
+		attempt_kick(clampf(charge_time/0.85,0.0,1.0),true)
 		cancel_charge()
-		attempt_kick(0.35,true)
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 			desired_zoom = maxf(12.0,desired_zoom-2.0)
@@ -54,7 +55,7 @@ func _process(delta: float) -> void:
 	camera.size = lerpf(camera.size,desired_zoom,1.0-exp(-10.0*delta))
 	feedback_time = maxf(0.0,feedback_time-delta)
 	if charging:
-		feedback.text = "TIRO %d%%" % roundi(charge_time/0.85*100.0)
+		feedback.text = ("PALLONETTO %d%%" if charging_lob else "TIRO %d%%") % roundi(charge_time/0.85*100.0)
 	elif feedback_time<=0.0:
 		feedback.text = "Palla lontana · R per richiamarla" if player.position.distance_to(ball.position)>16.0 else ""
 
@@ -65,8 +66,15 @@ func attempt_kick(power: float, lob: bool) -> bool:
 		feedback_time = 1.2
 	return success
 
+func begin_charge(lob: bool) -> void:
+	charging = true
+	charging_lob = lob
+	charge_time = 0.0
+	player.charging = true
+
 func cancel_charge() -> void:
 	charging = false
+	charging_lob = false
 	charge_time = 0.0
 	player.charging = false
 

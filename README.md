@@ -11,7 +11,7 @@ web/ contiene l’export Godot pronto per Vercel. Il push su main attiva il depl
 | Frecce | Muovi in otto direzioni rispetto allo schermo |
 | Shift | Scatta |
 | A tenuto e rilasciato | Carica e tira nella direzione del giocatore |
-| D | Pallonetto corto |
+| D tenuto e rilasciato | Carica l’altezza del pallonetto |
 | S | Salta |
 | R | Richiama la palla ai piedi |
 | H | Mostra / nascondi i comandi |
@@ -41,6 +41,8 @@ La precedente scena Father & Son e i suoi test sono conservati nello storico del
 
 Il terreno è volutamente semplice: verde uniforme, pochi segni pixel art, ciuffi e sassi radi. Il giocatore è circa il 25% più grande rispetto alla prima prova; la corsa con Shift raggiunge 8 unità/s (prima 6), la camminata resta a 3.6.
 
-Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-05/.
+Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-06/.
 
 Camera ravvicinata: zoom iniziale 18 (prima 34), regolabile fra 12 e 34 con la rotellina.
+
+Camera invariata; sprite ridotto del 25% rispetto alla versione precedente. D carica fino a 0.85 secondi: più a lungo tieni premuto, più alto sarà il pallonetto al rilascio.
