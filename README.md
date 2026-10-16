@@ -41,10 +41,12 @@ La precedente scena Father & Son e i suoi test sono conservati nello storico del
 
 Il terreno è volutamente semplice: verde uniforme, pochi segni pixel art, ciuffi e sassi radi. Il giocatore è circa il 25% più grande rispetto alla prima prova; la corsa con Shift raggiunge 10 unità/s, la camminata 4.5.
 
-Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-07/.
+Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-08/.
 
 Camera ravvicinata: zoom iniziale 18 (prima 34), regolabile fra 12 e 34 con la rotellina.
 
 Camera invariata; sprite ridotto del 25% rispetto alla versione precedente. D carica fino a 0.85 secondi: più a lungo tieni premuto, più alto sarà il pallonetto al rilascio.
 
-Velocità aumentata del 25% sia camminando sia correndo. Il tiro A ha potenza 4.5–11, traiettoria bassa e resistenza dell’aria proporzionale al quadrato della velocità; il tiro al volo viene diretto leggermente verso il suolo.
+Velocità aumentata del 25% sia camminando sia correndo. Il tiro A ha potenza 4.5–14, traiettoria bassa e resistenza dell’aria proporzionale al quadrato della velocità; il tiro al volo viene diretto leggermente verso il suolo.
+
+Tiri A più forti: oltre il 55% di carica la palla inizia ad alzarsi progressivamente. Ombre di contatto più leggibili sotto giocatore e pallone. I passi lasciano tracce che svaniscono entro sei secondi. Due alberi davanti al punto iniziale delimitano una porta libera, senza punteggio automatico.

@@ -2,7 +2,7 @@ class_name FootballBall
 extends RigidBody3D
 
 @export var shot_min_speed: float = 4.5
-@export var shot_max_speed: float = 11.0
+@export var shot_max_speed: float = 14.0
 @export var air_drag: float = 0.006
 @export var rolling_deceleration: float = 1.2
 
@@ -79,7 +79,7 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 	else:
 		# Normalize direction before applying power, like the source football game.
 		# A ground strike stays low; a volley is driven gently down toward the turf.
-		var lift = -0.08 if position.y>0.5 else lerpf(0.04,0.10,force)
+		var lift = -0.08 if position.y>0.5 else lerpf(0.02,0.32,smoothstep(0.55,1.0,force))
 		var direction = (player.facing+Vector3.UP*lift).normalized()
 		linear_velocity = direction*lerpf(shot_min_speed,shot_max_speed,force)
 	touch_lock = 0.4

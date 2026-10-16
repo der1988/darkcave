@@ -21,3 +21,5 @@ Inquadratura attuale molto più vicina: dimensione ortografica 18, zoom manuale 
 Ultima modifica: sprite ridotto del 25%, stessa camera ravvicinata. Pallonetto caricato tenendo D e lanciato al rilascio: carica massima 0.85 s, impulso verticale 5–10, impulso orizzontale costante 3.16. La carica A per il tiro al volo resta disponibile.
 
 Tiro aggiornato seguendo `footballgame/src/entity_ball.c` e `physics.c`: direzione normalizzata, carica con velocità 4.5–11 (prima 5–15), alzata bassa, volée leggermente discendente, resistenza quadratica dell’aria e rotolamento uniforme in ogni direzione. Il motore fisico resta Godot; pallonetto D e camera invariati.
+
+Aggiornamento attuale: tiro massimo 14, alzata progressiva oltre 55% della carica; tap basso e volée discendente conservati. Ombre di contatto rafforzate. Tracce dei passi in un pool limitato a 128, durata 6 s, nessuna traccia in salto o da fermo. Due alberi (tronchi con collisione, chiome decorative) segnano una porta senza contatore gol.

@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/football/sandbox.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
@@ -6,6 +6,9 @@
 [ext_resource type="Shader" path="res://assets/football/grass.gdshader" id="4"]
 
 [ext_resource type="Script" path="res://scripts/football/terrain.gd" id="5"]
+
+[ext_resource type="Script" path="res://scripts/football/grass_trails.gd" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/football/tree.tscn" id="7"]
 
 [sub_resource type="WorldBoundaryShape3D" id="Floor"]
 
@@ -43,6 +46,17 @@ cast_shadow = 0
 
 [node name="Terrain" type="Node3D" parent="."]
 script = ExtResource("5")
+
+[node name="GrassTrails" type="Node3D" parent="."]
+script = ExtResource("6")
+
+[node name="GoalTrees" type="Node3D" parent="."]
+
+[node name="LeftTree" parent="GoalTrees" instance=ExtResource("7")]
+position = Vector3(-5,0,-1)
+
+[node name="RightTree" parent="GoalTrees" instance=ExtResource("7")]
+position = Vector3(-1,0,-5)
 
 [node name="Player" parent="." instance=ExtResource("2")]
 

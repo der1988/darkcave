@@ -1,5 +1,13 @@
 # Roadmap · Campo Libero
 
+## Tiro sollevato, ombre, tracce e porta tra alberi
+
+- Tiro massimo A da 11 a 14; oltre 55% della carica aumenta gradualmente l’alzata, fino a una traiettoria chiaramente staccata da terra. Restano tap basso, volée e pallonetto D.
+- Ombre di contatto più marcate sotto giocatore e pallone, sempre sul terreno anche durante salti e lanci.
+- Modulo separato per tracce dei passi: impronte alternate, dissolvenza entro 6 secondi, pool fisso di 128 segni. Nessuna traccia da fermo, in salto o durante riposizionamenti di prova.
+- Due alberi in scala davanti al punto iniziale delimitano la porta. Collisioni sui tronchi, spazio centrale libero; chiome decorative e ombre al suolo. Nessun sistema di punteggio aggiunto.
+- 73/73 test del calcio superati: traiettoria del tiro forte, creazione e scomparsa tracce, collisioni alberi e apertura libera, oltre alle verifiche esistenti. Anteprime in screenshots/football-08/. Export Web completato; prova Chromium/WebGL senza errori, comandi e H funzionanti. Deploy Vercel remoto non verificato.
+
 ## Movimento +25% e tiro meno potente
 
 - Camminata 3.6→4.5 e corsa 8→10 unità/s, entrambe +25%. Sprite, camera e salto invariati. Risposta del dribbling più pronta e velocità di correzione limitata per conservare la palla durante inversioni alla nuova velocità.

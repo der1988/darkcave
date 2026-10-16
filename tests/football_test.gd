@@ -55,6 +55,13 @@ func run() -> void:
 		var direction = FootballControls.world_direction(input)
 		check(FootballControls.orientation(direction)==i,"Original directional art follows screen direction "+str(i))
 	check(game.player.is_on_floor() and game.ball.position.y>=0.19,"Player and ball rest on the native infinite floor")
+	var trees = game.get_node("GoalTrees")
+	check(trees.get_child_count()==2,"Two physical trees mark the goal")
+	var space = game.get_world_3d().direct_space_state
+	var trunk_ray = PhysicsRayQueryParameters3D.create(Vector3(-5,0.7,-3),Vector3(-5,0.7,1),1)
+	check(not space.intersect_ray(trunk_ray).is_empty(),"Goal tree trunks block physical bodies")
+	var opening_ray = PhysicsRayQueryParameters3D.create(Vector3(-1,0.7,-1),Vector3(-5,0.7,-5),1)
+	check(space.intersect_ray(opening_ray).is_empty(),"Goal opening between the trees stays clear")
 	var start = game.player.position
 	Input.action_press("football_down")
 	var largest_gap = 0.0
@@ -65,6 +72,8 @@ func run() -> void:
 		largest_gap = maxf(largest_gap,game.player.position.distance_to(game.ball.position))
 		max_step = maxf(max_step,game.ball.position.distance_to(previous))
 	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>4.4,"Walking is 25 percent faster while controlling the ball")
+	var trails = game.get_node("GrassTrails")
+	check(trails.ages.count(6.0)<128,"Walking leaves temporary marks in the grass")
 	Input.action_release("football_down")
 	check(game.player.position.distance_to(start)>16.0,"Movement advances continuously across the field")
 	check(largest_gap<1.5 and max_step<0.2,"Dribbling rolls the native ball smoothly, without teleporting")
@@ -105,14 +114,19 @@ func run() -> void:
 	var position_before = game.ball.position
 	command("shoot",false)
 	var charged_speed = Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()
-	check(charged_speed>tap_speed+4.0 and charged_speed<11.01 and game.ball.position.is_equal_approx(position_before),"Full charge adds velocity, never moves the ball instantly")
+	check(charged_speed>tap_speed+4.0 and charged_speed<14.01 and game.ball.position.is_equal_approx(position_before),"Full charge adds velocity, never moves the ball instantly")
 	check(not game.charging and not game.player.charging,"Release clears charging state")
 	var shot_origin = game.ball.position
-	await ticks(30)
+	var strong_peak = 0.0
+	for i in 30:
+		await physics_frame
+		strong_peak = maxf(strong_peak,game.ball.position.y)
+	check(strong_peak>0.75,"A strongly charged shot lifts clearly off the grass")
 	check(game.ball.linear_velocity.length()<charged_speed,"Air and grass resistance reduce shot speed after release")
 	await ticks(570)
 	print("Shot travel=",game.ball.position.distance_to(shot_origin))
-	check(game.ball.position.distance_to(shot_origin)>5.0 and game.ball.position.distance_to(shot_origin)<18.0,"Full shot travels a moderate distance before stopping")
+	check(game.ball.position.distance_to(shot_origin)>5.0 and game.ball.position.distance_to(shot_origin)<35.0,"Full shot travels a moderate distance before stopping")
+	check(trails.ages.count(6.0)==128,"Grass marks expire completely after standing still")
 	check(game.ball.position.y>=0.19 and game.ball.linear_velocity.length()<0.25,"Grass resistance eventually stops the shot on the floor")
 	game.ball.position = game.player.position+Vector3(10,0.22,0)
 	check(not game.attempt_kick(1.0,false),"A distant ball cannot be kicked remotely")

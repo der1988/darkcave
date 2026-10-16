@@ -1,0 +1,58 @@
+[gd_scene load_steps=9 format=3]
+
+[sub_resource type="StandardMaterial3D" id="Bark"]
+albedo_color = Color(0.30,0.23,0.16,1)
+roughness = 1.0
+[sub_resource type="CylinderMesh" id="Trunk"]
+material = SubResource("Bark")
+top_radius = 0.13
+bottom_radius = 0.22
+height = 2.0
+radial_segments = 6
+[sub_resource type="CylinderShape3D" id="Collision"]
+radius = 0.22
+height = 2.0
+[sub_resource type="StandardMaterial3D" id="Leaves"]
+albedo_color = Color(0.18,0.33,0.18,1)
+roughness = 1.0
+[sub_resource type="SphereMesh" id="Crown"]
+material = SubResource("Leaves")
+radius = 1.05
+height = 1.8
+radial_segments = 7
+rings = 3
+[sub_resource type="StandardMaterial3D" id="ShadowMaterial"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0.04,0.07,0.03,0.25)
+[sub_resource type="CylinderMesh" id="Shadow"]
+material = SubResource("ShadowMaterial")
+top_radius = 1.0
+bottom_radius = 1.0
+height = 0.001
+radial_segments = 12
+[sub_resource type="StandardMaterial3D" id="Highlights"]
+albedo_color = Color(0.27,0.41,0.22,1)
+roughness = 1.0
+
+[node name="Tree" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 48
+[node name="Trunk" type="MeshInstance3D" parent="."]
+position = Vector3(0,1,0)
+mesh = SubResource("Trunk")
+[node name="Collision" type="CollisionShape3D" parent="."]
+position = Vector3(0,1,0)
+shape = SubResource("Collision")
+[node name="Crown" type="MeshInstance3D" parent="."]
+position = Vector3(0,2.3,0)
+mesh = SubResource("Crown")
+[node name="CrownTop" type="MeshInstance3D" parent="."]
+position = Vector3(-0.25,2.9,-0.2)
+scale = Vector3(0.75,0.8,0.75)
+mesh = SubResource("Crown")
+material_override = SubResource("Highlights")
+[node name="Shadow" type="MeshInstance3D" parent="."]
+position = Vector3(0,0.006,0)
+mesh = SubResource("Shadow")
+cast_shadow = 0
