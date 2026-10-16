@@ -12,7 +12,7 @@ func ticks(count: int) -> void:
 
 func shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
-	assert(root.get_texture().get_image().save_png("res://screenshots/football-02/"+name+".png")==OK)
+	assert(root.get_texture().get_image().save_png("res://screenshots/football-03/"+name+".png")==OK)
 
 func run() -> void:
 	game = load("res://scenes/football/main.tscn").instantiate()
@@ -39,6 +39,25 @@ func run() -> void:
 	await ticks(14)
 	await shot("04-salto")
 	await ticks(106)
+	game.ball.recall(game.player)
+	await ticks(30)
+	game.player.facing = FootballControls.world_direction(Vector2.DOWN)
+	game.ball.recall(game.player)
+	await ticks(30)
+	game.attempt_kick(0.35,true)
+	var charge = InputEventAction.new()
+	charge.action = "football_shoot"
+	charge.pressed = true
+	game._unhandled_input(charge)
+	Input.action_press("football_down")
+	await ticks(24)
+	game.player.jump()
+	await ticks(16)
+	Input.action_release("football_down")
+	charge.pressed = false
+	game._unhandled_input(charge)
+	await ticks(1)
+	await shot("05-tiro-al-volo")
 	game.queue_free()
 	await process_frame
 	quit()

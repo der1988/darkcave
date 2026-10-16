@@ -15,8 +15,9 @@ func _ready() -> void:
 		var angle = blade*2.4
 		var base = Vector3(cos(angle),0,sin(angle))*0.09
 		var side = Vector3(cos(angle+1.57),0,sin(angle+1.57))*0.035
-		for point in [base-side,base+side,base+Vector3(0.06,0.26+blade*0.035,0)]:
-			surface.set_color(Color(0.24,0.37,0.13) if point.y<0.01 else Color(0.40,0.48,0.21))
+		var top = Vector3(0.0,0.25+blade*0.04,0)
+		for point in [base-side,base+side,base+side+top,base-side,base+side+top,base-side+top]:
+			surface.set_color(Color(0.18,0.32,0.23) if point.y<0.01 else Color(0.43,0.56,0.31))
 			surface.add_vertex(point)
 	tuft_mesh = surface.commit()
 	var grass_material = StandardMaterial3D.new()

@@ -1,4 +1,4 @@
-# Campo Libero · 0.2
+# Campo Libero · 0.3
 
 Prima base per un gioco di calcio arcade isometrico, con l’idea del pallone come strumento di movimento e gioco ispirata a Soccer Kid. Non è ancora una partita fra squadre.
 
@@ -13,3 +13,5 @@ Prima base per un gioco di calcio arcade isometrico, con l’idea del pallone co
 Per ora l’obiettivo è studiare movimento, scala, animazioni e rapporto con il pallone. Porte, avversari, punteggi, livelli e altre meccaniche da piattaforme non fanno parte di questa prima prova.
 
 Il terreno alterna erba corta, zone secche, ciuffi alti e piccoli sassi decorativi in scala. Le decorazioni non cambiano le collisioni; venticinque settori vengono rigenerati deterministicamente durante il viaggio. Anteprime aggiornate in screenshots/football-02/.
+
+Terreno pixel art a palette discreta, ispirato alle sei varianti fornite: prato fitto, erba con terra scoperta, tappeto basso, vegetazione rada alta, terreno umido e tratti consumati. Le zone umide restano decorative, senza meccaniche acquatiche. Il tiro con A può essere caricato in aria e rilasciato su un pallone vicino entro altezza raggiungibile, anche saltando; il dribbling rimane solo a terra. Anteprime in screenshots/football-03/.

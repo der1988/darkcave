@@ -39,10 +39,10 @@ func drive(direction: Vector3, sprint: bool, delta: float) -> void:
 	var distance = Vector2(position.x-previous.x,position.z-previous.z).length()
 	kick_time = maxf(0.0,kick_time-delta)
 	var row = 0
-	if not is_on_floor():
-		row = 2
-	elif kick_time>0.0:
+	if kick_time>0.0:
 		row = 5
+	elif not is_on_floor():
+		row = 2
 	elif distance>0.002:
 		run_phase = fposmod(run_phase+distance/0.36,4.0)
 		row = 1+int(run_phase)

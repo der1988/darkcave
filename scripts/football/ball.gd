@@ -34,6 +34,12 @@ func reachable(player: FootballPlayer) -> bool:
 	var gap = Vector2(position.x-player.position.x,position.z-player.position.z).length()
 	return player.is_on_floor() and gap<1.05 and position.y<0.75 and touch_lock<=0.0
 
+# A volley has its own reach envelope; it must never enable airborne dribbling.
+func volley_reachable(player: FootballPlayer) -> bool:
+	var gap = Vector2(position.x-player.position.x,position.z-player.position.z).length()
+	var relative_height = position.y-player.position.y
+	return gap<1.2 and relative_height>=0.15 and relative_height<=1.6 and touch_lock<=0.0
+
 func control_near(player: FootballPlayer, delta: float) -> void:
 	controlled = false
 	if not reachable(player) or position.y>0.34 or linear_velocity.length()>9.0:
@@ -55,7 +61,7 @@ func control_near(player: FootballPlayer, delta: float) -> void:
 	controlled = true
 
 func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
-	if not reachable(player):
+	if not (reachable(player) if lob else volley_reachable(player)):
 		return false
 	var force = clampf(power,0.0,1.0)
 	var speed = lerpf(2.6,4.2,force) if lob else lerpf(5.0,15.0,force)

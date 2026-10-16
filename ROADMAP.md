@@ -1,5 +1,12 @@
 # Roadmap · Campo Libero
 
+## Calcio isometrico · 0.3 · pixel art e tiro al volo
+
+- Terreno con pixel ancorati al mondo e palette discreta, sei famiglie ispirate al riferimento dell’utente: prato fitto, terra scoperta, erba bassa, vegetazione rada alta, terreno umido e tracce consumate. Ciuffi verticali più netti; mantenuti sassi, streaming e collisioni.
+- Tiro al volo con la stessa carica A: portata orizzontale 1.2 e altezza relativa 0.15–1.6, controllate al rilascio. Funziona anche saltando; nessun aggancio o riposizionamento della palla. Il pallonetto e il dribbling conservano le precedenti restrizioni al suolo. Posa del calcio visibile anche in salto.
+- 56/56 controlli del calcio, inclusa sequenza fisica pallonetto/carica/rincorsa/salto/tiro e rifiuto di palloni troppo alti; 239/239 regressioni storiche. Totale 295/295. Anteprime native e Web in screenshots/football-03/, inclusa posa del tiro al volo; export Web aggiornato. Avvio e comandi verificati in Chromium/WebGL senza errori, H ripristina correttamente la guida. Deploy Vercel remoto non verificato.
+- Limiti: terreno ancora procedurale a palette pixel art, non un tileset dipinto; zone umide decorative e pose originali riutilizzate per il tiro al volo.
+
 ## Calcio isometrico · 0.2 · terreno e comandi
 
 - Terreno con variazioni naturali di erba corta e zone secche, ciuffi tridimensionali di erba alta e piccoli sassi in scala. Modulo decorativo separato, deterministico e limitato a 25 settori attorno al giocatore; nessuna modifica alle collisioni della palla.
