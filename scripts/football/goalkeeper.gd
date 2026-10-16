@@ -164,6 +164,7 @@ func try_parry(allow_catch: bool = false) -> bool:
 		state = State.HOLD
 		state_time = 0.0
 		ball.held_by = self
+		ball.last_kick_volley = false
 		ball.freeze = true
 		ball.sprite.visible = false
 		ball.linear_velocity = Vector3.ZERO

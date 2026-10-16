@@ -7,6 +7,8 @@ extends RigidBody3D
 
 @onready var sprite: Sprite3D = $Sprite3D
 @onready var shadow: MeshInstance3D = $Shadow
+var play_id: int = 0
+var last_kick_volley: bool = false
 var held_by: Node = null
 var release_velocity = Vector3.ZERO
 var flight_age: float = 100.0
@@ -64,7 +66,7 @@ func reachable(player: FootballPlayer) -> bool:
 func volley_reachable(player: FootballPlayer) -> bool:
 	var gap = Vector2(position.x-player.position.x,position.z-player.position.z).length()
 	var relative_height = position.y-player.position.y
-	return held_by==null and gap<1.45 and relative_height>=0.15 and relative_height<=1.9 and touch_lock<=0.0
+	return held_by==null and gap<1.8 and relative_height>=0.15 and relative_height<=2.3 and touch_lock<=0.0
 
 func control_near(player: FootballPlayer, delta: float) -> void:
 	controlled = false
@@ -89,6 +91,8 @@ func control_near(player: FootballPlayer, delta: float) -> void:
 func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 	if not (reachable(player) if lob else volley_reachable(player)):
 		return false
+	play_id += 1
+	last_kick_volley = not lob and (position.y>0.4 or bounce_age<0.15)
 	var force = clampf(power,0.0,1.0)
 	if lob:
 		linear_velocity = player.facing*lerpf(3.0,10.5,force)+Vector3.UP*lerpf(8.0,6.0,force)
@@ -111,6 +115,8 @@ func recall(player: FootballPlayer) -> void:
 		held_by.release_ball()
 	release_velocity = Vector3.ZERO
 	flight_age = 100.0
+	play_id += 1
+	last_kick_volley = false
 	# Explicit practice control; never used by dribbling or shooting.
 	pending_recall = player.global_position+player.facing*0.85+Vector3.UP*0.22
 	pending_recall.y = 0.22
@@ -134,6 +140,8 @@ func contact_multiplier() -> float:
 func pass_to(player: FootballPlayer, target: Vector3, power: float, high: bool) -> bool:
 	if not reachable(player):
 		return false
+	play_id += 1
+	last_kick_volley = false
 	var direction = target-position
 	direction.y = 0.0
 	if direction.length()<0.1:

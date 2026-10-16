@@ -14,6 +14,7 @@ Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è il prototipo 
 - Scena di avvio: `scenes/football/main.tscn`; giocatore e palla nelle due scene accanto.
 - Animazioni originali portiere: `scripts/football/goalkeeper_sprite.gd`, atlas/manifest `assets/football/goalkeeper.*`; import riproducibile `tools/import_goalkeeper_art.gd`.
 - Portiere: `scripts/football/goalkeeper.gd` e `scenes/football/goalkeeper.tscn`.
+- Smarcamenti: `scripts/football/teammate_support.gd`; gol al volo: `scripts/football/volley_goal.gd`.
 - Input: `scripts/football/controls.gd`; movimento e animazione: `scripts/football/player.gd`.
 - Tracce temporanee: `scripts/football/grass_trails.gd`; alberi-porta: `scenes/football/tree.tscn`.
 - Terreno decorativo: `scripts/football/terrain.gd`; colore dell’erba: `assets/football/grass.gdshader`.

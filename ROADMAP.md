@@ -1,5 +1,14 @@
 # Roadmap · Campo Libero
 
+## Smarcamenti e obiettivo gol al volo
+
+- Modulo di supporto dedicato: compagno senza palla alterna piccole corse di smarcamento vicino al portatore, senza rimanere fermo in attesa di un passaggio. Scelta del lato coerente e spazio davanti alla porta; accelerazione/collisioni esistenti. Sprite rivolto alla palla anche durante il movimento.
+- Sui passaggi alti il controllo passa al ricevente quando il pallone è vicino e ancora in aria, per preparare il tiro senza attendere il controllo a terra. Carica A mantenuta durante il cambio.
+- Volée più accessibile: portata 1.8 e altezza relativa 2.3, anticipo massimo 0.38 s. Tiro eseguito soltanto al contatto utile; mezzo-volo ammesso entro 0.15 s dal rimbalzo. Nessuna attrazione o teletrasporto della palla.
+- Obiettivo visibile: segnare al volo. Rilevamento continuo dell’attraversamento della linea fra gli alberi, altezza limite 2.44 m, margine del pallone ai pali, conteggio univoco per tiro. Tiri rasoterra e palloni fuori altezza non contano; la presa del portiere interrompe la qualifica di volée.
+- 125/125 test del calcio superati: movimento/facing del compagno, separazione e passi fisici, controllo anticipato in ricezione, margini volée, gol valido, doppio conteggio rifiutato, tiro rasoterra e alto non validi, oltre alle verifiche esistenti. Anteprime in screenshots/football-13/. Export Web completato; avvio, passaggi, salto, tiro e H verificati in Chromium/WebGL senza errori o scroll. Deploy Vercel remoto non verificato.
+- Limiti: smarcamento semplice di un singolo compagno, nessuna tattica di squadra o rete fisica aggiunta. La camera resta fissa.
+
 ## Compagno, passaggi e volée
 
 - Aggiunto un secondo calciatore, stesso sprite/scala e collisioni reciproche. Un solo controllato alla volta: passaggio e ricezione trasferiscono il controllo al compagno senza riposizionare attori o palla.

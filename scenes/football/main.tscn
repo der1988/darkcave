@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/football/sandbox.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
@@ -11,6 +11,8 @@
 [ext_resource type="PackedScene" path="res://scenes/football/tree.tscn" id="7"]
 
 [ext_resource type="PackedScene" path="res://scenes/football/goalkeeper.tscn" id="8"]
+
+[ext_resource type="Script" path="res://scripts/football/volley_goal.gd" id="9"]
 
 [sub_resource type="WorldBoundaryShape3D" id="Floor"]
 
@@ -31,6 +33,9 @@ reflected_light_source = 2
 
 [node name="FootballSandbox" type="Node3D"]
 script = ExtResource("1")
+
+[node name="VolleyGoal" type="Node" parent="."]
+script = ExtResource("9")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Daylight")
@@ -97,11 +102,11 @@ text = "CAMPO LIBERO"
 [node name="Subtitle" type="Label" parent="HUD"]
 offset_left = 24.0
 offset_top = 46.0
-offset_right = 320.0
+offset_right = 550.0
 offset_bottom = 65.0
 theme_override_colors/font_color = Color(0.94,0.98,0.89,0.5)
 theme_override_font_sizes/font_size = 12
-text = "Un pallone, nessun confine."
+text = "Obiettivo: segna al volo · D per alzare, A per tirare"
 
 [node name="Controls" type="Label" parent="HUD"]
 anchor_top = 1.0

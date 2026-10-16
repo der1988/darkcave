@@ -7,6 +7,7 @@ extends CharacterBody3D
 @export var jump_speed: float = 6.0
 @onready var shadow: MeshInstance3D = $Shadow
 @onready var sprite: Sprite3D = $Sprite3D
+var look_at_ball: Vector3 = Vector3.INF
 var facing = Vector3(1,0,1).normalized()
 var run_phase: float = 0.0
 var kick_time: float = 0.0
@@ -37,7 +38,12 @@ func drive(direction: Vector3, sprint: bool, delta: float) -> void:
 	shadow.position.y = 0.012-position.y
 	var shadow_size = 1.0/(1.0+maxf(position.y,0.0)*0.5)
 	shadow.scale = Vector3(shadow_size,1.0,shadow_size)
-	if direction.length_squared()>0.01:
+	if not controlled and look_at_ball.is_finite():
+		var look = look_at_ball-position
+		look.y = 0.0
+		if look.length_squared()>0.01:
+			facing = look.normalized()
+	elif direction.length_squared()>0.01:
 		facing = direction.normalized()
 	var distance = Vector2(position.x-previous.x,position.z-previous.z).length()
 	kick_time = maxf(0.0,kick_time-delta)

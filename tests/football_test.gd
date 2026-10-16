@@ -415,7 +415,7 @@ func run() -> void:
 	game.player.velocity = Vector3.ZERO
 	game.teammate.position = Vector3(5,0,0)
 	await ticks(30)
-	game.ball.pending_recall = game.player.position+game.player.facing*1.7+Vector3.UP*0.9
+	game.ball.pending_recall = game.player.position+game.player.facing*2.1+Vector3.UP*0.9
 	await ticks(2)
 	game.ball.linear_velocity = -game.player.facing*4.0
 	game.ball.touch_lock = 0.0
@@ -432,7 +432,7 @@ func run() -> void:
 	game.ball.touch_lock = 0.0
 	game.ball.linear_velocity = game.player.facing*2.0
 	game.attempt_kick(0.65,false)
-	await ticks(18)
+	await ticks(30)
 	check(game.volley_buffer==0.0 and game.ball.linear_velocity.length()<10.0,"Unreachable early volley expires without firing a delayed remote shot")
 	game.ball.pending_recall = game.player.position+game.player.facing*2.2+Vector3.UP*0.9
 	await ticks(2)
@@ -440,6 +440,72 @@ func run() -> void:
 	game.attempt_kick(0.65,false)
 	game._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	check(game.volley_buffer==0.0,"Focus loss cancels pending volley assistance")
+	# Supporting runs keep the non-controlled player involved and facing the ball.
+	command("recall")
+	game.player.position = Vector3.ZERO
+	game.player.velocity = Vector3.ZERO
+	game.teammate.position = Vector3(3,0,-2)
+	game.teammate.velocity = Vector3.ZERO
+	await ticks(30)
+	var support_start = game.teammate.position
+	var support_distance = 0.0
+	var support_step = 0.0
+	var facing_error = 0.0
+	for i in 240:
+		var before = game.teammate.position
+		await physics_frame
+		support_distance += game.teammate.position.distance_to(before)
+		support_step = maxf(support_step,game.teammate.position.distance_to(before))
+		var look = game.ball.position-game.teammate.position
+		look.y = 0.0
+		if look.length()>0.2:
+			facing_error = maxf(facing_error,game.teammate.facing.angle_to(look.normalized()))
+	check(support_distance>2.0 and game.teammate.position.distance_to(support_start)>0.3,"Off-ball teammate makes supporting runs without needing a pass")
+	check(support_step<0.08 and game.teammate.position.distance_to(game.player.position)>1.0,"Supporting runs use physical movement and keep separation")
+	check(facing_error<0.15,"Moving teammate stays oriented toward the ball")
+	command("recall")
+	await ticks(30)
+	game.attempt_pass(1.0,true)
+	var aerial_receiver = game.teammate
+	var switched_airborne = false
+	for i in 80:
+		await physics_frame
+		if game.player==aerial_receiver and game.ball.position.y>0.4:
+			switched_airborne = true
+			break
+	check(switched_airborne,"High-pass recipient becomes controllable before the ball lands for a volley")
+	command("recall")
+	await ticks(3)
+	var goal = game.get_node("VolleyGoal")
+	var goals_before = goal.volley_goals
+	var center = game.ball.goal_center
+	var normal = -center.normalized()
+	game.ball.play_id += 1
+	game.ball.last_kick_volley = true
+	game.ball.flight_age = 0.0
+	goal.armed = true
+	goal.previous = center+normal*0.4+Vector3.UP*1.0
+	game.ball.position = center-normal*0.4+Vector3.UP*1.0
+	goal._physics_process(0.0)
+	check(goal.volley_goals==goals_before+1,"Swept crossing between trees records a volley goal")
+	goal.armed = true
+	goal.previous = center+normal*0.4+Vector3.UP*1.0
+	goal._physics_process(0.0)
+	check(goal.volley_goals==goals_before+1,"One volley cannot be counted twice")
+	game.ball.play_id += 1
+	game.ball.last_kick_volley = false
+	goal.armed = true
+	goal.previous = center+normal*0.4+Vector3.UP*0.2
+	game.ball.position = center-normal*0.4+Vector3.UP*0.2
+	goal._physics_process(0.0)
+	check(goal.volley_goals==goals_before+1,"A ground shot does not complete the volley objective")
+	game.ball.play_id += 1
+	game.ball.last_kick_volley = true
+	goal.armed = true
+	goal.previous = center+normal*0.4+Vector3.UP*3.0
+	game.ball.position = center-normal*0.4+Vector3.UP*3.0
+	goal._physics_process(0.0)
+	check(goal.volley_goals==goals_before+1,"Shot above goal height does not count")
 	game.queue_free()
 	await process_frame
 	print("RESULT football: ",checks-failures,"/",checks,"; max dribble gap=",largest_gap," max step=",max_step)

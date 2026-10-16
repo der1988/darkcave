@@ -15,6 +15,8 @@ var charging_lob: bool = false
 var desired_zoom: float = 18.72
 var pass_receiver: FootballPlayer
 var receive_target = Vector3.ZERO
+var support = FootballTeammateSupport.new()
+var pass_high: bool = false
 var pass_age: float = 0.0
 var volley_buffer: float = 0.0
 var volley_power: float = 0.0
@@ -72,20 +74,26 @@ func _physics_process(delta: float) -> void:
 		gap.y = 0.0
 		if gap.length()>0.2:
 			direction = gap.normalized()
-		if pass_age>0.25 and ball.reachable(pass_receiver) and ball.position.y<0.35:
+		var ground_receive = ball.reachable(pass_receiver) and ball.position.y<0.35
+		var aerial_receive = pass_high and ball.held_by==null and ball.position.y>0.35 and ball.position.y<3.2 and Vector2(ball.position.x-pass_receiver.position.x,ball.position.z-pass_receiver.position.z).length()<2.6
+		if pass_age>0.25 and (ground_receive or aerial_receive):
 			var previous = player
 			player = pass_receiver
 			teammate = previous
 			previous.controlled = false
 			previous.charging = false
 			player.controlled = true
-			feedback.text = "Palla al compagno"
+			player.charging = charging
+			feedback.text = "A · Tira al volo" if aerial_receive else "Palla al compagno"
 			feedback_time = 0.8
 			pass_receiver = null
 			volley_buffer = 0.0
 		elif pass_age>4.0 or ball.held_by!=null:
 			pass_receiver = null
-	teammate.drive(direction if pass_receiver!=null else Vector3.ZERO,false,delta)
+	if pass_receiver==null:
+		direction = support.direction(player,teammate,ball,delta)
+	teammate.look_at_ball = ball.position
+	teammate.drive(direction,false,delta)
 	ball.control_near(player,delta)
 	if charging:
 		charge_time = minf(0.85,charge_time+delta)
@@ -106,8 +114,8 @@ func attempt_kick(power: float, lob: bool) -> bool:
 		pass_receiver = null
 	if not success and not lob and ball.held_by==null:
 		var gap = Vector2(ball.position.x-player.position.x,ball.position.z-player.position.z).length()
-		if gap<2.5 and ball.position.y>0.35:
-			volley_buffer = 0.22
+		if gap<3.0 and ball.position.y>0.35:
+			volley_buffer = 0.38
 			volley_power = power
 			feedback.text = ""
 			return false
@@ -123,6 +131,7 @@ func attempt_pass(power: float, high: bool) -> bool:
 		feedback_time = 1.2
 		return false
 	pass_receiver = teammate
+	pass_high = high
 	pass_age = 0.0
 	volley_buffer = 0.0
 	if high:
