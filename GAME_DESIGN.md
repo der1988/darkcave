@@ -12,10 +12,12 @@ Prima base per un gioco di calcio arcade isometrico, con l’idea del pallone co
 
 Per ora l’obiettivo è studiare movimento, scala, animazioni e rapporto con il pallone. Porte, avversari, punteggi, livelli e altre meccaniche da piattaforme non fanno parte di questa prima prova.
 
-Aspetto attuale: campo verde uniforme con segni pixel art molto radi; ridotti fortemente ciuffi e sassi decorativi, eliminate macchie di terra e zone umide. Sprite ingrandito del 25% mantenendo i piedi ancorati al terreno e gli stessi frame. Camminata 3.6 unità/s, corsa 8 unità/s.
+Aspetto attuale: campo verde uniforme con segni pixel art molto radi; ridotti fortemente ciuffi e sassi decorativi, eliminate macchie di terra e zone umide. Sprite ingrandito del 25% mantenendo i piedi ancorati al terreno e gli stessi frame. Camminata 4.5 unità/s, corsa 10 unità/s.
 
 Tiro al volo con A anche saltando: si colpisce soltanto una palla vicina entro altezza raggiungibile; il dribbling resta a terra. Anteprime in screenshots/football-04/.
 
 Inquadratura attuale molto più vicina: dimensione ortografica 18, zoom manuale fra 12 e 34. La scala fisica del giocatore resta invariata.
 
 Ultima modifica: sprite ridotto del 25%, stessa camera ravvicinata. Pallonetto caricato tenendo D e lanciato al rilascio: carica massima 0.85 s, impulso verticale 5–10, impulso orizzontale costante 3.16. La carica A per il tiro al volo resta disponibile.
+
+Tiro aggiornato seguendo `footballgame/src/entity_ball.c` e `physics.c`: direzione normalizzata, carica con velocità 4.5–11 (prima 5–15), alzata bassa, volée leggermente discendente, resistenza quadratica dell’aria e rotolamento uniforme in ogni direzione. Il motore fisico resta Godot; pallonetto D e camera invariati.

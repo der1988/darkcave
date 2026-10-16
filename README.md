@@ -39,10 +39,12 @@ Screenshot e video del gioco in screenshots/football/. Il piano fisico è infini
 
 La precedente scena Father & Son e i suoi test sono conservati nello storico del progetto e in scenes/main.tscn; non vengono istanziati dal nuovo avvio. Per riprodurre una sua suite usare, ad esempio, godot --headless --fixed-fps 60 --path . --script tests/prototype_test.gd.
 
-Il terreno è volutamente semplice: verde uniforme, pochi segni pixel art, ciuffi e sassi radi. Il giocatore è circa il 25% più grande rispetto alla prima prova; la corsa con Shift raggiunge 8 unità/s (prima 6), la camminata resta a 3.6.
+Il terreno è volutamente semplice: verde uniforme, pochi segni pixel art, ciuffi e sassi radi. Il giocatore è circa il 25% più grande rispetto alla prima prova; la corsa con Shift raggiunge 10 unità/s, la camminata 4.5.
 
-Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-06/.
+Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-07/.
 
 Camera ravvicinata: zoom iniziale 18 (prima 34), regolabile fra 12 e 34 con la rotellina.
 
 Camera invariata; sprite ridotto del 25% rispetto alla versione precedente. D carica fino a 0.85 secondi: più a lungo tieni premuto, più alto sarà il pallonetto al rilascio.
+
+Velocità aumentata del 25% sia camminando sia correndo. Il tiro A ha potenza 4.5–11, traiettoria bassa e resistenza dell’aria proporzionale al quadrato della velocità; il tiro al volo viene diretto leggermente verso il suolo.

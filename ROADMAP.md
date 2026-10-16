@@ -1,5 +1,11 @@
 # Roadmap · Campo Libero
 
+## Movimento +25% e tiro meno potente
+
+- Camminata 3.6→4.5 e corsa 8→10 unità/s, entrambe +25%. Sprite, camera e salto invariati. Risposta del dribbling più pronta e velocità di correzione limitata per conservare la palla durante inversioni alla nuova velocità.
+- Consultati `footballgame/src/entity_ball.c` e `physics.c`: tiro con direzione normalizzata e potenza 4.5–11, invece di 5–15; alzata bassa e volée leggermente verso il suolo. Aggiunta resistenza quadratica dell’aria e resistenza di rotolamento uniforme in tutte le direzioni. Pallonetto caricato D conservato.
+- 67/67 test del calcio superati: nuove velocità, inversioni, potenza ridotta, rallentamento e distanza del tiro, carica pallonetto, salto e volée. Export Web riuscito e verifica visiva nativa; screenshot in screenshots/football-07/. Avvio e comandi verificati in Chromium/WebGL senza errori. Deploy Vercel remoto non verificato.
+
 ## Giocatore ridotto e pallonetto caricato
 
 - Camera iniziale mantenuta a 18, intervallo 12–34 invariato. Sprite ridotto esattamente del 25% rispetto alla versione precedente, con ancoraggio dei piedi corretto. Fisica e velocità conservate.
