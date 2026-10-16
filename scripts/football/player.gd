@@ -2,8 +2,7 @@ class_name FootballPlayer
 extends CharacterBody3D
 
 @export var controlled: bool = true
-@export var walk_speed: float = 4.68
-@export var sprint_speed: float = 10.4
+@export var walk_speed: float = 4.0
 @export var jump_speed: float = 6.0
 @onready var shadow: MeshInstance3D = $Shadow
 @onready var sprite: Sprite3D = $Sprite3D
@@ -20,10 +19,10 @@ func _physics_process(delta: float) -> void:
 	var input = Input.get_vector("football_left","football_right","football_up","football_down",0.0)
 	if Input.is_action_just_pressed("football_jump"):
 		jump()
-	drive(FootballControls.world_direction(input),Input.is_action_pressed("football_sprint"),delta)
+	drive(FootballControls.world_direction(input),delta)
 
-func drive(direction: Vector3, sprint: bool, delta: float) -> void:
-	var speed = sprint_speed if sprint else walk_speed
+func drive(direction: Vector3, delta: float) -> void:
+	var speed = walk_speed
 	if charging:
 		speed *= 0.65
 	motion_goal = direction*speed

@@ -70,7 +70,7 @@ func volley_reachable(player: FootballPlayer) -> bool:
 
 func control_near(player: FootballPlayer, delta: float) -> void:
 	controlled = false
-	if not reachable(player) or position.y>0.34 or linear_velocity.length()>player.sprint_speed+3.0:
+	if not reachable(player) or position.y>0.34 or linear_velocity.length()>player.walk_speed+3.0:
 		return
 	var radial = Vector3(position.x-player.position.x,0,position.z-player.position.z)
 	var contact_direction = player.facing
@@ -81,7 +81,7 @@ func control_near(player: FootballPlayer, delta: float) -> void:
 	var goal = player.position+contact_direction*0.72
 	# Feed forward the intended step: a brief body/ball contact must not stall both.
 	var target = (goal-position)*11.0+player.motion_goal
-	target = target.limit_length(player.sprint_speed+2.0)
+	target = target.limit_length(player.walk_speed+2.0)
 	var response = 1.0-exp(-18.0*delta)
 	linear_velocity.x = lerpf(linear_velocity.x,target.x,response)
 	linear_velocity.z = lerpf(linear_velocity.z,target.z,response)

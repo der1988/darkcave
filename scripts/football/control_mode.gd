@@ -1,6 +1,6 @@
 extends Control
 ## Device selection and multi-touch controls. Routes actions through the existing input map.
-@export var mobile_walk_scale: float = 0.85
+@export var mobile_walk_scale: float = 1.0
 @export var stick_response: float = 1.35
 var mode: String = ""
 var fingers: Dictionary = {}
@@ -180,8 +180,6 @@ func move_stick(point: Vector2) -> void:
 			Input.action_press("football_"+pair[0],pair[1])
 		else:
 			Input.action_release("football_"+pair[0])
-	# Touch movement stays in a gradual walking range; no automatic sprint jump.
-	Input.action_release("football_sprint")
 	queue_redraw()
 
 func end_touch(index: int) -> void:
@@ -210,7 +208,7 @@ func release_all() -> void:
 	fingers.clear()
 	joystick_finger = -1
 	stick = Vector2.ZERO
-	for action in ["left","right","up","down","sprint"]:
+	for action in ["left","right","up","down"]:
 		Input.action_release("football_"+action)
 	queue_redraw()
 

@@ -105,19 +105,22 @@ func run() -> void:
 		await physics_frame
 		largest_gap = maxf(largest_gap,game.player.position.distance_to(game.ball.position))
 		max_step = maxf(max_step,game.ball.position.distance_to(previous))
-	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>4.6,"Walking is 25 percent faster while controlling the ball")
+	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>3.9 and Vector2(game.player.velocity.x,game.player.velocity.z).length()<4.1,"Single movement speed stays steady while controlling the ball")
 	var trails = game.get_node("GrassTrails")
 	check(trails.ages.count(6.0)<128,"Walking leaves temporary marks in the grass")
 	Input.action_release("football_down")
 	check(game.camera_rig.position.is_equal_approx(fixed_camera),"Camera stays fixed when the player moves across the field")
-	check(game.player.position.distance_to(start)>16.0,"Movement advances continuously across the field")
+	check(game.player.position.distance_to(start)>14.0,"Movement advances continuously across the field")
 	check(largest_gap<1.5 and max_step<0.2,"Dribbling rolls the native ball smoothly, without teleporting")
 	await ticks(60)
 	check(game.player.sprite.frame<8 and Vector2(game.player.velocity.x,game.player.velocity.z).length()<0.01,"Stopping returns to the original standing frame")
-	Input.action_press("football_sprint")
+	var shift = InputEventKey.new()
+	shift.physical_keycode = KEY_SHIFT
+	shift.pressed = true
+	Input.parse_input_event(shift)
 	Input.action_press("football_right")
 	await ticks(40)
-	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>10.2,"Shift increases movement speed")
+	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>3.9 and Vector2(game.player.velocity.x,game.player.velocity.z).length()<4.1,"Shift cannot boost the single movement speed")
 	Input.action_release("football_right")
 	Input.action_press("football_left")
 	var reverse_gap = 0.0
@@ -127,11 +130,12 @@ func run() -> void:
 		await physics_frame
 		reverse_gap = maxf(reverse_gap,game.player.position.distance_to(game.ball.position))
 		reverse_step = maxf(reverse_step,game.player.position.distance_to(previous))
-	print("Sprint reversal gap=",reverse_gap," step=",reverse_step)
-	check(reverse_gap<1.5 and reverse_step<0.18,"Sudden sprint reversal keeps physical foot control without a position snap")
-	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>10.2,"Player recovers full sprint after turning around the ball")
+	print("Movement reversal gap=",reverse_gap," step=",reverse_step)
+	check(reverse_gap<1.5 and reverse_step<0.18,"Sudden direction reversal keeps physical foot control without a position snap")
+	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>3.9,"Player recovers normal speed after turning around the ball")
 	Input.action_release("football_left")
-	Input.action_release("football_sprint")
+	shift.pressed = false
+	Input.parse_input_event(shift)
 	await ticks(40)
 	command("recall")
 	await ticks(30)

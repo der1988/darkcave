@@ -1,5 +1,12 @@
 # Roadmap · Campo Libero
 
+## Movimento unico PC/mobile senza scatto
+
+- Rimossi sprint, accelerazione Shift e relativa voce dall’help. Nessun aumento di velocità tramite Shift su PC o bordo analogico su mobile.
+- Velocità unica 4 unità/s. Mobile conserva deadzone e curva progressiva ma al massimo raggiunge esattamente la stessa andatura del PC; piccoli spostamenti restano dosabili.
+- Dribbling e velocità delle correzioni della palla ricalibrati sulla sola velocità di movimento; nessuna dipendenza residua da sprint nel movimento.
+- 125/125 test del calcio e 19/19 controlli, totale 144/144. Test fisici verificano che Shift non acceleri e che il massimo mobile coincida col desktop. Export Web e prove Chromium PC/mobile senza errori; fullscreen e multi-touch conservati. Anteprime in screenshots/football-16/.
+
 ## Analogico mobile più controllabile
 
 - Rimosso lo scatto automatico oltre 85% dello stick, che faceva salire bruscamente la velocità da camminata a corsa.

@@ -93,7 +93,7 @@ func _physics_process(delta: float) -> void:
 	if pass_receiver==null:
 		direction = support.direction(player,teammate,ball,delta)
 	teammate.look_at_ball = ball.position
-	teammate.drive(direction,false,delta)
+	teammate.drive(direction,delta)
 	ball.control_near(player,delta)
 	if charging:
 		charge_time = minf(0.85,charge_time+delta)

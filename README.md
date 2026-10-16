@@ -9,7 +9,6 @@ web/ contiene l’export Godot pronto per Vercel. Il push su main attiva il depl
 | Comando | Azione |
 | --- | --- |
 | Frecce | Muovi in otto direzioni rispetto allo schermo |
-| Shift | Scatta |
 | A tenuto e rilasciato | Carica e tira nella direzione del giocatore |
 | D tenuto e rilasciato | Passaggio alto: breve/arcuato oppure lungo/teso |
 | S | Passaggio corto al compagno |
@@ -65,3 +64,5 @@ Obiettivo attuale: segnare al volo tra gli alberi (altezza porta 2.44 m). Il com
 All’avvio scegli PC o Smartphone. PC conserva i comandi della tastiera. Smartphone richiede schermo intero e orientamento landscape: analogico sinistro con velocità graduale, senza scatto automatico, A tiro caricato, S passaggio corto, D passaggio alto caricato. I comandi supportano più dita contemporaneamente. Se il browser non permette il blocco orientamento, ruota manualmente il telefono; in verticale il gioco resta in pausa con un invito a ruotarlo. Test touch: `godot --headless --fixed-fps 60 --path . --script tests/control_mode_test.gd`. Anteprime in screenshots/football-14/.
 
 Analogico mobile regolato per maggiore precisione: risposta progressiva e velocità massima circa 4 unità/s; nessun salto automatico alla corsa quando si raggiunge il bordo. La tastiera PC resta invariata.
+
+Movimento attuale senza scatto su entrambe le piattaforme: velocità unica 4 unità/s. Shift non accelera. L’analogico conserva deadzone e curva progressiva, raggiungendo al bordo la stessa velocità del PC. Il controllo della palla usa questa velocità unica.
