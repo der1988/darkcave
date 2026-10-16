@@ -12,7 +12,7 @@ func ticks(count: int) -> void:
 
 func shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
-	assert(root.get_texture().get_image().save_png("res://screenshots/football-11/"+name+".png")==OK)
+	assert(root.get_texture().get_image().save_png("res://screenshots/football-12/"+name+".png")==OK)
 
 func run() -> void:
 	game = load("res://scenes/football/main.tscn").instantiate()
@@ -20,6 +20,18 @@ func run() -> void:
 	current_scene = game
 	await ticks(60)
 	await shot("01-campo-libero")
+	var short_pass = InputEventAction.new()
+	short_pass.action = "football_pass"
+	short_pass.pressed = true
+	game._unhandled_input(short_pass)
+	await ticks(100)
+	await shot("02-ricezione-compagno")
+	game.attempt_pass(0.65,true)
+	await ticks(25)
+	await shot("03-passaggio-alto")
+	await ticks(180)
+	game.ball.recall(game.player)
+	await ticks(30)
 	Input.action_press("football_down")
 	await ticks(90)
 	Input.action_release("football_down")

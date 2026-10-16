@@ -94,7 +94,7 @@ func choose_smother() -> bool:
 		return false
 	var gap = ball.position-position
 	gap.y = 0.0
-	var player = get_parent().get_node("Player")
+	var player = get_parent().player
 	if gap.length()>2.5 or gap.length()<0.3 or player.position.distance_to(ball.position)>3.0:
 		return false
 	if absf((ball.position-center).dot(lateral))>half_width or (ball.position-center).dot(forward)<0.0:

@@ -64,7 +64,7 @@ func reachable(player: FootballPlayer) -> bool:
 func volley_reachable(player: FootballPlayer) -> bool:
 	var gap = Vector2(position.x-player.position.x,position.z-player.position.z).length()
 	var relative_height = position.y-player.position.y
-	return held_by==null and gap<1.2 and relative_height>=0.15 and relative_height<=1.6 and touch_lock<=0.0
+	return held_by==null and gap<1.45 and relative_height>=0.15 and relative_height<=1.9 and touch_lock<=0.0
 
 func control_near(player: FootballPlayer, delta: float) -> void:
 	controlled = false
@@ -91,7 +91,7 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 		return false
 	var force = clampf(power,0.0,1.0)
 	if lob:
-		linear_velocity = player.facing*3.16+Vector3.UP*lerpf(5.0,10.0,force)
+		linear_velocity = player.facing*lerpf(3.0,10.5,force)+Vector3.UP*lerpf(8.0,6.0,force)
 	else:
 		var steering = Input.get_vector("football_left","football_right","football_up","football_down")
 		var accuracy_extra = randf_range(1.1,2.0) if force>0.8 else randf_range(0.0,1.0)
@@ -130,3 +130,22 @@ func contact_multiplier() -> float:
 			if bounce_age<0.5:
 				return 0.8
 	return 1.0
+
+func pass_to(player: FootballPlayer, target: Vector3, power: float, high: bool) -> bool:
+	if not reachable(player):
+		return false
+	var direction = target-position
+	direction.y = 0.0
+	if direction.length()<0.1:
+		direction = player.facing
+	if high:
+		linear_velocity = direction.normalized()*lerpf(3.0,10.5,power)+Vector3.UP*lerpf(8.0,6.0,power)
+	else:
+		var speed = clampf(4.5+direction.length()*0.8,6.0,12.0)
+		linear_velocity = direction.normalized()*speed+Vector3.UP*0.12
+	flight_age = 0.0
+	touch_lock = 0.28
+	controlled = false
+	sleeping = false
+	player.show_kick()
+	return true

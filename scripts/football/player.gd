@@ -1,6 +1,7 @@
 class_name FootballPlayer
 extends CharacterBody3D
 
+@export var controlled: bool = true
 @export var walk_speed: float = 4.68
 @export var sprint_speed: float = 10.4
 @export var jump_speed: float = 6.0
@@ -13,6 +14,8 @@ var charging: bool = false
 var motion_goal: Vector3 = Vector3.ZERO
 
 func _physics_process(delta: float) -> void:
+	if not controlled:
+		return
 	var input = Input.get_vector("football_left","football_right","football_up","football_down")
 	if Input.is_action_just_pressed("football_jump"):
 		jump()

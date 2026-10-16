@@ -5,7 +5,7 @@ const KEYS = {
 	"left": [KEY_LEFT], "right": [KEY_RIGHT],
 	"up": [KEY_UP], "down": [KEY_DOWN],
 	"sprint": [KEY_SHIFT], "shoot": [KEY_A], "lob": [KEY_D],
-	"jump": [KEY_S], "recall": [KEY_R], "help": [KEY_H],
+	"pass": [KEY_S], "jump": [KEY_SPACE], "recall": [KEY_R], "help": [KEY_H],
 }
 
 static func configure() -> void:
@@ -31,4 +31,4 @@ static func orientation(direction: Vector3) -> int:
 	return posmod(roundi(projected.angle()/(PI/4.0)),8)
 
 static func help_text() -> String:
-	return "Frecce · Muovi    %s · Scatta    %s · Carica e tira\n%s · Carica pallonetto    %s · Salta    %s · Richiama palla    %s · Comandi    Rotellina · Zoom" % [OS.get_keycode_string(KEYS.sprint[0]),OS.get_keycode_string(KEYS.shoot[0]),OS.get_keycode_string(KEYS.lob[0]),OS.get_keycode_string(KEYS.jump[0]),OS.get_keycode_string(KEYS.recall[0]),OS.get_keycode_string(KEYS.help[0])]
+	return "Frecce · Muovi    %s · Scatta    %s · Carica e tira\n%s · Passaggio alto    %s · Passaggio corto    %s · Salta    %s · Richiama palla    %s · Comandi    Rotellina · Zoom" % [OS.get_keycode_string(KEYS.sprint[0]),OS.get_keycode_string(KEYS.shoot[0]),OS.get_keycode_string(KEYS.lob[0]),OS.get_keycode_string(KEYS.pass[0]),OS.get_keycode_string(KEYS.jump[0]),OS.get_keycode_string(KEYS.recall[0]),OS.get_keycode_string(KEYS.help[0])]

@@ -31,7 +31,7 @@ func run() -> void:
 	current_scene = game
 	await ticks(30)
 	check(ProjectSettings.get_setting("application/run/main_scene")=="res://scenes/football/main.tscn","Football sandbox is the active game")
-	check(get_nodes_in_group("football_player").size()==1 and game.find_children("*","Light3D",true,false).is_empty(),"One player and no flashlight or other lights")
+	check(get_nodes_in_group("football_player").size()==2 and game.find_children("*","Light3D",true,false).is_empty(),"Two outfield players and no flashlight or other lights")
 	check(game.get_node_or_null("Father")==null and game.get_node_or_null("Child")==null and game.get_node_or_null("Enemy")==null,"No companion or hostile actor in the new scene")
 	check(game.camera.projection==Camera3D.PROJECTION_ORTHOGONAL and is_equal_approx(game.camera.size,18.72),"Fixed isometric orthographic framing")
 	var wheel = InputEventMouseButton.new()
@@ -167,8 +167,8 @@ func run() -> void:
 	command("recall")
 	await ticks(30)
 	check(game.attempt_kick(0.35,true),"A nearby ball accepts a lob")
-	check(absf(game.ball.linear_velocity.y-6.75)<0.01,"Lob vertical launch follows its charge")
-	check(Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()<3.5,"Lob horizontal launch is shorter than the former 8.5")
+	check(absf(game.ball.linear_velocity.y-7.3)<0.01,"Lob vertical launch follows its charge")
+	check(Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()<6.0,"Lob horizontal launch is shorter than the a full driven shot")
 	var peak = 0.0
 	var bounced = false
 	var previous_vertical = 0.0
@@ -188,7 +188,7 @@ func run() -> void:
 	command("recall")
 	await ticks(20)
 	check(game.ball.position.distance_to(game.player.position)<1.1 and game.ball.position.y<0.35,"R reliably recalls an airborne native body at a physics boundary")
-	check(FootballControls.KEYS.shoot==[KEY_A] and FootballControls.KEYS.lob==[KEY_D] and FootballControls.KEYS.jump==[KEY_S],"A D S map to shot lob jump")
+	check(FootballControls.KEYS.shoot==[KEY_A] and FootballControls.KEYS.lob==[KEY_D] and FootballControls.KEYS.pass==[KEY_S] and FootballControls.KEYS.jump==[KEY_SPACE],"A D S map to shot high pass short pass")
 	check(FootballControls.KEYS.left==[KEY_LEFT] and FootballControls.KEYS.down==[KEY_DOWN],"Movement arrows do not conflict with action keys")
 	check(game.player.jump(),"Grounded player can jump")
 	check(not game.player.jump(),"Repeated jump cannot stack impulses")
@@ -203,10 +203,10 @@ func run() -> void:
 	game.player.facing = FootballControls.world_direction(Vector2.DOWN)
 	command("recall")
 	await ticks(30)
-	game.attempt_kick(0.35,true)
+	game.attempt_kick(0.0,true)
 	command("shoot")
 	Input.action_press("football_down")
-	await ticks(24)
+	await ticks(47)
 	check(game.charging and game.ball.position.y>1.0,"Shot charge can start while a lob is airborne")
 	game.player.jump()
 	await ticks(16)
@@ -251,13 +251,13 @@ func run() -> void:
 	await ticks(80)
 	check(is_equal_approx(game.charge_time,0.85),"Lob charge is capped when D stays held")
 	command("lob",false)
-	check(game.ball.linear_velocity.y>short_lob_up+3.0,"Long D hold launches higher than a short tap")
-	check(absf(Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()-short_lob_forward)<0.01,"Lob charge changes height without increasing horizontal launch speed")
+	check(game.ball.linear_velocity.y<short_lob_up-1.0 and game.ball.linear_velocity.y>5.0,"Long D hold lowers the arc while retaining a high pass")
+	check(Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()>short_lob_forward+5.0,"High pass charge increases forward travel")
 	var high_peak = 0.0
 	for i in 150:
 		await physics_frame
 		high_peak = maxf(high_peak,game.ball.position.y)
-	check(high_peak>short_peak+2.0,"Native lob trajectory reaches a visibly higher peak after longer hold")
+	check(high_peak<short_peak and high_peak>1.3,"Long high pass remains airborne with a lower arc")
 	command("lob")
 	game._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	check(not game.charging and not game.charging_lob,"Focus loss clears a charged lob without firing")
@@ -377,6 +377,69 @@ func run() -> void:
 	await ticks(25)
 	check(game.ball.held_by==keeper,"A physical smother can collect a stationary loose ball")
 	command("recall")
+	keeper.set_physics_process(false)
+	keeper.collision_layer = 0
+	game.player.position = Vector3.ZERO
+	game.player.velocity = Vector3.ZERO
+	game.teammate.position = Vector3(3,0,-2)
+	game.teammate.velocity = Vector3.ZERO
+	command("recall")
+	await ticks(30)
+	var passer = game.player
+	var receiver = game.teammate
+	command("pass")
+	check(game.ball.linear_velocity.y<0.3 and game.ball.linear_velocity.dot(receiver.position-passer.position)>0.0,"S plays a low short pass toward the teammate without jumping")
+	await ticks(110)
+	check(game.player==receiver and receiver.controlled and not passer.controlled,"Receiving a short pass transfers control to the teammate")
+	check(game.ball.controlled and game.ball.position.distance_to(receiver.position)<1.2,"Receiver takes the same physical ball under foot control")
+	check(get_nodes_in_group("football_player").size()==2,"There are exactly two outfield players")
+	command("recall")
+	await ticks(30)
+	command("lob")
+	await ticks(5)
+	command("lob",false)
+	var short_high_horizontal = Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()
+	var short_high_vertical = game.ball.linear_velocity.y
+	check(short_high_vertical>7.0 and short_high_horizontal<4.0,"Brief D press makes a high short pass")
+	command("recall")
+	await ticks(30)
+	command("lob")
+	await ticks(65)
+	command("lob",false)
+	check(game.ball.linear_velocity.y>5.5 and game.ball.linear_velocity.y<short_high_vertical and Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()>short_high_horizontal+5.0,"Held D makes a longer flatter pass that remains airborne")
+	var high_receiver = game.teammate
+	await ticks(210)
+	check(game.player==high_receiver,"Teammate follows the landing point and receives a long high pass")
+	command("recall")
+	game.player.position = Vector3.ZERO
+	game.player.velocity = Vector3.ZERO
+	game.teammate.position = Vector3(5,0,0)
+	await ticks(30)
+	game.ball.pending_recall = game.player.position+game.player.facing*1.7+Vector3.UP*0.9
+	await ticks(2)
+	game.ball.linear_velocity = -game.player.facing*4.0
+	game.ball.touch_lock = 0.0
+	game.attempt_kick(0.65,false)
+	check(game.volley_buffer>0.0,"Early volley release is buffered while a nearby ball approaches")
+	await ticks(8)
+	check(game.volley_buffer==0.0 and game.ball.linear_velocity.length()>20.0,"Buffered volley strikes when the ball enters real reach")
+	game.ball.pending_recall = game.player.position+Vector3(5,1,0)
+	await ticks(2)
+	game.attempt_kick(0.65,false)
+	check(game.volley_buffer==0.0,"Volley assistance cannot queue a remote shot")
+	game.ball.pending_recall = game.player.position+game.player.facing*2.2+Vector3.UP*0.9
+	await ticks(2)
+	game.ball.touch_lock = 0.0
+	game.ball.linear_velocity = game.player.facing*2.0
+	game.attempt_kick(0.65,false)
+	await ticks(18)
+	check(game.volley_buffer==0.0 and game.ball.linear_velocity.length()<10.0,"Unreachable early volley expires without firing a delayed remote shot")
+	game.ball.pending_recall = game.player.position+game.player.facing*2.2+Vector3.UP*0.9
+	await ticks(2)
+	game.ball.touch_lock = 0.0
+	game.attempt_kick(0.65,false)
+	game._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	check(game.volley_buffer==0.0,"Focus loss cancels pending volley assistance")
 	game.queue_free()
 	await process_frame
 	print("RESULT football: ",checks-failures,"/",checks,"; max dribble gap=",largest_gap," max step=",max_step)

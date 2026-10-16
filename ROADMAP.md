@@ -1,5 +1,14 @@
 # Roadmap · Campo Libero
 
+## Compagno, passaggi e volée
+
+- Aggiunto un secondo calciatore, stesso sprite/scala e collisioni reciproche. Un solo controllato alla volta: passaggio e ricezione trasferiscono il controllo al compagno senza riposizionare attori o palla.
+- S ora esegue il passaggio basso verso il compagno, senza carica. Salto spostato su Spazio; help e input centralizzati aggiornati.
+- D caricato esegue un passaggio alto: tap con velocità 3 orizzontale/8 verticale; carica piena 10.5/6, quindi più lungo e meno arcuato ma sempre alto. Ricevente verso la zona di atterraggio, poi verso la palla per controllarla dopo il rimbalzo.
+- Tiro al volo A più permissivo: portata 1.45, altezza relativa 1.9 e anticipo massimo 0.22 s. Il calcio avviene soltanto quando il pallone entra davvero a portata; dribbling resta a terra. Buffer annullato su nuova carica o passaggio, focus perso, richiamo o cambio controllato.
+- 117/117 test del calcio superati, inclusi passaggio basso, controllo al ricevente, variante alta corta/lunga e ricezione, buffer volée e rifiuto del tiro remoto. Anteprime in screenshots/football-12/. Export Web riuscito, comandi A/S/D/Spazio e H verificati in Chromium/WebGL senza errori o scroll. Deploy Vercel remoto non verificato.
+- Limiti: singolo compagno, ricezione automatica e movimento di supporto solo sul passaggio; niente selezione manuale, squadre complete o tattiche aggiunte.
+
 ## Portiere originale: sprite, tuffi e recupero
 
 - Importati tutti i 240 frame originali `goalkeeper_*`, senza ridisegno/ricampionamento; manifest con sequenze e timing originali. Importer riproducibile e animazione in modulo separato. Collegati fermo, corsa in otto direzioni, tuffi bassi/alti, salto, uscita bassa, presa e rilancio a mano; eliminati sprite/tinta del calciatore sostitutivo.

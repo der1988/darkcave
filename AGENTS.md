@@ -1,6 +1,6 @@
 # Regole operative · Campo Libero
 
-Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è il prototipo di calcio isometrico con un calciatore controllabile e un portiere; Father & Son resta storico e non viene caricato all’avvio.
+Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è il prototipo di calcio isometrico con due calciatori (uno controllato alla volta) e un portiere; Father & Son resta storico e non viene caricato all’avvio.
 
 - Godot 4.6 stabile, GDScript e renderer Compatibility. Nessun framework o asset esterno necessario.
 - Conservare `.git`, cronologia, branch e remote. L’utente ha autorizzato stabilmente il push finale su GitHub, anche quando il prompt dell’attività contiene la formula “non pushare”. Includere l’export Web aggiornato quando cambia il gioco e verificare l’esito del push.

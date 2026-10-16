@@ -11,8 +11,9 @@ web/ contiene l’export Godot pronto per Vercel. Il push su main attiva il depl
 | Frecce | Muovi in otto direzioni rispetto allo schermo |
 | Shift | Scatta |
 | A tenuto e rilasciato | Carica e tira nella direzione del giocatore |
-| D tenuto e rilasciato | Carica l’altezza del pallonetto |
-| S | Salta |
+| D tenuto e rilasciato | Passaggio alto: breve/arcuato oppure lungo/teso |
+| S | Passaggio corto al compagno |
+| Spazio | Salta |
 | R | Richiama la palla ai piedi |
 | H | Mostra / nascondi i comandi |
 | Rotellina | Zoom |
@@ -56,3 +57,5 @@ Dinamica tiro ora portata da footballgame: con A la potenza ideale è all’80%;
 Inquadratura attuale fissa (non insegue il giocatore), 4% più larga: size 18.72. Porta spostata nella parte alta e portiere reattivo fra gli alberi, con collisioni e respinte. Camminata 4.68 e corsa 10.4 unità/s (+4%). Anteprime in screenshots/football-10/.
 
 Il portiere usa ora gli sprite originali `goalkeeper` di footballgame: 240 frame e tempi originali. Reazione di 150 ms, tuffi bassi/alti fino a 6 m/s, salto su palloni alti centrali, recupero di 0.75 s, uscita bassa su palla contesa, presa delle palle lente e rilancio a mano. Gli alberi sono alti il 12% in più. Anteprime aggiornate in screenshots/football-11/.
+
+Due giocatori di movimento: S passa basso al compagno e alla ricezione il controllo passa a lui. D al tocco fa un passaggio alto corto e arcuato; tenuto fa un passaggio alto più lungo e teso. Spazio conserva il salto. A mantiene il tiro di footballgame, con finestra di anticipo di 0.22 s per una volée vicina; nessun tiro remoto. Anteprime attuali in screenshots/football-12/.
