@@ -12,6 +12,7 @@ Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è il prototipo 
 ## Gioco attivo · calcio isometrico
 
 - Scena di avvio: `scenes/football/main.tscn`; giocatore e palla nelle due scene accanto.
+- Animazioni originali portiere: `scripts/football/goalkeeper_sprite.gd`, atlas/manifest `assets/football/goalkeeper.*`; import riproducibile `tools/import_goalkeeper_art.gd`.
 - Portiere: `scripts/football/goalkeeper.gd` e `scenes/football/goalkeeper.tscn`.
 - Input: `scripts/football/controls.gd`; movimento e animazione: `scripts/football/player.gd`.
 - Tracce temporanee: `scripts/football/grass_trails.gd`; alberi-porta: `scenes/football/tree.tscn`.

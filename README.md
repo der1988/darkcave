@@ -54,3 +54,5 @@ Tiri A più forti: oltre il 55% di carica la palla inizia ad alzarsi progressiva
 Dinamica tiro ora portata da footballgame: con A la potenza ideale è all’80%; oltre si perde forza e la palla sale di più. Mira assistita verso lo spazio fra gli alberi; le frecce durante la carica regolano lato e altezza del tiro. Valori originali convertiti da pixel a metri: forza base 45, neutralizzazione dell’inerzia al calcio, bonus/malus dei tiri dopo rimbalzo. Restano pallonetto caricato D e tiro al volo. Anteprime aggiornate in screenshots/football-09/.
 
 Inquadratura attuale fissa (non insegue il giocatore), 4% più larga: size 18.72. Porta spostata nella parte alta e portiere reattivo fra gli alberi, con collisioni e respinte. Camminata 4.68 e corsa 10.4 unità/s (+4%). Anteprime in screenshots/football-10/.
+
+Il portiere usa ora gli sprite originali `goalkeeper` di footballgame: 240 frame e tempi originali. Reazione di 150 ms, tuffi bassi/alti fino a 6 m/s, salto su palloni alti centrali, recupero di 0.75 s, uscita bassa su palla contesa, presa delle palle lente e rilancio a mano. Gli alberi sono alti il 12% in più. Anteprime aggiornate in screenshots/football-11/.

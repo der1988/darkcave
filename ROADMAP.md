@@ -1,5 +1,14 @@
 # Roadmap · Campo Libero
 
+## Portiere originale: sprite, tuffi e recupero
+
+- Importati tutti i 240 frame originali `goalkeeper_*`, senza ridisegno/ricampionamento; manifest con sequenze e timing originali. Importer riproducibile e animazione in modulo separato. Collegati fermo, corsa in otto direzioni, tuffi bassi/alti, salto, uscita bassa, presa e rilancio a mano; eliminati sprite/tinta del calciatore sostitutivo.
+- Consultati `ai_goalie.c`, `gfx_goalie.c` e funzioni goalie di `entity_player.c` in footballgame. Adattati stati di protezione, tuffo fisico, salto, smother, recupero, presa e rilancio: reazione 0.15 s, soglia tiro 15 m/s, velocità tuffo 6 m/s, recupero 0.75 s, selezione lato/altezza dalla traiettoria prevista. Le palle direttamente sul corpo non richiedono un tuffo laterale.
+- Collisioni native e postura bassa nei tuffi rasoterra; niente spostamenti istantanei. Prese delle palle lente con un solo proprietario e stessa istanza del pallone; rilancio originale a mano. R interrompe in sicurezza una presa. Respinte dipendenti dal punto d’impatto. Uscita bassa su palla lenta contesa entro 2.5 m solo con percorso libero.
+- Alberi +12% in altezza, porta e camera conservate.
+- 105/105 test del calcio superati: asset originali, reazione, tuffi bassi/alti, sequenze, salto, recupero, movimento senza teletrasporti, possesso/rilancio/R e smother, oltre alle verifiche precedenti. Screenshot in screenshots/football-11/, inclusi tuffo basso e alto. Import ed export Web riusciti, manifest delle animazioni incluso esplicitamente nel pacchetto; prova Chromium/WebGL senza errori. Deploy Vercel remoto non verificato.
+- Limiti: adattamento della logica alla porta fra alberi e fisica Godot; non importati squadre, intera area di rigore, retropassaggi e decisioni tattiche del simulatore. Le palle veloci vengono respinte; presa sulle lente, senza casualità della presa intermedia della fonte.
+
 ## Camera fissa, porta in alto e portiere
 
 - Camera non insegue più il giocatore. Dimensione ortografica 18→18.72 (+4%), orientamento isometrico e zoom manuale conservati. Porta spostata verso l’alto della visuale, centro (-4,-4).

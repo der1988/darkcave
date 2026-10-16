@@ -7,6 +7,9 @@ extends RigidBody3D
 
 @onready var sprite: Sprite3D = $Sprite3D
 @onready var shadow: MeshInstance3D = $Shadow
+var held_by: Node = null
+var release_velocity = Vector3.ZERO
+var flight_age: float = 100.0
 var touch_lock: float = 0.0
 var roll_phase: float = 0.0
 var controlled: bool = false
@@ -20,7 +23,8 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if pending_recall.is_finite():
 		# Input can arrive between physics steps: reset the authoritative body state.
 		state.transform = Transform3D(Basis.IDENTITY,pending_recall)
-		state.linear_velocity = Vector3.ZERO
+		state.linear_velocity = release_velocity
+		release_velocity = Vector3.ZERO
 		state.angular_velocity = Vector3.ZERO
 		pending_recall = Vector3.INF
 		bounce_age = 100.0
@@ -30,6 +34,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	state.linear_velocity = state.linear_velocity.limit_length(61.0)
 
 func _physics_process(delta: float) -> void:
+	flight_age += delta
 	bounce_age += delta
 	if previous_vertical< -1.0 and linear_velocity.y>0.0:
 		bounce_age = 0.0
@@ -53,13 +58,13 @@ func _physics_process(delta: float) -> void:
 
 func reachable(player: FootballPlayer) -> bool:
 	var gap = Vector2(position.x-player.position.x,position.z-player.position.z).length()
-	return player.is_on_floor() and gap<1.05 and position.y<0.75 and touch_lock<=0.0
+	return held_by==null and player.is_on_floor() and gap<1.05 and position.y<0.75 and touch_lock<=0.0
 
 # A volley has its own reach envelope; it must never enable airborne dribbling.
 func volley_reachable(player: FootballPlayer) -> bool:
 	var gap = Vector2(position.x-player.position.x,position.z-player.position.z).length()
 	var relative_height = position.y-player.position.y
-	return gap<1.2 and relative_height>=0.15 and relative_height<=1.6 and touch_lock<=0.0
+	return held_by==null and gap<1.2 and relative_height>=0.15 and relative_height<=1.6 and touch_lock<=0.0
 
 func control_near(player: FootballPlayer, delta: float) -> void:
 	controlled = false
@@ -94,6 +99,7 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 		var multiplier = contact_multiplier()
 		linear_velocity = FootballShotModel.launch(Vector3(aim.x,0,aim.z),force,aim.w,shot_max_speed,multiplier)
 
+	flight_age = 0.0
 	touch_lock = 0.4
 	controlled = false
 	sleeping = false
@@ -101,6 +107,10 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 	return true
 
 func recall(player: FootballPlayer) -> void:
+	if held_by!=null:
+		held_by.release_ball()
+	release_velocity = Vector3.ZERO
+	flight_age = 100.0
 	# Explicit practice control; never used by dribbling or shooting.
 	pending_recall = player.global_position+player.facing*0.85+Vector3.UP*0.22
 	pending_recall.y = 0.22

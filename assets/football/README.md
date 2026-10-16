@@ -19,3 +19,5 @@ godot --headless --editor --import --path . --quit
 ```
 
 Originali player.aseprite e ball.aseprite in art/football/. Il motore C/raylib della fonte non è importato: questa prova resta nel progetto Godot esistente.
+
+Portiere: `goalkeeper.png` contiene tutti i 240 frame originali `goalkeeper_*` in celle 61×61, 16 colonne; `goalkeeper.json` conserva indice dei frame e tutte le sequenze/tempi di `animations.json` della fonte. Import con `godot --headless --path . --script tools/import_goalkeeper_art.gd -- --source=/path/to/footballgame`. Stessa conversione della palette indicizzata dell’import iniziale, senza ridisegno o ricampionamento. I frame includono fermo, corsa, tuffi bassi/alti, salti, uscita bassa, presa e passaggio a mano.

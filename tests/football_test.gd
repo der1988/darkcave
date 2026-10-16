@@ -296,6 +296,87 @@ func run() -> void:
 	await ticks(1)
 	game.ball.linear_velocity = -keeper.forward*8.0
 	check(not keeper.try_parry(),"Keeper cannot save a ball above his physical reach")
+	check(keeper.sprite.texture.resource_path.ends_with("goalkeeper.png") and keeper.sprite.data.frames.size()==240,"Keeper uses the 240 original goalkeeper frames")
+	keeper.state = keeper.State.PROTECT
+	keeper.position = keeper.center
+	keeper.velocity = Vector3.ZERO
+	keeper.parry_cooldown = 0.0
+	game.ball.pending_recall = keeper.center+keeper.lateral*1.8+keeper.forward*8.0+Vector3.UP*0.25
+	await ticks(2)
+	game.ball.linear_velocity = -keeper.forward*24.0
+	game.ball.flight_age = 0.0
+	await ticks(4)
+	check(keeper.state==keeper.State.PROTECT,"Keeper respects source reaction delay before diving")
+	await ticks(8)
+	check(keeper.state==keeper.State.DIVE,"Fast off-center shot triggers a physical lateral dive")
+	check(keeper.sprite.current_name.begins_with("goalkeeper_save_low_"),"Low dive plays the original low-save animation")
+	var largest_dive_step = 0.0
+	for i in 110:
+		var before = keeper.position
+		await physics_frame
+		largest_dive_step = maxf(largest_dive_step,keeper.position.distance_to(before))
+	check(largest_dive_step<0.12,"Dive moves with native collision steps, without teleporting")
+	check(keeper.state==keeper.State.PROTECT,"Keeper recovers and returns to goal protection")
+	keeper.position = keeper.center
+	keeper.velocity = Vector3.ZERO
+	keeper.parry_cooldown = 0.0
+	game.ball.pending_recall = keeper.center+keeper.lateral*1.8+keeper.forward*4.0+Vector3.UP*2.0
+	await ticks(2)
+	keeper.state = keeper.State.PROTECT
+	keeper.position = keeper.center
+	keeper.velocity = Vector3.ZERO
+	game.ball.linear_velocity = -keeper.forward*22.0
+	game.ball.flight_age = 1.0
+	check(keeper.choose_dive() and keeper.dive_high,"High lateral trajectory selects high diving logic")
+	keeper.sprite.update_sequence(0.06)
+	check(keeper.sprite.current_name.begins_with("goalkeeper_save_high_"),"High dive uses original high-save frames and timing")
+	keeper.state = keeper.State.PROTECT
+	keeper.position = keeper.center
+	keeper.velocity = Vector3.ZERO
+	game.ball.pending_recall = keeper.center+keeper.forward*4.0+Vector3.UP*2.8
+	await ticks(2)
+	keeper.state = keeper.State.PROTECT
+	keeper.position = keeper.center
+	keeper.velocity = Vector3.ZERO
+	game.ball.linear_velocity = -keeper.forward*22.0
+	game.ball.flight_age = 1.0
+	check(keeper.choose_dive() and keeper.state==keeper.State.JUMP and keeper.velocity.y>0.0,"Central high shot triggers a real upward jump")
+	keeper.state = keeper.State.PROTECT
+	keeper.position = keeper.center
+	keeper.velocity = Vector3.ZERO
+	keeper.parry_cooldown = 0.0
+	game.ball.pending_recall = keeper.position+keeper.forward*0.4+Vector3.UP*0.7
+	await ticks(2)
+	game.ball.linear_velocity = -keeper.forward*8.0
+	check(keeper.try_parry(true) and game.ball.held_by==keeper and game.ball.freeze,"Slow reachable ball is caught into one authoritative keeper possession")
+	await ticks(10)
+	check(not game.ball.reachable(game.player) and not game.ball.controlled and not game.ball.sprite.visible,"A ball held by the keeper cannot also be controlled by the player")
+	await ticks(65)
+	check(game.ball.held_by==null and not game.ball.freeze and game.ball.sprite.visible and game.ball.linear_velocity.dot(keeper.forward)>0.0,"Keeper returns a caught ball with his original hand-pass sequence")
+	keeper.state = keeper.State.PROTECT
+	keeper.parry_cooldown = 0.0
+	game.ball.pending_recall = keeper.position+keeper.forward*0.4+Vector3.UP*0.7
+	await ticks(2)
+	game.ball.linear_velocity = -keeper.forward*8.0
+	keeper.try_parry(true)
+	command("recall")
+	await ticks(3)
+	check(game.ball.held_by==null and not game.ball.freeze,"Recall safely releases a keeper-held ball")
+	keeper.set_physics_process(false)
+	keeper.state = keeper.State.PROTECT
+	keeper.position = keeper.center
+	keeper.velocity = Vector3.ZERO
+	keeper.parry_cooldown = 0.0
+	game.player.position = keeper.center+keeper.forward*2.8
+	game.ball.pending_recall = keeper.center+keeper.forward*1.5+Vector3.UP*0.2
+	await ticks(2)
+	game.ball.linear_velocity = Vector3.ZERO
+	check(keeper.choose_smother() and keeper.state==keeper.State.SMOTHER,"Keeper lunges for a contested slow ball when the path is clear")
+	check(keeper.sprite.current_name.begins_with("goalkeeper_save_dash_"),"Smother uses the original goalkeeper dash-save frames")
+	keeper.set_physics_process(true)
+	await ticks(25)
+	check(game.ball.held_by==keeper,"A physical smother can collect a stationary loose ball")
+	command("recall")
 	game.queue_free()
 	await process_frame
 	print("RESULT football: ",checks-failures,"/",checks,"; max dribble gap=",largest_gap," max step=",max_step)

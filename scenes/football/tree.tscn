@@ -36,6 +36,7 @@ albedo_color = Color(0.27,0.41,0.22,1)
 roughness = 1.0
 
 [node name="Tree" type="StaticBody3D"]
+scale = Vector3(1,1.12,1)
 collision_layer = 1
 collision_mask = 48
 [node name="Trunk" type="MeshInstance3D" parent="."]

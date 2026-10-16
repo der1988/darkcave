@@ -12,7 +12,7 @@ func ticks(count: int) -> void:
 
 func shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
-	assert(root.get_texture().get_image().save_png("res://screenshots/football-10/"+name+".png")==OK)
+	assert(root.get_texture().get_image().save_png("res://screenshots/football-11/"+name+".png")==OK)
 
 func run() -> void:
 	game = load("res://scenes/football/main.tscn").instantiate()
@@ -58,6 +58,29 @@ func run() -> void:
 	game._unhandled_input(charge)
 	await ticks(1)
 	await shot("05-tiro-al-volo")
+	var keeper = game.get_node("Goalkeeper")
+	game.player.position = Vector3.ZERO
+	game.player.velocity = Vector3.ZERO
+	keeper.position = keeper.center
+	keeper.state = keeper.State.PROTECT
+	keeper.parry_cooldown = 0.0
+	game.ball.pending_recall = keeper.center+keeper.lateral*1.7+keeper.forward*6.0+Vector3.UP*0.3
+	await ticks(2)
+	game.ball.linear_velocity = -keeper.forward*24.0
+	game.ball.flight_age = 1.0
+	await ticks(6)
+	await shot("06-tuffo-basso")
+	await ticks(100)
+	keeper.position = keeper.center
+	keeper.state = keeper.State.PROTECT
+	keeper.velocity = Vector3.ZERO
+	game.ball.pending_recall = keeper.center+keeper.lateral*1.7+keeper.forward*4.0+Vector3.UP*2.0
+	await ticks(2)
+	game.ball.linear_velocity = -keeper.forward*22.0
+	game.ball.flight_age = 1.0
+	keeper.choose_dive()
+	await ticks(4)
+	await shot("07-tuffo-alto")
 	game.queue_free()
 	await process_frame
 	quit()

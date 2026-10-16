@@ -1,6 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/football/goalkeeper.gd" id="2"]
+
+[ext_resource type="Texture2D" path="res://assets/football/goalkeeper.png" id="3"]
+[ext_resource type="Script" path="res://scripts/football/goalkeeper_sprite.gd" id="4"]
 
 [node name="Goalkeeper" instance=ExtResource("1")]
 collision_layer = 64
@@ -8,4 +11,7 @@ collision_mask = 49
 script = ExtResource("2")
 
 [node name="Sprite3D" parent="." index="1"]
-modulate = Color(0.55,0.85,1,1)
+texture = ExtResource("3")
+hframes = 16
+vframes = 15
+script = ExtResource("4")
