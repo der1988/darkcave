@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/football/sandbox.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
@@ -13,6 +13,8 @@
 [ext_resource type="PackedScene" path="res://scenes/football/goalkeeper.tscn" id="8"]
 
 [ext_resource type="Script" path="res://scripts/football/volley_goal.gd" id="9"]
+
+[ext_resource type="Script" path="res://scripts/football/control_mode.gd" id="10"]
 
 [sub_resource type="WorldBoundaryShape3D" id="Floor"]
 
@@ -129,3 +131,16 @@ offset_right = -24.0
 offset_bottom = -78.0
 theme_override_colors/font_color = Color(1,0.95,0.71,0.95)
 theme_override_font_sizes/font_size = 14
+
+[node name="DeviceUI" type="CanvasLayer" parent="."]
+layer = 10
+process_mode = 3
+
+[node name="ControlMode" type="Control" parent="DeviceUI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("10")

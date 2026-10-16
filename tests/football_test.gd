@@ -29,6 +29,7 @@ func run() -> void:
 	game = load("res://scenes/football/main.tscn").instantiate()
 	root.add_child(game)
 	current_scene = game
+	game.get_node("DeviceUI/ControlMode").choose_mode("pc")
 	await ticks(30)
 	check(ProjectSettings.get_setting("application/run/main_scene")=="res://scenes/football/main.tscn","Football sandbox is the active game")
 	check(get_nodes_in_group("football_player").size()==2 and game.find_children("*","Light3D",true,false).is_empty(),"Two outfield players and no flashlight or other lights")

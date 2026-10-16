@@ -1,5 +1,14 @@
 # Roadmap · Campo Libero
 
+## Scelta PC/smartphone e comandi touch
+
+- Selettore iniziale con PC/tastiera o Smartphone/touch. Gioco e IA sospesi fino alla scelta, comandi desktop conservati.
+- Layout smartphone fullscreen landscape richiesto durante la selezione utente. Canvas responsive con aspect expand; se portrait, overlay per ruotare e pausa coerente fino al ritorno in landscape. Pulsante per riprovare il fullscreen.
+- Analogico sinistro proporzionale, deadzone 0.16 e corsa oltre 85% della corsa dello stick. Tre pulsanti A/S/D a destra, stessi input del gioco: tiro caricato, passaggio corto, passaggio alto caricato. Multi-touch indipendente e rilascio fuori area gestito. Indicatore carica spostato in alto per non sovrapporsi all’analogico.
+- Cancellazione sicura di stick, cariche e anticipo volée su focus perso o rotazione. Nessuna carica rilasciata involontariamente.
+- 125/125 regressioni del calcio e 17/17 test dedicati ai controlli, totale 142/142. Verificati pausa iniziale, selezione, analogico, corsa, movimento+carica con più dita, rilascio, focus, portrait/landscape e S. Anteprime in screenshots/football-14/. Export Web riuscito. Chromium desktop: selezione PC e regressione comandi/H senza errori. Smartphone emulato 844×390: fullscreen effettivo, multi-touch analogico+A, carica D, S e passaggio a portrait verificati senza errori o scroll. Deploy Vercel remoto non verificato.
+- Limiti: fullscreen e blocco orientamento richiedono supporto e autorizzazione del browser; fallback con rotazione manuale. Prova Web touch in emulazione Chromium, nessun dispositivo iOS/Android fisico disponibile.
+
 ## Smarcamenti e obiettivo gol al volo
 
 - Modulo di supporto dedicato: compagno senza palla alterna piccole corse di smarcamento vicino al portatore, senza rimanere fermo in attesa di un passaggio. Scelta del lato coerente e spazio davanti alla porta; accelerazione/collisioni esistenti. Sprite rivolto alla palla anche durante il movimento.

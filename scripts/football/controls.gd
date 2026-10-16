@@ -21,7 +21,7 @@ static func configure() -> void:
 				InputMap.action_add_event(action,event)
 
 static func world_direction(input: Vector2) -> Vector3:
-	return Vector3(input.x+input.y,0,input.y-input.x).normalized()
+	return Vector3(input.x+input.y,0,input.y-input.x).normalized()*minf(input.length(),1.0)
 
 static func screen_direction(direction: Vector3) -> Vector2:
 	return Vector2(direction.x-direction.z,(direction.x+direction.z)*0.5773503)

@@ -12,12 +12,17 @@ func ticks(count: int) -> void:
 
 func shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
-	assert(root.get_texture().get_image().save_png("res://screenshots/football-13/"+name+".png")==OK)
+	assert(root.get_texture().get_image().save_png("res://screenshots/football-14/"+name+".png")==OK)
 
 func run() -> void:
 	game = load("res://scenes/football/main.tscn").instantiate()
 	root.add_child(game)
 	current_scene = game
+	await shot("00-scelta-controlli")
+	game.get_node("DeviceUI/ControlMode").choose_mode("smartphone")
+	await process_frame
+	await shot("00-comandi-touch")
+	game.get_node("DeviceUI/ControlMode").choose_mode("pc")
 	await ticks(60)
 	await shot("01-campo-libero")
 	var short_pass = InputEventAction.new()
