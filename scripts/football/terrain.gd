@@ -61,7 +61,7 @@ func make_chunk(key: Vector2i) -> Node3D:
 		var instances = MultiMesh.new()
 		instances.transform_format = MultiMesh.TRANSFORM_3D
 		instances.mesh = tuft_mesh if kind==0 else stone_mesh
-		instances.instance_count = 145 if kind==0 else 12
+		instances.instance_count = 18 if kind==0 else 2
 		for i in instances.instance_count:
 			var point = Vector3(random.randf()*CHUNK_SIZE,0.01,random.randf()*CHUNK_SIZE)
 			var scale_size = random.randf_range(0.55,1.55)

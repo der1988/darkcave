@@ -42,7 +42,7 @@ func volley_reachable(player: FootballPlayer) -> bool:
 
 func control_near(player: FootballPlayer, delta: float) -> void:
 	controlled = false
-	if not reachable(player) or position.y>0.34 or linear_velocity.length()>9.0:
+	if not reachable(player) or position.y>0.34 or linear_velocity.length()>player.sprint_speed+3.0:
 		return
 	var radial = Vector3(position.x-player.position.x,0,position.z-player.position.z)
 	var contact_direction = player.facing

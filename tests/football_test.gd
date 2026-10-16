@@ -36,7 +36,7 @@ func run() -> void:
 	check(game.camera.projection==Camera3D.PROJECTION_ORTHOGONAL and is_equal_approx(game.camera.size,34.0),"Fixed isometric orthographic framing")
 	var art = game.player.sprite.texture.get_image().get_region(Rect2i(0,0,61,61)).get_used_rect()
 	var height = art.size.y*game.player.sprite.pixel_size/game.camera.size*720.0
-	check(height>=24.0 and height<=38.0,"Player retains small reference scale at 1280x720")
+	check(height>=38.0 and height<=44.0,"Player has a modestly enlarged readable scale at 1280x720")
 	check(game.player.sprite.hframes==8 and game.player.sprite.vframes==6 and game.ball.sprite.hframes==8 and game.ball.sprite.vframes==4,"Original player and ball frames have valid packed grids")
 	for i in 8:
 		var angle = i*PI/4.0
@@ -61,7 +61,7 @@ func run() -> void:
 	Input.action_press("football_sprint")
 	Input.action_press("football_right")
 	await ticks(40)
-	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>5.8,"Shift increases movement speed")
+	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>7.8,"Shift increases movement speed")
 	Input.action_release("football_right")
 	Input.action_press("football_left")
 	var reverse_gap = 0.0
@@ -71,8 +71,9 @@ func run() -> void:
 		await physics_frame
 		reverse_gap = maxf(reverse_gap,game.player.position.distance_to(game.ball.position))
 		reverse_step = maxf(reverse_step,game.player.position.distance_to(previous))
-	check(reverse_gap<1.5 and reverse_step<0.12,"Sudden sprint reversal keeps physical foot control without a position snap")
-	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>5.8,"Player recovers full sprint after turning around the ball")
+	print("Sprint reversal gap=",reverse_gap," step=",reverse_step)
+	check(reverse_gap<1.5 and reverse_step<0.15,"Sudden sprint reversal keeps physical foot control without a position snap")
+	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>7.8,"Player recovers full sprint after turning around the ball")
 	Input.action_release("football_left")
 	Input.action_release("football_sprint")
 	await ticks(40)

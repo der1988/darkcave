@@ -39,6 +39,6 @@ Screenshot e video del gioco in screenshots/football/. Il piano fisico è infini
 
 La precedente scena Father & Son e i suoi test sono conservati nello storico del progetto e in scenes/main.tscn; non vengono istanziati dal nuovo avvio. Per riprodurre una sua suite usare, ad esempio, godot --headless --fixed-fps 60 --path . --script tests/prototype_test.gd.
 
-Il terreno alterna erba corta, zone secche, ciuffi alti e piccoli sassi decorativi in scala. Le decorazioni non cambiano le collisioni; venticinque settori vengono rigenerati deterministicamente durante il viaggio. Anteprime aggiornate in screenshots/football-02/.
+Il terreno è volutamente semplice: verde uniforme, pochi segni pixel art, ciuffi e sassi radi. Il giocatore è circa il 25% più grande rispetto alla prima prova; la corsa con Shift raggiunge 8 unità/s (prima 6), la camminata resta a 3.6.
 
-Terreno pixel art a palette discreta, ispirato alle sei varianti fornite: prato fitto, erba con terra scoperta, tappeto basso, vegetazione rada alta, terreno umido e tratti consumati. Le zone umide restano decorative, senza meccaniche acquatiche. Il tiro con A può essere caricato in aria e rilasciato su un pallone vicino entro altezza raggiungibile, anche saltando; il dribbling rimane solo a terra. Anteprime in screenshots/football-03/.
+Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-04/.

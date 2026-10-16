@@ -1,5 +1,12 @@
 # Roadmap · Campo Libero
 
+## Calcio isometrico · campo semplificato e corsa
+
+- Campo verde uniforme, rari segni d’erba pixel art; ciuffi ridotti da 145 a 18 e sassi da 12 a 2 per settore. Eliminate le grandi macchie di terra e le zone umide.
+- Sprite del giocatore ingrandito del 25%, piedi mantenuti sul terreno; camera, asset originali e collisioni conservati. Corsa Shift da 6 a 8 unità/s (+33%), camminata invariata.
+- Soglia di controllo della palla adattata alla velocità di corsa per evitare perdite involontarie nelle inversioni. Restano tiro, pallonetto, salto e tiro al volo.
+- 56/56 test del calcio e 239/239 regressioni storiche, totale 295/295; verifica visiva nativa ed export Web. Anteprime in screenshots/football-04/. Deploy Vercel remoto non verificato.
+
 ## Calcio isometrico · 0.3 · pixel art e tiro al volo
 
 - Terreno con pixel ancorati al mondo e palette discreta, sei famiglie ispirate al riferimento dell’utente: prato fitto, terra scoperta, erba bassa, vegetazione rada alta, terreno umido e tracce consumate. Ciuffi verticali più netti; mantenuti sassi, streaming e collisioni.
