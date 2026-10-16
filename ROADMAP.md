@@ -1,5 +1,11 @@
 # Roadmap · Campo Libero
 
+## Inquadratura ravvicinata
+
+- Zoom iniziale ortografico da 34 a 18: personaggio circa 1.9 volte più grande sullo schermo, senza cambiare sprite, fisica o velocità. Conservati orientamento isometrico e inseguimento fluido.
+- Rotellina mantenuta, nuovo intervallo 12–34 per permettere ulteriore avvicinamento e ritorno alla precedente vista ampia.
+- 58/58 test del calcio superati, inclusi inquadratura, leggibilità e limiti rotellina. Export Web riuscito e verifica visiva nativa; anteprime in screenshots/football-05/.
+
 ## Calcio isometrico · campo semplificato e corsa
 
 - Campo verde uniforme, rari segni d’erba pixel art; ciuffi ridotti da 145 a 18 e sassi da 12 a 2 per settore. Eliminate le grandi macchie di terra e le zone umide.

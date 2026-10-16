@@ -12,7 +12,7 @@ func ticks(count: int) -> void:
 
 func shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
-	assert(root.get_texture().get_image().save_png("res://screenshots/football-04/"+name+".png")==OK)
+	assert(root.get_texture().get_image().save_png("res://screenshots/football-05/"+name+".png")==OK)
 
 func run() -> void:
 	game = load("res://scenes/football/main.tscn").instantiate()

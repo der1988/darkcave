@@ -10,7 +10,7 @@ extends Node3D
 @onready var feedback: Label = $HUD/Feedback
 var charge_time: float = 0.0
 var charging: bool = false
-var desired_zoom: float = 34.0
+var desired_zoom: float = 18.0
 var feedback_time: float = 0.0
 
 func _ready() -> void:
@@ -38,9 +38,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		attempt_kick(0.35,true)
 	elif event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			desired_zoom = maxf(24.0,desired_zoom-2.0)
+			desired_zoom = maxf(12.0,desired_zoom-2.0)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			desired_zoom = minf(46.0,desired_zoom+2.0)
+			desired_zoom = minf(34.0,desired_zoom+2.0)
 
 func _physics_process(delta: float) -> void:
 	ball.control_near(player,delta)

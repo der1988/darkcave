@@ -33,10 +33,21 @@ func run() -> void:
 	check(ProjectSettings.get_setting("application/run/main_scene")=="res://scenes/football/main.tscn","Football sandbox is the active game")
 	check(get_nodes_in_group("football_player").size()==1 and game.find_children("*","Light3D",true,false).is_empty(),"One player and no flashlight or other lights")
 	check(game.get_node_or_null("Father")==null and game.get_node_or_null("Child")==null and game.get_node_or_null("Enemy")==null,"No companion or hostile actor in the new scene")
-	check(game.camera.projection==Camera3D.PROJECTION_ORTHOGONAL and is_equal_approx(game.camera.size,34.0),"Fixed isometric orthographic framing")
+	check(game.camera.projection==Camera3D.PROJECTION_ORTHOGONAL and is_equal_approx(game.camera.size,18.0),"Fixed isometric orthographic framing")
+	var wheel = InputEventMouseButton.new()
+	wheel.pressed = true
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	for i in 30:
+		game._unhandled_input(wheel)
+	check(is_equal_approx(game.desired_zoom,12.0),"Mouse wheel can move closer without exceeding near limit")
+	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
+	for i in 30:
+		game._unhandled_input(wheel)
+	check(is_equal_approx(game.desired_zoom,34.0),"Mouse wheel can return to the former wide framing within far limit")
+	game.desired_zoom = 18.0
 	var art = game.player.sprite.texture.get_image().get_region(Rect2i(0,0,61,61)).get_used_rect()
 	var height = art.size.y*game.player.sprite.pixel_size/game.camera.size*720.0
-	check(height>=38.0 and height<=44.0,"Player has a modestly enlarged readable scale at 1280x720")
+	check(height>=72.0 and height<=82.0,"Close camera makes the player clearly readable at 1280x720")
 	check(game.player.sprite.hframes==8 and game.player.sprite.vframes==6 and game.ball.sprite.hframes==8 and game.ball.sprite.vframes==4,"Original player and ball frames have valid packed grids")
 	for i in 8:
 		var angle = i*PI/4.0

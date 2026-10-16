@@ -2,7 +2,7 @@
 
 Prima base per un gioco di calcio arcade isometrico, con l’idea del pallone come strumento di movimento e gioco ispirata a Soccer Kid. Non è ancora una partita fra squadre.
 
-- Un solo piccolo calciatore, circa 40 pixel di altezza a 1280×720, camera ortografica isometrica fissa con inseguimento morbido.
+- Un solo piccolo calciatore, circa 76 pixel di altezza a 1280×720, camera ortografica isometrica fissa con inseguimento morbido.
 - Campo verde senza bordi: collisione infinita, superficie visiva ricentrata e trama ancorata al mondo. Nessuna stanza, torcia, compagno o nemico nella scena attiva.
 - Sprite, pose e corsa in otto direzioni provengono da der1988/footballgame; stessa pixel art e palette della squadra di casa, senza ricampionare i frame.
 - Le frecce muovono rispetto alla visuale; Shift scatta. Palla al piede automatica da vicino: correzioni di velocità e percorso attorno al corpo, nessun aggancio o teletrasporto durante il controllo.
@@ -15,3 +15,5 @@ Per ora l’obiettivo è studiare movimento, scala, animazioni e rapporto con il
 Aspetto attuale: campo verde uniforme con segni pixel art molto radi; ridotti fortemente ciuffi e sassi decorativi, eliminate macchie di terra e zone umide. Sprite ingrandito del 25% mantenendo i piedi ancorati al terreno e gli stessi frame. Camminata 3.6 unità/s, corsa 8 unità/s.
 
 Tiro al volo con A anche saltando: si colpisce soltanto una palla vicina entro altezza raggiungibile; il dribbling resta a terra. Anteprime in screenshots/football-04/.
+
+Inquadratura attuale molto più vicina: dimensione ortografica 18, zoom manuale fra 12 e 34. La scala fisica del giocatore resta invariata.

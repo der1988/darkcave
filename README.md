@@ -41,4 +41,6 @@ La precedente scena Father & Son e i suoi test sono conservati nello storico del
 
 Il terreno è volutamente semplice: verde uniforme, pochi segni pixel art, ciuffi e sassi radi. Il giocatore è circa il 25% più grande rispetto alla prima prova; la corsa con Shift raggiunge 8 unità/s (prima 6), la camminata resta a 3.6.
 
-Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-04/.
+Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-05/.
+
+Camera ravvicinata: zoom iniziale 18 (prima 34), regolabile fra 12 e 34 con la rotellina.
