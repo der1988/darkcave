@@ -33,7 +33,7 @@ func run() -> void:
 	check(ProjectSettings.get_setting("application/run/main_scene")=="res://scenes/football/main.tscn","Football sandbox is the active game")
 	check(get_nodes_in_group("football_player").size()==1 and game.find_children("*","Light3D",true,false).is_empty(),"One player and no flashlight or other lights")
 	check(game.get_node_or_null("Father")==null and game.get_node_or_null("Child")==null and game.get_node_or_null("Enemy")==null,"No companion or hostile actor in the new scene")
-	check(game.camera.projection==Camera3D.PROJECTION_ORTHOGONAL and is_equal_approx(game.camera.size,18.0),"Fixed isometric orthographic framing")
+	check(game.camera.projection==Camera3D.PROJECTION_ORTHOGONAL and is_equal_approx(game.camera.size,18.72),"Fixed isometric orthographic framing")
 	var wheel = InputEventMouseButton.new()
 	wheel.pressed = true
 	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
@@ -44,7 +44,7 @@ func run() -> void:
 	for i in 30:
 		game._unhandled_input(wheel)
 	check(is_equal_approx(game.desired_zoom,34.0),"Mouse wheel can return to the former wide framing within far limit")
-	game.desired_zoom = 18.0
+	game.desired_zoom = 18.72
 	var art = game.player.sprite.texture.get_image().get_region(Rect2i(0,0,61,61)).get_used_rect()
 	var height = art.size.y*game.player.sprite.pixel_size/game.camera.size*720.0
 	check(height>=54.0 and height<=62.0,"Close camera makes the player clearly readable at 1280x720")
@@ -84,12 +84,16 @@ func run() -> void:
 	check(is_equal_approx(game.ball.contact_multiplier(),0.8),"Source late bounce contact loses twenty percent force")
 	game.ball.position = saved_position
 	game.ball.linear_velocity = Vector3.ZERO
+	var fixed_camera = game.camera_rig.position
+	var keeper = game.get_node("Goalkeeper")
+	keeper.set_physics_process(false)
+	keeper.collision_layer = 0
 	var trees = game.get_node("GoalTrees")
 	check(trees.get_child_count()==2,"Two physical trees mark the goal")
 	var space = game.get_world_3d().direct_space_state
-	var trunk_ray = PhysicsRayQueryParameters3D.create(Vector3(-5,0.7,-3),Vector3(-5,0.7,1),1)
+	var trunk_ray = PhysicsRayQueryParameters3D.create(Vector3(-6,0.7,-4),Vector3(-6,0.7,0),1)
 	check(not space.intersect_ray(trunk_ray).is_empty(),"Goal tree trunks block physical bodies")
-	var opening_ray = PhysicsRayQueryParameters3D.create(Vector3(-1,0.7,-1),Vector3(-5,0.7,-5),1)
+	var opening_ray = PhysicsRayQueryParameters3D.create(Vector3(-2,0.7,-2),Vector3(-6,0.7,-6),1)
 	check(space.intersect_ray(opening_ray).is_empty(),"Goal opening between the trees stays clear")
 	var start = game.player.position
 	Input.action_press("football_down")
@@ -100,10 +104,11 @@ func run() -> void:
 		await physics_frame
 		largest_gap = maxf(largest_gap,game.player.position.distance_to(game.ball.position))
 		max_step = maxf(max_step,game.ball.position.distance_to(previous))
-	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>4.4,"Walking is 25 percent faster while controlling the ball")
+	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>4.6,"Walking is 25 percent faster while controlling the ball")
 	var trails = game.get_node("GrassTrails")
 	check(trails.ages.count(6.0)<128,"Walking leaves temporary marks in the grass")
 	Input.action_release("football_down")
+	check(game.camera_rig.position.is_equal_approx(fixed_camera),"Camera stays fixed when the player moves across the field")
 	check(game.player.position.distance_to(start)>16.0,"Movement advances continuously across the field")
 	check(largest_gap<1.5 and max_step<0.2,"Dribbling rolls the native ball smoothly, without teleporting")
 	await ticks(60)
@@ -111,7 +116,7 @@ func run() -> void:
 	Input.action_press("football_sprint")
 	Input.action_press("football_right")
 	await ticks(40)
-	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>9.8,"Shift increases movement speed")
+	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>10.2,"Shift increases movement speed")
 	Input.action_release("football_right")
 	Input.action_press("football_left")
 	var reverse_gap = 0.0
@@ -123,7 +128,7 @@ func run() -> void:
 		reverse_step = maxf(reverse_step,game.player.position.distance_to(previous))
 	print("Sprint reversal gap=",reverse_gap," step=",reverse_step)
 	check(reverse_gap<1.5 and reverse_step<0.18,"Sudden sprint reversal keeps physical foot control without a position snap")
-	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>9.8,"Player recovers full sprint after turning around the ball")
+	check(Vector2(game.player.velocity.x,game.player.velocity.z).length()>10.2,"Player recovers full sprint after turning around the ball")
 	Input.action_release("football_left")
 	Input.action_release("football_sprint")
 	await ticks(40)
@@ -265,6 +270,32 @@ func run() -> void:
 	check(Vector2(game.grass.position.x-game.player.position.x,game.grass.position.z-game.player.position.z).length()<24.0,"Grass follows the player without a visible field boundary")
 	check(game.player.position.distance_to(game.ball.position)<1.2,"R recalls a lost ball beside the current player position")
 	check(game.get_node("Terrain").chunks.size()==25,"Infinite terrain keeps only twenty-five decorative chunks after travel")
+	# Restore the keeper for focused physical interception checks.
+	game.player.position = Vector3(0,0.02,0)
+	game.player.velocity = Vector3.ZERO
+	keeper.collision_layer = 64
+	keeper.set_physics_process(true)
+	game.ball.pending_recall = keeper.center+keeper.lateral*1.5+keeper.forward*4.0+Vector3.UP*0.3
+	await ticks(2)
+	game.ball.linear_velocity = -keeper.forward*6.0
+	var keeper_before = keeper.position
+	var max_keeper_step = 0.0
+	for i in 20:
+		var previous = keeper.position
+		await physics_frame
+		max_keeper_step = maxf(max_keeper_step,keeper.position.distance_to(previous))
+	check(keeper.position.distance_to(keeper_before)>0.1,"Keeper moves sideways to intercept an approaching shot")
+	check(max_keeper_step<0.07 and absf((keeper.position-keeper.center).dot(keeper.lateral))<=keeper.half_width+0.05,"Keeper remains between posts without teleporting")
+	game.ball.pending_recall = keeper.position+keeper.forward*0.45+Vector3.UP*0.7
+	await ticks(2)
+	game.ball.linear_velocity = -keeper.forward*8.0
+	check(keeper.try_parry() and game.ball.linear_velocity.dot(keeper.forward)>0.0,"Keeper deflects a reachable incoming shot back into play")
+	game.ball.pending_recall = keeper.position+keeper.forward*0.4+Vector3.UP*2.5
+	await ticks(35)
+	game.ball.pending_recall = keeper.position+keeper.forward*0.4+Vector3.UP*2.5
+	await ticks(1)
+	game.ball.linear_velocity = -keeper.forward*8.0
+	check(not keeper.try_parry(),"Keeper cannot save a ball above his physical reach")
 	game.queue_free()
 	await process_frame
 	print("RESULT football: ",checks-failures,"/",checks,"; max dribble gap=",largest_gap," max step=",max_step)

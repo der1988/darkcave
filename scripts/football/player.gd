@@ -1,8 +1,8 @@
 class_name FootballPlayer
 extends CharacterBody3D
 
-@export var walk_speed: float = 4.5
-@export var sprint_speed: float = 10.0
+@export var walk_speed: float = 4.68
+@export var sprint_speed: float = 10.4
 @export var jump_speed: float = 6.0
 @onready var shadow: MeshInstance3D = $Shadow
 @onready var sprite: Sprite3D = $Sprite3D

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/football/sandbox.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
@@ -9,6 +9,8 @@
 
 [ext_resource type="Script" path="res://scripts/football/grass_trails.gd" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/football/tree.tscn" id="7"]
+
+[ext_resource type="PackedScene" path="res://scenes/football/goalkeeper.tscn" id="8"]
 
 [sub_resource type="WorldBoundaryShape3D" id="Floor"]
 
@@ -53,10 +55,13 @@ script = ExtResource("6")
 [node name="GoalTrees" type="Node3D" parent="."]
 
 [node name="LeftTree" parent="GoalTrees" instance=ExtResource("7")]
-position = Vector3(-5,0,-1)
+position = Vector3(-6,0,-2)
 
 [node name="RightTree" parent="GoalTrees" instance=ExtResource("7")]
-position = Vector3(-1,0,-5)
+position = Vector3(-2,0,-6)
+
+[node name="Goalkeeper" parent="." instance=ExtResource("8")]
+position = Vector3(-4,0,-4)
 
 [node name="Player" parent="." instance=ExtResource("2")]
 
@@ -69,7 +74,7 @@ position = Vector3(0.6,0.22,0.6)
 position = Vector3(14,14,14)
 rotation_degrees = Vector3(-35.264,45,0)
 projection = 1
-size = 18.0
+size = 18.72
 near = 0.1
 far = 100.0
 current = true

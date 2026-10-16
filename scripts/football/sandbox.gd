@@ -11,7 +11,7 @@ extends Node3D
 var charge_time: float = 0.0
 var charging: bool = false
 var charging_lob: bool = false
-var desired_zoom: float = 18.0
+var desired_zoom: float = 18.72
 var feedback_time: float = 0.0
 
 func _ready() -> void:
@@ -53,7 +53,6 @@ func _physics_process(delta: float) -> void:
 	grass.position = Vector3(snappedf(player.position.x,32.0),0,snappedf(player.position.z,32.0))
 
 func _process(delta: float) -> void:
-	camera_rig.position = camera_rig.position.lerp(Vector3(player.position.x,0,player.position.z),1.0-exp(-8.0*delta))
 	camera.size = lerpf(camera.size,desired_zoom,1.0-exp(-10.0*delta))
 	feedback_time = maxf(0.0,feedback_time-delta)
 	if charging:

@@ -52,3 +52,5 @@ Velocità aumentata del 25% sia camminando sia correndo. Il tiro A ha potenza 4.
 Tiri A più forti: oltre il 55% di carica la palla inizia ad alzarsi progressivamente. Ombre di contatto più leggibili sotto giocatore e pallone. I passi lasciano tracce che svaniscono entro sei secondi. Due alberi davanti al punto iniziale delimitano una porta libera, senza punteggio automatico.
 
 Dinamica tiro ora portata da footballgame: con A la potenza ideale è all’80%; oltre si perde forza e la palla sale di più. Mira assistita verso lo spazio fra gli alberi; le frecce durante la carica regolano lato e altezza del tiro. Valori originali convertiti da pixel a metri: forza base 45, neutralizzazione dell’inerzia al calcio, bonus/malus dei tiri dopo rimbalzo. Restano pallonetto caricato D e tiro al volo. Anteprime aggiornate in screenshots/football-09/.
+
+Inquadratura attuale fissa (non insegue il giocatore), 4% più larga: size 18.72. Porta spostata nella parte alta e portiere reattivo fra gli alberi, con collisioni e respinte. Camminata 4.68 e corsa 10.4 unità/s (+4%). Anteprime in screenshots/football-10/.

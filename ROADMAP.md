@@ -1,5 +1,13 @@
 # Roadmap · Campo Libero
 
+## Camera fissa, porta in alto e portiere
+
+- Camera non insegue più il giocatore. Dimensione ortografica 18→18.72 (+4%), orientamento isometrico e zoom manuale conservati. Porta spostata verso l’alto della visuale, centro (-4,-4).
+- Camminata 4.5→4.68 e corsa 10→10.4 (+4%); sprite, salto e dinamica del tiro conservati.
+- Portiere in modulo e scena separati, stessi sprite e proporzioni con tinta distinta. Anticipa il punto di attraversamento della palla, si muove lateralmente fra i tronchi senza teletrasporti e respinge palloni entro altezza/portata fisiche. Collisioni abilitate con palla e giocatore.
+- 89/89 test del calcio superati: camera resta fissa, nuove velocità, movimento laterale limitato, respinta e rifiuto di palloni troppo alti, oltre alle verifiche esistenti. Anteprime in screenshots/football-10/. Export Web completato; avvio e comandi verificati in Chromium/WebGL senza errori. Deploy Vercel remoto non verificato.
+- Limiti: portiere semplice senza tuffi, prese o animazioni nuove; nessun contatore gol. La camera fissa non ricentra un giocatore che esce dalla visuale.
+
 ## Dinamica del tiro da footballgame
 
 - Consultati `entity_player.c:1463`, `entity_ball.c:308`, `physics.c`, `game_play.c` e `math_ext_utils.c` nella fonte fdafcb36efea568e2003e3ae089a56b3da8daaa2.
