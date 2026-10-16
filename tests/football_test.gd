@@ -55,6 +55,35 @@ func run() -> void:
 		var direction = FootballControls.world_direction(input)
 		check(FootballControls.orientation(direction)==i,"Original directional art follows screen direction "+str(i))
 	check(game.player.is_on_floor() and game.ball.position.y>=0.19,"Player and ball rest on the native infinite floor")
+	# Golden cases from the C implementation, not a second copy of its formulas.
+	var direction = Vector3.FORWARD
+	var tap = FootballShotModel.launch(direction,0.0,0.4,45.0,1.0)
+	var ideal = FootballShotModel.launch(direction,0.8,0.4,45.0,1.0)
+	var over = FootballShotModel.launch(direction,1.0,0.4,45.0,1.0)
+	check(absf(tap.length()-22.5)<0.001,"Source zero-charge shot retains half of base force")
+	check(absf(ideal.length()-45.0)<0.001,"Source optimal shot reaches maximum force at 80 percent")
+	check(absf(over.length()-38.25)<0.001 and over.y>ideal.y,"Source overcharge loses force and gains height")
+	check(absf(ideal.y/(-ideal.z)-0.104)<0.001,"Source neutral elevation matches split-lerp golden value")
+	var neutral = FootballShotModel.aim(Vector3.ZERO,Vector3(0,0,-10),2.0,Vector2.ZERO,Vector3.ZERO,0.8,0.0)
+	check(Vector3(neutral.x,0,neutral.z).is_equal_approx(Vector3.FORWARD),"Source neutral aim points at the tree goal center")
+	var high = FootballShotModel.aim(Vector3.ZERO,Vector3(0,0,-10),2.0,Vector2.UP,Vector3.ZERO,0.8,0.0)
+	var low = FootballShotModel.aim(Vector3.ZERO,Vector3(0,0,-10),2.0,Vector2.DOWN,Vector3.ZERO,0.8,0.0)
+	check(high.w>neutral.w and low.w<neutral.w,"Source directional input adjusts shot elevation")
+	var side = FootballShotModel.aim(Vector3.ZERO,Vector3(0,0,-10),2.0,Vector2.RIGHT,Vector3.ZERO,0.8,0.0)
+	check(absf(side.x)>0.1,"Source assisted aim can target either side of the opening")
+	var limited = FootballShotModel.aim(Vector3.ZERO,Vector3(0,0,-10),2.0,Vector2.ZERO,Vector3.BACK*5,0.8,0.0)
+	check(Vector3.BACK.angle_to(Vector3(limited.x,0,limited.z))<=deg_to_rad(100.01),"Source moving shot cannot turn beyond 100 degrees")
+	var saved_position = game.ball.position
+	game.ball.position.y = 0.7
+	game.ball.linear_velocity.y = -2.0
+	check(is_equal_approx(game.ball.contact_multiplier(),1.05),"Source falling-ball volley receives five percent bonus")
+	game.ball.linear_velocity.y = 2.0
+	game.ball.bounce_age = 0.1
+	check(is_equal_approx(game.ball.contact_multiplier(),1.1),"Source early bounce contact receives ten percent bonus")
+	game.ball.bounce_age = 0.35
+	check(is_equal_approx(game.ball.contact_multiplier(),0.8),"Source late bounce contact loses twenty percent force")
+	game.ball.position = saved_position
+	game.ball.linear_velocity = Vector3.ZERO
 	var trees = game.get_node("GoalTrees")
 	check(trees.get_child_count()==2,"Two physical trees mark the goal")
 	var space = game.get_world_3d().direct_space_state
@@ -114,7 +143,7 @@ func run() -> void:
 	var position_before = game.ball.position
 	command("shoot",false)
 	var charged_speed = Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()
-	check(charged_speed>tap_speed+4.0 and charged_speed<14.01 and game.ball.position.is_equal_approx(position_before),"Full charge adds velocity, never moves the ball instantly")
+	check(charged_speed>tap_speed+4.0 and charged_speed<45.01 and game.ball.position.is_equal_approx(position_before),"Full charge adds velocity, never moves the ball instantly")
 	check(not game.charging and not game.player.charging,"Release clears charging state")
 	var shot_origin = game.ball.position
 	var strong_peak = 0.0
@@ -125,7 +154,7 @@ func run() -> void:
 	check(game.ball.linear_velocity.length()<charged_speed,"Air and grass resistance reduce shot speed after release")
 	await ticks(570)
 	print("Shot travel=",game.ball.position.distance_to(shot_origin))
-	check(game.ball.position.distance_to(shot_origin)>5.0 and game.ball.position.distance_to(shot_origin)<35.0,"Full shot travels a moderate distance before stopping")
+	check(game.ball.position.distance_to(shot_origin)>40.0 and game.ball.position.distance_to(shot_origin)<90.0,"Source-power shot follows its longer physical trajectory before stopping")
 	check(trails.ages.count(6.0)==128,"Grass marks expire completely after standing still")
 	check(game.ball.position.y>=0.19 and game.ball.linear_velocity.length()<0.25,"Grass resistance eventually stops the shot on the floor")
 	game.ball.position = game.player.position+Vector3(10,0.22,0)
@@ -180,7 +209,7 @@ func run() -> void:
 	var volley_position = game.ball.position
 	check(game.ball.volley_reachable(game.player),"Player can reach the lob with a running jump")
 	command("shoot",false)
-	check(game.ball.linear_velocity.y<1.0 and Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()>8.5,"Releasing charge strikes an airborne ball decisively")
+	check(game.ball.linear_velocity.y>0.0 and Vector2(game.ball.linear_velocity.x,game.ball.linear_velocity.z).length()>8.5,"Releasing charge strikes an airborne ball decisively")
 	check(game.ball.position.is_equal_approx(volley_position) and not game.ball.controlled,"Volley changes velocity without snapping or attaching the ball")
 	await ticks(1)
 	check(game.player.sprite.frame>=40,"Airborne kick pose remains visible over jump pose")

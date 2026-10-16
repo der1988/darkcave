@@ -17,6 +17,8 @@ var feedback_time: float = 0.0
 func _ready() -> void:
 	FootballControls.configure()
 	help.text = FootballControls.help_text()
+	ball.goal_center = ($GoalTrees/LeftTree.position+$GoalTrees/RightTree.position)*0.5
+	ball.goal_half_width = $GoalTrees/LeftTree.position.distance_to($GoalTrees/RightTree.position)*0.5
 	ball.recall(player)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -55,7 +57,7 @@ func _process(delta: float) -> void:
 	camera.size = lerpf(camera.size,desired_zoom,1.0-exp(-10.0*delta))
 	feedback_time = maxf(0.0,feedback_time-delta)
 	if charging:
-		feedback.text = ("PALLONETTO %d%%" if charging_lob else "TIRO %d%%") % roundi(charge_time/0.85*100.0)
+		feedback.text = ("PALLONETTO %d%%" if charging_lob else "TIRO %d%% · ideale 80%%") % roundi(charge_time/0.85*100.0)
 	elif feedback_time<=0.0:
 		feedback.text = "Palla lontana · R per richiamarla" if player.position.distance_to(ball.position)>16.0 else ""
 

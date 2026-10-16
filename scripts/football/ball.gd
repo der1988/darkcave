@@ -1,16 +1,19 @@
 class_name FootballBall
 extends RigidBody3D
 
-@export var shot_min_speed: float = 4.5
-@export var shot_max_speed: float = 14.0
-@export var air_drag: float = 0.006
-@export var rolling_deceleration: float = 1.2
+@export var shot_max_speed: float = 45.0
+@export var air_drag: float = 0.013366
+@export var rolling_deceleration: float = 4.905
 
 @onready var sprite: Sprite3D = $Sprite3D
 @onready var shadow: MeshInstance3D = $Shadow
 var touch_lock: float = 0.0
 var roll_phase: float = 0.0
 var controlled: bool = false
+var bounce_age: float = 100.0
+var previous_vertical: float = 0.0
+var goal_center = Vector3(-3,0,-3)
+var goal_half_width: float = sqrt(32.0)/2.0
 var pending_recall: Vector3 = Vector3.INF
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
@@ -20,16 +23,24 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 		state.linear_velocity = Vector3.ZERO
 		state.angular_velocity = Vector3.ZERO
 		pending_recall = Vector3.INF
+		bounce_age = 100.0
 	# Quadratic air resistance, as in footballgame, in world units.
 	var speed = state.linear_velocity.length()
 	state.linear_velocity /= 1.0+air_drag*speed*state.step
+	state.linear_velocity = state.linear_velocity.limit_length(61.0)
 
 func _physics_process(delta: float) -> void:
+	bounce_age += delta
+	if previous_vertical< -1.0 and linear_velocity.y>0.0:
+		bounce_age = 0.0
+		if linear_velocity.y<1.0:
+			linear_velocity.y = 0.0
+	previous_vertical = linear_velocity.y
 	touch_lock = maxf(0.0,touch_lock-delta)
 	# Rolling resistance on grass, distinct from air drag; gravity/bounces are native.
 	if position.y<0.23:
 		var planar_velocity = Vector3(linear_velocity.x,0,linear_velocity.z)
-		planar_velocity = planar_velocity.move_toward(Vector3.ZERO,rolling_deceleration*delta)
+		planar_velocity = planar_velocity.move_toward(Vector3.ZERO,rolling_deceleration*(1.0+linear_velocity.length()*0.01)*delta)
 		linear_velocity.x = planar_velocity.x
 		linear_velocity.z = planar_velocity.z
 	var planar = Vector3(linear_velocity.x,0,linear_velocity.z)
@@ -77,11 +88,12 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 	if lob:
 		linear_velocity = player.facing*3.16+Vector3.UP*lerpf(5.0,10.0,force)
 	else:
-		# Normalize direction before applying power, like the source football game.
-		# A ground strike stays low; a volley is driven gently down toward the turf.
-		var lift = -0.08 if position.y>0.5 else lerpf(0.02,0.32,smoothstep(0.55,1.0,force))
-		var direction = (player.facing+Vector3.UP*lift).normalized()
-		linear_velocity = direction*lerpf(shot_min_speed,shot_max_speed,force)
+		var steering = Input.get_vector("football_left","football_right","football_up","football_down")
+		var accuracy_extra = randf_range(1.1,2.0) if force>0.8 else randf_range(0.0,1.0)
+		var aim = FootballShotModel.aim(position,goal_center,goal_half_width,steering,player.velocity,force,accuracy_extra)
+		var multiplier = contact_multiplier()
+		linear_velocity = FootballShotModel.launch(Vector3(aim.x,0,aim.z),force,aim.w,shot_max_speed,multiplier)
+
 	touch_lock = 0.4
 	controlled = false
 	sleeping = false
@@ -96,3 +108,15 @@ func recall(player: FootballPlayer) -> void:
 	roll_phase = 0.0
 	controlled = false
 	sleeping = false
+
+func contact_multiplier() -> float:
+	# Source virtual-height cutoff: radius + 12 pixels = 1.4 metres.
+	if position.y>0.23 and position.y<=1.4:
+		if linear_velocity.y<0.0:
+			return 1.05
+		if linear_velocity.y>0.0:
+			if bounce_age<0.25:
+				return 1.10
+			if bounce_age<0.5:
+				return 0.8
+	return 1.0

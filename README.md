@@ -50,3 +50,5 @@ Camera invariata; sprite ridotto del 25% rispetto alla versione precedente. D ca
 Velocità aumentata del 25% sia camminando sia correndo. Il tiro A ha potenza 4.5–14, traiettoria bassa e resistenza dell’aria proporzionale al quadrato della velocità; il tiro al volo viene diretto leggermente verso il suolo.
 
 Tiri A più forti: oltre il 55% di carica la palla inizia ad alzarsi progressivamente. Ombre di contatto più leggibili sotto giocatore e pallone. I passi lasciano tracce che svaniscono entro sei secondi. Due alberi davanti al punto iniziale delimitano una porta libera, senza punteggio automatico.
+
+Dinamica tiro ora portata da footballgame: con A la potenza ideale è all’80%; oltre si perde forza e la palla sale di più. Mira assistita verso lo spazio fra gli alberi; le frecce durante la carica regolano lato e altezza del tiro. Valori originali convertiti da pixel a metri: forza base 45, neutralizzazione dell’inerzia al calcio, bonus/malus dei tiri dopo rimbalzo. Restano pallonetto caricato D e tiro al volo. Anteprime aggiornate in screenshots/football-09/.

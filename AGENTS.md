@@ -15,6 +15,7 @@ Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è il prototipo 
 - Input: `scripts/football/controls.gd`; movimento e animazione: `scripts/football/player.gd`.
 - Tracce temporanee: `scripts/football/grass_trails.gd`; alberi-porta: `scenes/football/tree.tscn`.
 - Terreno decorativo: `scripts/football/terrain.gd`; colore dell’erba: `assets/football/grass.gdshader`.
+- Modello del tiro portato da footballgame: `scripts/football/shot_model.gd` (carica, mira e lancio).
 - Fisica e controllo della palla: `scripts/football/ball.gd`; coordinamento, camera e HUD: `scripts/football/sandbox.gd`.
 - Asset originali footballgame convertiti in `assets/football/`; autore Aseprite in `art/football/` (escluso dall’export). Provenienza e conversione in `assets/football/README.md`.
 - Import riproducibile: `tools/import_football_art.gd -- --source=/path/to/footballgame`. Non ridisegnare gli sprite per cambiare il comportamento.

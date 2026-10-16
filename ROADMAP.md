@@ -1,5 +1,14 @@
 # Roadmap · Campo Libero
 
+## Dinamica del tiro da footballgame
+
+- Consultati `entity_player.c:1463`, `entity_ball.c:308`, `physics.c`, `game_play.c` e `math_ext_utils.c` nella fonte fdafcb36efea568e2003e3ae089a56b3da8daaa2.
+- Portate in `scripts/football/shot_model.gd` le formule: carica ideale 80%; sovraccarica con perdita di forza e aumento altezza; split-lerp; mira assistita al centro della porta con regolazione lato/altezza tramite frecce; limite di svolta 100° per i tiri in movimento. Precisione variabile come nella fonte.
+- Forza base originale 45 m/s, inerzia precedente azzerata al calcio; bonus 5% palla in discesa, 10% subito dopo un rimbalzo e malus 20% su contatto tardivo. Raggio e soglia virtuale della fonte convertiti da 10 pixel/metro.
+- Resistenza quadratica dell’aria 0.013366, resistenza di rotolamento 4.905 con dipendenza dalla velocità, restituzione 0.5 e velocità massima 61; rimosso smorzamento lineare aggiuntivo e attrito nativo che si sommavano alle resistenze. Pallonetto D personalizzato conservato.
+- 84/84 test del calcio superati, inclusi valori numerici di riferimento, carica 0/80/100%, mira, limite angolare, volée e rimbalzi, oltre alle regressioni del prototipo. Anteprime in screenshots/football-09/. Export Web riuscito; verifica Chromium/WebGL senza errori, comandi e H funzionanti. Deploy Vercel remoto non verificato.
+- Limiti: stessa logica del tiro e parametri convertiti; collisioni e integrazione restano native Godot, quindi traiettorie non garantite identiche fotogramma per fotogramma al motore C. Nessun aftertouch o sistema di squadre introdotto.
+
 ## Tiro sollevato, ombre, tracce e porta tra alberi
 
 - Tiro massimo A da 11 a 14; oltre 55% della carica aumenta gradualmente l’alzata, fino a una traiettoria chiaramente staccata da terra. Restano tap basso, volée e pallonetto D.
