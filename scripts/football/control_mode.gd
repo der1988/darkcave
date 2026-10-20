@@ -142,24 +142,27 @@ func _input(event: InputEvent) -> void:
 	if mode!="smartphone" or last_portrait:
 		return
 	if event is InputEventScreenTouch:
+		var owned = fingers.has(event.index)
 		if event.pressed:
-			begin_touch(event.index,event.position)
+			owned = begin_touch(event.index,event.position)
 		else:
 			end_touch(event.index)
-		get_viewport().set_input_as_handled()
+		if owned:
+			get_viewport().set_input_as_handled()
 	elif event is InputEventScreenDrag:
 		if event.index==joystick_finger:
 			move_stick(event.position)
-		get_viewport().set_input_as_handled()
+		if fingers.has(event.index):
+			get_viewport().set_input_as_handled()
 
-func begin_touch(index: int, point: Vector2) -> void:
+func begin_touch(index: int, point: Vector2) -> bool:
 	if fingers.has(index):
-		return
+		return false
 	if joystick_finger<0 and point.distance_to(stick_center)<stick_radius*1.5:
 		joystick_finger = index
 		fingers[index] = "stick"
 		move_stick(point)
-		return
+		return true
 	for action in button_centers:
 		if point.distance_to(button_centers[action])<=action_radius*1.3:
 			var already_held = fingers.values().has(action)
@@ -167,7 +170,8 @@ func begin_touch(index: int, point: Vector2) -> void:
 			if not already_held:
 				send_action(action,true)
 			queue_redraw()
-			return
+			return true
+	return false
 
 func move_stick(point: Vector2) -> void:
 	stick = ((point-stick_center)/stick_radius).limit_length(1.0)

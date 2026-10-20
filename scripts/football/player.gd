@@ -1,5 +1,6 @@
 class_name FootballPlayer
 extends CharacterBody3D
+@export var participant_id: String = "X"
 
 @export var controlled: bool = true
 @export var walk_speed: float = 4.0
@@ -9,11 +10,15 @@ extends CharacterBody3D
 var look_at_ball: Vector3 = Vector3.INF
 var facing = Vector3(1,0,1).normalized()
 var run_phase: float = 0.0
+var contact_animation: String = "foot"
 var kick_time: float = 0.0
 var charging: bool = false
 var motion_goal: Vector3 = Vector3.ZERO
 
 func _physics_process(delta: float) -> void:
+	var rules = get_parent().get_node_or_null("MatchRules")
+	if rules!=null and rules.enabled and (rules.finished or rules.resetting or participant_id.is_empty()):
+		return
 	if not controlled:
 		return
 	var input = Input.get_vector("football_left","football_right","football_up","football_down",0.0)
@@ -48,7 +53,7 @@ func drive(direction: Vector3, delta: float) -> void:
 	kick_time = maxf(0.0,kick_time-delta)
 	var row = 0
 	if kick_time>0.0:
-		row = 5
+		row = 6+mini(5,int((0.24-kick_time)/0.04)) if contact_animation=="head" else 5
 	elif not is_on_floor():
 		row = 2
 	elif distance>0.002:
@@ -58,9 +63,10 @@ func drive(direction: Vector3, delta: float) -> void:
 		run_phase = 0.0
 	sprite.frame = row*8+FootballControls.orientation(facing)
 
-func show_kick() -> void:
-	kick_time = 0.16
-	sprite.frame = 40+FootballControls.orientation(facing)
+func show_kick(kind: String = "foot") -> void:
+	contact_animation = kind
+	kick_time = 0.24 if kind=="head" else 0.16
+	sprite.frame = (48 if kind=="head" else 40)+FootballControls.orientation(facing)
 
 func jump() -> bool:
 	if not is_on_floor() or velocity.y>0.0:

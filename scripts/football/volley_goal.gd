@@ -28,6 +28,7 @@ func _physics_process(_delta: float) -> void:
 				volley_goals += 1
 				game.feedback.text = "GOL AL VOLO · %d" % volley_goals
 				game.feedback_time = 3.0
+				game.get_node("MatchRules").goal(ball.last_contact_kind)
 			armed = false
 	if not ball.last_kick_volley:
 		armed = false

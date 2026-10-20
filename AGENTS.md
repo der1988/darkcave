@@ -17,8 +17,8 @@ Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è il prototipo 
 - Smarcamenti: `scripts/football/teammate_support.gd`; gol al volo: `scripts/football/volley_goal.gd`.
 - Scelta PC/smartphone e touch: `scripts/football/control_mode.gd`; test `tests/control_mode_test.gd`. La scelta iniziale mette in pausa: i test/capture devono selezionare esplicitamente PC.
 - Input: `scripts/football/controls.gd`; movimento e animazione: `scripts/football/player.gd`.
-- Tracce temporanee: `scripts/football/grass_trails.gd`; alberi-porta: `scenes/football/tree.tscn`.
-- Terreno decorativo: `scripts/football/terrain.gd`; colore dell’erba: `assets/football/grass.gdshader`.
+- Regolamento Undici, identità e punti: `scripts/football/match_rules.gd`; test dedicati `tests/eleven_test.gd`. I test fisici isolati disabilitano esplicitamente il regolamento.
+- Campo attivo: `assets/football/asphalt.gdshader`; porta originale: `scenes/football/goal.tscn`, import `tools/import_goal_art.gd`. Erba, tracce e alberi restano solo come file storici, non caricati.
 - Modello del tiro portato da footballgame: `scripts/football/shot_model.gd` (carica, mira e lancio).
 - Fisica e controllo della palla: `scripts/football/ball.gd`; coordinamento, camera e HUD: `scripts/football/sandbox.gd`.
 - Asset originali footballgame convertiti in `assets/football/`; autore Aseprite in `art/football/` (escluso dall’export). Provenienza e conversione in `assets/football/README.md`.

@@ -6,7 +6,8 @@ extends Node3D
 @onready var ball: FootballBall = $Ball
 @onready var camera_rig: Node3D = $CameraRig
 @onready var camera: Camera3D = $CameraRig/Camera3D
-@onready var grass: MeshInstance3D = $Grass
+@onready var court: MeshInstance3D = $Court
+@onready var rules = $MatchRules
 @onready var help: Label = $HUD/Controls
 @onready var feedback: Label = $HUD/Feedback
 var charge_time: float = 0.0
@@ -25,17 +26,27 @@ var feedback_time: float = 0.0
 func _ready() -> void:
 	FootballControls.configure()
 	help.text = FootballControls.help_text()
-	ball.goal_center = ($GoalTrees/LeftTree.position+$GoalTrees/RightTree.position)*0.5
-	ball.goal_half_width = $GoalTrees/LeftTree.position.distance_to($GoalTrees/RightTree.position)*0.5
-	ball.recall(player)
+	ball.goal_center = ($Goal/LeftPost.position+$Goal/RightPost.position)*0.5
+	ball.goal_half_width = $Goal/LeftPost.position.distance_to($Goal/RightPost.position)*0.5
+	rules.start_match()
+	$HUD/Restart.pressed.connect(rules.start_match)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if rules.enabled and (rules.finished or rules.resetting):
+		if event.is_action_pressed("football_recall") and rules.finished:
+			rules.start_match()
+		return
 	if event.is_action_pressed("football_help"):
 		help.visible = not help.visible
 	elif event.is_action_pressed("football_recall"):
 		cancel_charge()
 		pass_receiver = null
 		volley_buffer = 0.0
+		if rules.enabled and rules.rally_live:
+			rules.fault(rules.last_touch,"Azione interrotta")
+			return
+		if rules.enabled:
+			rules.rally_live = false
 		ball.recall(player)
 		feedback_time = 0.0
 		feedback.text = ""
@@ -60,6 +71,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			desired_zoom = minf(34.0,desired_zoom+2.0)
 
 func _physics_process(delta: float) -> void:
+	if rules.enabled and (rules.finished or rules.resetting):
+		return
 	volley_buffer = maxf(0.0,volley_buffer-delta)
 	if volley_buffer>0.0 and ball.volley_reachable(player):
 		ball.kick(player,volley_power,false)
@@ -74,8 +87,8 @@ func _physics_process(delta: float) -> void:
 		gap.y = 0.0
 		if gap.length()>0.2:
 			direction = gap.normalized()
-		var ground_receive = ball.reachable(pass_receiver) and ball.position.y<0.35
-		var aerial_receive = pass_high and ball.held_by==null and ball.position.y>0.35 and ball.position.y<3.2 and Vector2(ball.position.x-pass_receiver.position.x,ball.position.z-pass_receiver.position.z).length()<2.6
+		var ground_receive = not rules.enabled and ball.reachable(pass_receiver) and ball.position.y<0.35
+		var aerial_receive = (pass_high or rules.enabled) and ball.held_by==null and ball.position.y>0.35 and ball.position.y<3.2 and Vector2(ball.position.x-pass_receiver.position.x,ball.position.z-pass_receiver.position.z).length()<2.6
 		if pass_age>0.25 and (ground_receive or aerial_receive):
 			var previous = player
 			player = pass_receiver
@@ -90,17 +103,20 @@ func _physics_process(delta: float) -> void:
 			volley_buffer = 0.0
 		elif pass_age>4.0 or ball.held_by!=null:
 			pass_receiver = null
-	if pass_receiver==null:
-		direction = support.direction(player,teammate,ball,delta)
-	teammate.look_at_ball = ball.position
-	teammate.drive(direction,delta)
-	ball.control_near(player,delta)
+	if not teammate.participant_id.is_empty():
+		if pass_receiver==null:
+			direction = support.direction(player,teammate,ball,delta)
+		teammate.look_at_ball = ball.position
+		teammate.drive(direction,delta)
+	if not rules.enabled or not rules.rally_live:
+		ball.control_near(player,delta)
 	if charging:
 		charge_time = minf(0.85,charge_time+delta)
-	# Visual cover follows discretely; world-space grass does not slide with it.
-	grass.position = Vector3(snappedf(player.position.x,32.0),0,snappedf(player.position.z,32.0))
 
 func _process(delta: float) -> void:
+	if rules.enabled and rules.finished:
+		feedback.text = "%s VINCE · Nuova partita" % rules.winner
+		return
 	camera.size = lerpf(camera.size,desired_zoom,1.0-exp(-10.0*delta))
 	feedback_time = maxf(0.0,feedback_time-delta)
 	if charging:
@@ -125,12 +141,12 @@ func attempt_kick(power: float, lob: bool) -> bool:
 	return success
 
 func attempt_pass(power: float, high: bool) -> bool:
-	var success = ball.pass_to(player,teammate.position,power,high)
+	var success = ball.pass_to(player,teammate.position if not teammate.participant_id.is_empty() else player.position+player.facing*0.8,power,high)
 	if not success:
 		feedback.text = "Avvicinati alla palla"
 		feedback_time = 1.2
 		return false
-	pass_receiver = teammate
+	pass_receiver = teammate if not teammate.participant_id.is_empty() else null
 	pass_high = high
 	pass_age = 0.0
 	volley_buffer = 0.0

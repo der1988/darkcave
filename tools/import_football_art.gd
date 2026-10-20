@@ -21,18 +21,20 @@ func _initialize() -> void:
 	var frames: Dictionary = {}
 	for entry in data.frames:
 		frames[entry.filename] = entry.frame
-	var player = Image.create(61*8,61*6,false,Image.FORMAT_RGBA8)
+	var player = Image.create(61*8,61*12,false,Image.FORMAT_RGBA8)
 	var ball = Image.create(52*8,44*4,false,Image.FORMAT_RGBA8)
 	for direction in 8:
 		copy_frame(atlas,frames,"player_"+DIRECTIONS[direction]+"_0",player,Vector2i(direction*61,0),true)
 		for pose in 4:
 			copy_frame(atlas,frames,"player_run_"+DIRECTIONS[direction]+"_"+str(pose),player,Vector2i(direction*61,(pose+1)*61),true)
 			copy_frame(atlas,frames,"ball_"+BALL[direction]+"_"+str(pose),ball,Vector2i(direction*52,pose*44),false)
+		for pose in 6:
+			copy_frame(atlas,frames,"player_header_"+DIRECTIONS[direction]+"_"+str(pose),player,Vector2i(direction*61,(pose+6)*61),true)
 		copy_frame(atlas,frames,"player_"+KICKS[direction]+"_0",player,Vector2i(direction*61,305),true)
 	DirAccess.make_dir_recursive_absolute("res://assets/football")
 	assert(player.save_png("res://assets/football/player.png") == OK)
 	assert(ball.save_png("res://assets/football/ball.png") == OK)
-	print("Imported 48 player frames and 32 ball frames without resampling.")
+	print("Imported 96 player frames and 32 ball frames without resampling.")
 	quit()
 
 func copy_frame(atlas: Image, frames: Dictionary, name: String, output: Image, point: Vector2i, indexed: bool) -> void:

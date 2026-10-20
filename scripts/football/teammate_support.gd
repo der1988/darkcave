@@ -20,8 +20,10 @@ func direction(carrier: FootballPlayer, teammate: FootballPlayer, ball: Football
 		# Stay in front of the tree goal rather than running through the keeper.
 		var away = -ball.goal_center.normalized()
 		var depth = (target-ball.goal_center).dot(away)
-		if depth<1.6:
-			target += away*(1.6-depth)
+		target += away*(clampf(depth,1.6,11.8)-depth)
+		var width_axis = Vector3(-away.z,0,away.x)
+		var width = (target-ball.goal_center).dot(width_axis)
+		target += width_axis*(clampf(width,-6.3,6.3)-width)
 	var gap = target-teammate.position
 	gap.y = 0.0
 	return gap.normalized()*minf(0.65,gap.length()*1.5) if gap.length()>0.25 else Vector3.ZERO

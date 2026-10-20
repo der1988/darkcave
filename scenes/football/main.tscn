@@ -3,12 +3,11 @@
 [ext_resource type="Script" path="res://scripts/football/sandbox.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/football/ball.tscn" id="3"]
-[ext_resource type="Shader" path="res://assets/football/grass.gdshader" id="4"]
+[ext_resource type="Shader" path="res://assets/football/asphalt.gdshader" id="4"]
 
-[ext_resource type="Script" path="res://scripts/football/terrain.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/football/match_rules.gd" id="5"]
 
-[ext_resource type="Script" path="res://scripts/football/grass_trails.gd" id="6"]
-[ext_resource type="PackedScene" path="res://scenes/football/tree.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/football/goal.tscn" id="7"]
 
 [ext_resource type="PackedScene" path="res://scenes/football/goalkeeper.tscn" id="8"]
 
@@ -27,7 +26,7 @@ size = Vector2(256,256)
 
 [sub_resource type="Environment" id="Daylight"]
 background_mode = 1
-background_color = Color(0.19,0.39,0.2,1)
+background_color = Color(0.15,0.18,0.16,1)
 ambient_light_source = 3
 ambient_light_color = Color(1,1,1,1)
 ambient_light_energy = 1.0
@@ -49,23 +48,14 @@ collision_mask = 48
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
 shape = SubResource("Floor")
 
-[node name="Grass" type="MeshInstance3D" parent="."]
+[node name="Court" type="MeshInstance3D" parent="."]
 mesh = SubResource("Grass")
 cast_shadow = 0
 
-[node name="Terrain" type="Node3D" parent="."]
+[node name="MatchRules" type="Node" parent="."]
 script = ExtResource("5")
 
-[node name="GrassTrails" type="Node3D" parent="."]
-script = ExtResource("6")
-
-[node name="GoalTrees" type="Node3D" parent="."]
-
-[node name="LeftTree" parent="GoalTrees" instance=ExtResource("7")]
-position = Vector3(-6,0,-2)
-
-[node name="RightTree" parent="GoalTrees" instance=ExtResource("7")]
-position = Vector3(-2,0,-6)
+[node name="Goal" parent="." instance=ExtResource("7")]
 
 [node name="Goalkeeper" parent="." instance=ExtResource("8")]
 position = Vector3(-4,0,-4)
@@ -75,6 +65,7 @@ position = Vector3(-4,0,-4)
 [node name="Teammate" parent="." instance=ExtResource("2")]
 position = Vector3(3,0,-2)
 controlled = false
+participant_id = "Y"
 
 [node name="Ball" parent="." instance=ExtResource("3")]
 position = Vector3(0.6,0.22,0.6)
@@ -108,7 +99,7 @@ offset_right = 550.0
 offset_bottom = 65.0
 theme_override_colors/font_color = Color(0.94,0.98,0.89,0.5)
 theme_override_font_sizes/font_size = 12
-text = "Obiettivo: segna al volo · D per alzare, A per tirare"
+text = "UNDICI · solo al volo · piede 1 / testa 3 / tacco e rovesciata 5"
 
 [node name="Controls" type="Label" parent="HUD"]
 anchor_top = 1.0
@@ -144,3 +135,18 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("10")
+
+[node name="Score" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 72.0
+offset_right = 700.0
+offset_bottom = 94.0
+theme_override_font_sizes/font_size = 16
+text = "X  11   Y  11   Z  11"
+[node name="Restart" type="Button" parent="HUD"]
+visible = false
+offset_left = 24.0
+offset_top = 105.0
+offset_right = 240.0
+offset_bottom = 150.0
+text = "Nuova partita"

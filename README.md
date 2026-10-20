@@ -1,68 +1,49 @@
-# Campo Libero · calcio isometrico 0.3
+# Campo Libero · Undici
 
-Un piccolo giocatore e un pallone su un campo verde senza confini. Prima prova arcade ispirata a Soccer Kid, con sprite e animazioni originali del progetto [footballgame](https://github.com/der1988/footballgame), in vista isometrica.
+Campetto d’asfalto all’aperto, consumato, in pixel art isometrica. Tre partecipanti **X, Y, Z** partono con **11 punti**; Z è inizialmente il portiere. Pali e rete e sprite dei personaggi provengono da [footballgame](https://github.com/der1988/footballgame).
 
-## Giocare nel browser
+## Regole giocabili
 
-web/ contiene l’export Godot pronto per Vercel. Il push su main attiva il deploy del progetto collegato. Apri il sito da un browser desktop con WebGL 2 e fai clic sul campo per dare il focus alla tastiera.
+- S o D avviano il servizio da terra; dopo il lancio, passaggi e conclusioni sono rigorosamente al volo.
+- Gol di piede: il portiere perde **1** punto. Testa: **3**. Tacco o rovesciata: **5**.
+- Se la palla cade durante la costruzione o esce dal campo, l’ultimo giocatore che l’ha toccata va in porta. I punti seguono la persona, non il ruolo.
+- Il tiro deve partire al volo; un rimbalzo successivo alla conclusione non annulla il tiro. Un tiro fermo e non riuscito chiude l’azione.
+- A zero punti si viene eliminati. Dopo l’eliminazione del portiere, il marcatore prende il suo posto. Nel duello finale è possibile alzarsi il pallone per concludere. L’ultimo superstite vince.
+- Cambio di ruoli e riposizionamento avvengono solo a palla morta. R o il pulsante **Nuova partita** permettono di ripartire dopo la vittoria.
 
-| Comando | Azione |
+Il tipo di contatto è automatico: altezza per piede/testa/petto; orientamento rispetto alla porta per il tacco; contatto alto all’indietro in salto per la rovesciata. La testa usa le animazioni originali; petto, tacco e rovesciata riutilizzano le pose disponibili e richiedono ulteriore rifinitura visiva.
+
+## Controlli
+
+All’avvio scegli PC o Smartphone. Su smartphone viene richiesto fullscreen landscape; se il browser non permette il blocco dell’orientamento, ruota manualmente il dispositivo.
+
+| PC | Azione |
 | --- | --- |
-| Frecce | Muovi in otto direzioni rispetto allo schermo |
-| A tenuto e rilasciato | Carica e tira nella direzione del giocatore |
-| D tenuto e rilasciato | Passaggio alto: breve/arcuato oppure lungo/teso |
-| S | Passaggio corto al compagno |
-| Spazio | Salta |
-| R | Richiama la palla ai piedi |
-| H | Mostra / nascondi i comandi |
+| Frecce | Movimento, senza scatto |
+| A tenuto e rilasciato | Tiro; carica ideale all’80% |
+| S | Passaggio corto aereo |
+| D tenuto e rilasciato | Passaggio alto: breve/arcuato o lungo/teso |
+| Spazio | Salto |
+| R | Nuovo servizio; interrompere un’azione attiva conta come errore |
+| H | Comandi |
 | Rotellina | Zoom |
 
-Avvicinati alla palla per controllarla; una palla veloce o alta resta libera. Il tiro funziona solo da vicino. Il controllo usa velocità e collisioni reali: la palla non è attaccata al personaggio. R è il solo riposizionamento esplicito di prova.
+Su smartphone: analogico sinistro progressivo e A/S/D a destra, anche con più dita. Il controllo passa al ricevente prima dell’atterraggio. Nessun controllo automatico a terra durante l’azione.
 
-## Sviluppo
+## Sviluppo e verifiche
 
-Apri project.godot con Godot **4.6.3 Standard / Compatibility**, poi F5. La scena di avvio è scenes/football/main.tscn; script separati in scripts/football/. Non servono npm o nuove librerie.
+Godot **4.6.3 Standard / Compatibility**, scena `scenes/football/main.tscn`, moduli in `scripts/football/`. Nessuna libreria aggiuntiva.
 
 ```sh
 godot --headless --editor --import --path . --quit
 godot --headless --fixed-fps 60 --path . --script tests/football_test.gd
+godot --headless --fixed-fps 60 --path . --script tests/control_mode_test.gd
+godot --headless --fixed-fps 60 --path . --script tests/eleven_test.gd
 ./tools/export_web.sh
 ```
 
-L’export richiede i template Web della stessa versione. Committare anche i file aggiornati in web/: Vercel distribuisce l’esportazione statica, senza compilare Godot.
+L’export completo usa i template Web 4.6.3. Se assenti, lo script rigenera il pacchetto dati e riutilizza il runtime Web 4.6.3 già versionato, aggiornando le dimensioni nel loader. Vercel serve `web/`; committare anche l’export.
 
-## Asset e anteprime
+Provenienza e conversione degli asset in `assets/football/README.md`; porta importabile con `tools/import_goal_art.gd -- --source=/path/to/footballgame`. Anteprime attuali in `screenshots/football-17/`.
 
-Provenienza e conversione dei frame: assets/football/README.md. Originali editabili in art/football/, esclusi dall’export. Le immagini non sono ridisegnate: vengono estratti i frame originali e risolta la loro palette indicizzata.
-
-Screenshot e video del gioco in screenshots/football/. Il piano fisico è infinito; la superficie verde segue il giocatore con coordinate della trama fisse nel mondo.
-
-La precedente scena Father & Son e i suoi test sono conservati nello storico del progetto e in scenes/main.tscn; non vengono istanziati dal nuovo avvio. Per riprodurre una sua suite usare, ad esempio, godot --headless --fixed-fps 60 --path . --script tests/prototype_test.gd.
-
-Il terreno è volutamente semplice: verde uniforme, pochi segni pixel art, ciuffi e sassi radi. Il giocatore è circa il 25% più grande rispetto alla prima prova; la corsa con Shift raggiunge 10 unità/s, la camminata 4.5.
-
-Carica A anche durante il pallonetto, avvicinati o salta con S e rilascia per colpire al volo una palla raggiungibile. Anteprime aggiornate in screenshots/football-08/.
-
-Camera ravvicinata: zoom iniziale 18 (prima 34), regolabile fra 12 e 34 con la rotellina.
-
-Camera invariata; sprite ridotto del 25% rispetto alla versione precedente. D carica fino a 0.85 secondi: più a lungo tieni premuto, più alto sarà il pallonetto al rilascio.
-
-Velocità aumentata del 25% sia camminando sia correndo. Il tiro A ha potenza 4.5–14, traiettoria bassa e resistenza dell’aria proporzionale al quadrato della velocità; il tiro al volo viene diretto leggermente verso il suolo.
-
-Tiri A più forti: oltre il 55% di carica la palla inizia ad alzarsi progressivamente. Ombre di contatto più leggibili sotto giocatore e pallone. I passi lasciano tracce che svaniscono entro sei secondi. Due alberi davanti al punto iniziale delimitano una porta libera, senza punteggio automatico.
-
-Dinamica tiro ora portata da footballgame: con A la potenza ideale è all’80%; oltre si perde forza e la palla sale di più. Mira assistita verso lo spazio fra gli alberi; le frecce durante la carica regolano lato e altezza del tiro. Valori originali convertiti da pixel a metri: forza base 45, neutralizzazione dell’inerzia al calcio, bonus/malus dei tiri dopo rimbalzo. Restano pallonetto caricato D e tiro al volo. Anteprime aggiornate in screenshots/football-09/.
-
-Inquadratura attuale fissa (non insegue il giocatore), 4% più larga: size 18.72. Porta spostata nella parte alta e portiere reattivo fra gli alberi, con collisioni e respinte. Camminata 4.68 e corsa 10.4 unità/s (+4%). Anteprime in screenshots/football-10/.
-
-Il portiere usa ora gli sprite originali `goalkeeper` di footballgame: 240 frame e tempi originali. Reazione di 150 ms, tuffi bassi/alti fino a 6 m/s, salto su palloni alti centrali, recupero di 0.75 s, uscita bassa su palla contesa, presa delle palle lente e rilancio a mano. Gli alberi sono alti il 12% in più. Anteprime aggiornate in screenshots/football-11/.
-
-Due giocatori di movimento: S passa basso al compagno e alla ricezione il controllo passa a lui. D al tocco fa un passaggio alto corto e arcuato; tenuto fa un passaggio alto più lungo e teso. Spazio conserva il salto. A mantiene il tiro di footballgame, con finestra di anticipo di 0.22 s per una volée vicina; nessun tiro remoto. Anteprime attuali in screenshots/football-12/.
-
-Obiettivo attuale: segnare al volo tra gli alberi (altezza porta 2.44 m). Il compagno si smarca e resta rivolto al pallone; sui passaggi alti il controllo passa a lui prima dell’atterraggio. A accetta fino a 0.38 s di anticipo, con portata più permissiva; vale anche il mezzo-volo entro 0.15 s dal rimbalzo. I gol al volo vengono riconosciuti, senza contare due volte lo stesso tiro. Anteprime in screenshots/football-13/.
-
-All’avvio scegli PC o Smartphone. PC conserva i comandi della tastiera. Smartphone richiede schermo intero e orientamento landscape: analogico sinistro con velocità graduale, senza scatto automatico, A tiro caricato, S passaggio corto, D passaggio alto caricato. I comandi supportano più dita contemporaneamente. Se il browser non permette il blocco orientamento, ruota manualmente il telefono; in verticale il gioco resta in pausa con un invito a ruotarlo. Test touch: `godot --headless --fixed-fps 60 --path . --script tests/control_mode_test.gd`. Anteprime in screenshots/football-14/.
-
-Analogico mobile regolato per maggiore precisione: risposta progressiva e velocità massima circa 4 unità/s; nessun salto automatico alla corsa quando si raggiunge il bordo. La tastiera PC resta invariata.
-
-Movimento attuale senza scatto su entrambe le piattaforme: velocità unica 4 unità/s. Shift non accelera. L’analogico conserva deadzone e curva progressiva, raggiungendo al bordo la stessa velocità del PC. Il controllo della palla usa questa velocità unica.
+Il precedente Father & Son è conservato in `scenes/main.tscn` e nei test storici, senza essere caricato dal nuovo avvio.

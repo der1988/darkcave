@@ -7,6 +7,7 @@ extends RigidBody3D
 
 @onready var sprite: Sprite3D = $Sprite3D
 @onready var shadow: MeshInstance3D = $Shadow
+var last_contact_kind: String = "foot"
 var play_id: int = 0
 var last_kick_volley: bool = false
 var held_by: Node = null
@@ -89,6 +90,9 @@ func control_near(player: FootballPlayer, delta: float) -> void:
 	controlled = true
 
 func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
+	var rules = get_parent().get_node_or_null("MatchRules")
+	if rules!=null and not rules.can_touch(player):
+		return false
 	if not (reachable(player) if lob else volley_reachable(player)):
 		return false
 	play_id += 1
@@ -107,7 +111,9 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 	touch_lock = 0.4
 	controlled = false
 	sleeping = false
-	player.show_kick()
+	if rules!=null and rules.enabled:
+		rules.touch(player,rules.contact_kind(player,not lob),not lob)
+	player.show_kick(last_contact_kind if rules!=null and rules.enabled else "foot")
 	return true
 
 func recall(player: FootballPlayer) -> void:
@@ -138,7 +144,10 @@ func contact_multiplier() -> float:
 	return 1.0
 
 func pass_to(player: FootballPlayer, target: Vector3, power: float, high: bool) -> bool:
-	if not reachable(player):
+	var rules = get_parent().get_node_or_null("MatchRules")
+	if rules!=null and not rules.can_touch(player):
+		return false
+	if not (volley_reachable(player) or reachable(player)):
 		return false
 	play_id += 1
 	last_kick_volley = false
@@ -150,10 +159,12 @@ func pass_to(player: FootballPlayer, target: Vector3, power: float, high: bool) 
 		linear_velocity = direction.normalized()*lerpf(3.0,10.5,power)+Vector3.UP*lerpf(8.0,6.0,power)
 	else:
 		var speed = clampf(4.5+direction.length()*0.8,6.0,12.0)
-		linear_velocity = direction.normalized()*speed+Vector3.UP*0.12
+		linear_velocity = direction.normalized()*speed+Vector3.UP*(3.4 if rules!=null and rules.enabled else 0.12)
 	flight_age = 0.0
 	touch_lock = 0.28
 	controlled = false
 	sleeping = false
-	player.show_kick()
+	if rules!=null and rules.enabled:
+		rules.touch(player,rules.contact_kind(player,false),false)
+	player.show_kick(last_contact_kind if rules!=null and rules.enabled else "foot")
 	return true

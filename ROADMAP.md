@@ -1,5 +1,15 @@
 # Roadmap · Campo Libero
 
+## Campetto d’asfalto e partita Undici
+
+- Superficie d’asfalto consumato con linee e limiti di campo; erba, tracce e alberi rimossi dalla scena attiva. Porta originale footballgame `posts_0`/`net_up_0`, con trasparenza rete e collisioni di pali, traversa e fondo.
+- Nomi X/Y/Z e punti sotto tutti gli attori, riepilogo HUD. Nuovo regolamento separato: 11 punti ciascuno, servizio iniziale, passaggi e tiri solo al volo, niente controllo a terra durante l’azione. S ora è un passaggio corto aereo; D resta alto.
+- Rimbalzo nella costruzione o uscita: ultimo toccatore in porta, identità/punti conservati. Gol: piede 1, testa 3, tacco/rovesciata 5. Contatti riconosciuti da altezza/orientamento/salto; sei frame originali della testa importati per otto direzioni. Nessun doppio addebito sullo stesso gol.
+- Zero punti elimina il portiere; marcatore subentra e ultimo superstite vince. Ripartenze a palla morta, autopallonetto nel duello finale, pulsante Nuova partita anche touch. R durante un’azione è rinuncia, non un modo per evitare l’errore.
+- Corretto il trascinamento verticale dei personaggi da parte del pallone: soltanto il terreno è una piattaforma. I comandi touch lasciano passare i tap esterni agli stick/pulsanti, rendendo utilizzabile il restart.
+- Suite attive: 125/125 fisica/integrazione, 19/19 controlli e 33/33 regolamento (177/177); anche 239/239 verifiche storiche superate, totale 416/416. Export Web e browser desktop/mobile verificati; screenshot in screenshots/football-17/. In assenza dei template locali viene riutilizzato il runtime Web 4.6.3 versionato, esportando nuovamente dati e metadati.
+- Limiti: petto/tacco/rovesciata hanno classificazione e punti ma riutilizzano pose disponibili; la testa ha la sua animazione originale. Nel duello finale è consentito alzarsi la palla. Nessun multiplayer o salvataggio della partita introdotto.
+
 ## Movimento unico PC/mobile senza scatto
 
 - Rimossi sprint, accelerazione Shift e relativa voce dall’help. Nessun aumento di velocità tramite Shift su PC o bordo analogico su mobile.

@@ -1,0 +1,55 @@
+[gd_scene load_steps=7 format=3]
+[ext_resource type="Texture2D" path="res://assets/football/posts_0.png" id="1"]
+[ext_resource type="Texture2D" path="res://assets/football/net_up_0.png" id="2"]
+[sub_resource type="CylinderShape3D" id="Post"]
+radius = 0.09
+height = 2.44
+[sub_resource type="BoxShape3D" id="Bar"]
+size = Vector3(5.657,0.14,0.14)
+[sub_resource type="BoxShape3D" id="Net"]
+size = Vector3(5.657,2.44,0.08)
+[sub_resource type="PhysicsMaterial" id="Metal"]
+bounce = 0.7
+friction = 0.1
+[node name="Goal" type="Node3D"]
+[node name="LeftPost" type="StaticBody3D" parent="."]
+position = Vector3(-6,0,-2)
+physics_material_override = SubResource("Metal")
+[node name="Shape" type="CollisionShape3D" parent="LeftPost"]
+position = Vector3(0,1.22,0)
+shape = SubResource("Post")
+[node name="RightPost" type="StaticBody3D" parent="."]
+position = Vector3(-2,0,-6)
+physics_material_override = SubResource("Metal")
+[node name="Shape" type="CollisionShape3D" parent="RightPost"]
+position = Vector3(0,1.22,0)
+shape = SubResource("Post")
+[node name="Frame" type="StaticBody3D" parent="."]
+position = Vector3(-4,2.44,-4)
+rotation_degrees = Vector3(0,45,0)
+physics_material_override = SubResource("Metal")
+[node name="Shape" type="CollisionShape3D" parent="Frame"]
+shape = SubResource("Bar")
+[node name="BackNet" type="StaticBody3D" parent="."]
+position = Vector3(-4.85,1.22,-4.85)
+rotation_degrees = Vector3(0,45,0)
+[node name="Shape" type="CollisionShape3D" parent="BackNet"]
+shape = SubResource("Net")
+[node name="NetArt" type="Sprite3D" parent="."]
+position = Vector3(-4.3,0,-4.3)
+texture = ExtResource("2")
+pixel_size = 0.05657
+offset = Vector2(0,21)
+billboard = 1
+texture_filter = 0
+alpha_cut = 0
+cast_shadow = 0
+[node name="PostsArt" type="Sprite3D" parent="."]
+position = Vector3(-4,0,-4)
+texture = ExtResource("1")
+pixel_size = 0.05657
+offset = Vector2(0,16)
+billboard = 1
+texture_filter = 0
+alpha_cut = 1
+cast_shadow = 0

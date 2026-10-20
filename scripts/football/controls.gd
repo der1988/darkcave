@@ -33,4 +33,4 @@ static func orientation(direction: Vector3) -> int:
 	return posmod(roundi(projected.angle()/(PI/4.0)),8)
 
 static func help_text() -> String:
-	return "Frecce · Muovi    %s · Carica e tira\n%s · Passaggio alto    %s · Passaggio corto    %s · Salta    %s · Richiama palla    %s · Comandi    Rotellina · Zoom" % [OS.get_keycode_string(KEYS.shoot[0]),OS.get_keycode_string(KEYS.lob[0]),OS.get_keycode_string(KEYS.pass[0]),OS.get_keycode_string(KEYS.jump[0]),OS.get_keycode_string(KEYS.recall[0]),OS.get_keycode_string(KEYS.help[0])]
+	return "Frecce · Muovi    %s · Carica e tira\n%s · Passaggio alto    %s · Passaggio corto    %s · Salta    %s · Servizio / rinuncia    %s · Comandi    Rotellina · Zoom" % [OS.get_keycode_string(KEYS.shoot[0]),OS.get_keycode_string(KEYS.lob[0]),OS.get_keycode_string(KEYS.pass[0]),OS.get_keycode_string(KEYS.jump[0]),OS.get_keycode_string(KEYS.recall[0]),OS.get_keycode_string(KEYS.help[0])]

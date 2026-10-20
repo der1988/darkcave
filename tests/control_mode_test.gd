@@ -30,6 +30,7 @@ func run() -> void:
 	game = load("res://scenes/football/main.tscn").instantiate()
 	root.add_child(game)
 	current_scene = game
+	game.get_node("MatchRules").enabled = false
 	ui = game.get_node("DeviceUI/ControlMode")
 	var initial_player = game.player.position
 	await ticks(20)

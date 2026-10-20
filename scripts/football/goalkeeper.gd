@@ -1,4 +1,5 @@
 extends CharacterBody3D
+@export var participant_id: String = "Z"
 ## Adapted from footballgame ai_goalie / entity_player goalie states.
 enum State { PROTECT, DIVE, JUMP, SMOTHER, RECOVER, HOLD, THROW }
 @export var movement_speed: float = 3.2
@@ -24,7 +25,7 @@ var dive_face: String = "front"
 func _ready() -> void:
 	remove_from_group("football_player")
 	$Body.shape = $Body.shape.duplicate()
-	var posts = get_parent().get_node("GoalTrees")
+	var posts = get_parent().get_node("Goal")
 	center = (posts.get_child(0).position+posts.get_child(1).position)*0.5
 	lateral = (posts.get_child(1).position-posts.get_child(0).position).normalized()
 	forward = lateral.cross(Vector3.UP).normalized()
@@ -111,6 +112,9 @@ func choose_smother() -> bool:
 	return true
 
 func _physics_process(delta: float) -> void:
+	var rules = get_parent().get_node_or_null("MatchRules")
+	if rules!=null and rules.enabled and (rules.finished or rules.resetting or participant_id.is_empty()):
+		return
 	state_time += delta
 	parry_cooldown = maxf(0.0,parry_cooldown-delta)
 	if state==State.HOLD or state==State.THROW:
