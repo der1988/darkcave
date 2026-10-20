@@ -16,7 +16,8 @@ var charging_lob: bool = false
 var desired_zoom: float = 18.72
 var pass_receiver: FootballPlayer
 var receive_target = Vector3.ZERO
-var support = FootballTeammateSupport.new()
+var support_plans: Dictionary = {}
+var outfield: Array[FootballPlayer] = []
 var pass_high: bool = false
 var pass_age: float = 0.0
 var volley_buffer: float = 0.0
@@ -24,6 +25,7 @@ var volley_power: float = 0.0
 var feedback_time: float = 0.0
 
 func _ready() -> void:
+	outfield.assign([$Player,$Teammate,$Teammate2,$Teammate3])
 	FootballControls.configure()
 	help.text = FootballControls.help_text()
 	ball.goal_center = ($Goal/LeftPost.position+$Goal/RightPost.position)*0.5
@@ -83,7 +85,10 @@ func _physics_process(delta: float) -> void:
 		pass_age += delta
 		if ball.position.y<0.5 and pass_age>0.3:
 			receive_target = Vector3(ball.position.x,0,ball.position.z)
-		var gap = receive_target-pass_receiver.position
+		var intercept = receive_target
+		if pass_high:
+			intercept = ball.position+Vector3(ball.linear_velocity.x,0,ball.linear_velocity.z)*0.25
+		var gap = intercept-pass_receiver.position
 		gap.y = 0.0
 		if gap.length()>0.2:
 			direction = gap.normalized()
@@ -103,11 +108,18 @@ func _physics_process(delta: float) -> void:
 			volley_buffer = 0.0
 		elif pass_age>4.0 or ball.held_by!=null:
 			pass_receiver = null
-	if not teammate.participant_id.is_empty():
-		if pass_receiver==null:
-			direction = support.direction(player,teammate,ball,delta)
-		teammate.look_at_ball = ball.position
-		teammate.drive(direction,delta)
+	var teammates = active_outfield()
+	teammates.erase(player)
+	var axis = Vector3(-0.70710678,0,0.70710678)
+	teammates.sort_custom(func(a,b): return a.position.dot(axis)<b.position.dot(axis))
+	for i in teammates.size():
+		var actor: FootballPlayer = teammates[i]
+		if not support_plans.has(actor.get_instance_id()):
+			support_plans[actor.get_instance_id()] = FootballTeammateSupport.new()
+		var plan: FootballTeammateSupport = support_plans[actor.get_instance_id()]
+		var movement = direction if actor==pass_receiver else plan.direction(player,actor,ball,delta,teammates,i,active_outfield())
+		actor.look_at_ball = ball.position
+		actor.drive(movement,delta)
 	if not rules.enabled or not rules.rally_live:
 		ball.control_near(player,delta)
 	if charging:
@@ -141,6 +153,9 @@ func attempt_kick(power: float, lob: bool) -> bool:
 	return success
 
 func attempt_pass(power: float, high: bool) -> bool:
+	var receiver = choose_pass_target()
+	if receiver!=null:
+		teammate = receiver
 	var success = ball.pass_to(player,teammate.position if not teammate.participant_id.is_empty() else player.position+player.facing*0.8,power,high)
 	if not success:
 		feedback.text = "Avvicinati alla palla"
@@ -176,3 +191,23 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and is_instance_valid(player):
 		cancel_charge()
 		volley_buffer = 0.0
+
+func active_outfield() -> Array:
+	return outfield.filter(func(actor): return not actor.participant_id.is_empty())
+
+func choose_pass_target() -> FootballPlayer:
+	var wish = Input.get_vector("football_left","football_right","football_up","football_down")
+	var direction = FootballControls.world_direction(wish) if wish.length()>0.2 else player.facing
+	var best: FootballPlayer = null
+	var best_score = INF
+	for actor in active_outfield():
+		if actor==player:
+			continue
+		var gap = actor.position-player.position
+		gap.y = 0.0
+		var toward_goal = (player.position.distance_to(ball.goal_center)-actor.position.distance_to(ball.goal_center))*0.25
+		var score = gap.length()-gap.normalized().dot(direction)*1.5-toward_goal
+		if score<best_score:
+			best_score = score
+			best = actor
+	return best

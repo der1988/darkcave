@@ -23,3 +23,5 @@ Originali player.aseprite e ball.aseprite in art/football/. Il motore C/raylib d
 Portiere: `goalkeeper.png` contiene tutti i 240 frame originali `goalkeeper_*` in celle 61×61, 16 colonne; `goalkeeper.json` conserva indice dei frame e tutte le sequenze/tempi di `animations.json` della fonte. Import con `godot --headless --path . --script tools/import_goalkeeper_art.gd -- --source=/path/to/footballgame`. Stessa conversione della palette indicizzata dell’import iniziale, senza ridisegno o ricampionamento. I frame includono fermo, corsa, tuffi bassi/alti, salti, uscita bassa, presa e passaggio a mano.
 
 Porta: `posts_0.png` e `net_up_0.png` sono ritagli originali 100×56 di `sprites.png`, letti da `entity_goal.c` e `entity_goal_net.c`; importer `tools/import_goal_art.gd`. Alpha della rete conservato. Il foglio `player.png` ora contiene 96 celle (8×12): le 48 pose precedenti più sei frame di testa in tutte le otto direzioni, senza ridisegno.
+
+`kit.gdshader` recolors only the original red jerseys at runtime. Five identity colors are defined in `scripts/football/roster.gd`; source sheets, skin, hair, shorts and goalkeeper animation frames are preserved.

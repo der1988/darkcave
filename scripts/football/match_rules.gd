@@ -4,8 +4,8 @@ const START_POINTS = 11
 const CONTACT_LABELS = {"foot":"piede","chest":"petto","head":"testa","heel":"tacco","bicycle":"rovesciata"}
 const GOAL_COST = {"foot":1,"chest":1,"head":3,"heel":5,"bicycle":5}
 var enabled: bool = true
-var points = {"X":11,"Y":11,"Z":11}
-var keeper_id: String = "Z"
+var points: Dictionary = {}
+var keeper_id: String = "David"
 var last_touch: String = ""
 var shot_in_flight: bool = false
 var rally_live: bool = false
@@ -21,11 +21,13 @@ func start_match() -> void:
 	game.cancel_charge()
 	game.volley_buffer = 0.0
 	game.pass_receiver = null
-	points = {"X":11,"Y":11,"Z":11}
-	keeper_id = "Z"
-	game.get_node("Player").participant_id = "X"
-	game.get_node("Teammate").participant_id = "Y"
-	game.get_node("Goalkeeper").participant_id = "Z"
+	points.clear()
+	for id in FootballRoster.NAMES:
+		points[id] = START_POINTS
+	keeper_id = "David"
+	for i in game.outfield.size():
+		game.outfield[i].participant_id = FootballRoster.NAMES[i]
+	game.get_node("Goalkeeper").participant_id = keeper_id
 	finished = false
 	winner = ""
 	last_reason = ""
@@ -110,7 +112,7 @@ func fault(id: String, reason: String) -> void:
 func swap_keeper(id: String) -> void:
 	if id==keeper_id:
 		return
-	for actor in [game.get_node("Player"),game.get_node("Teammate")]:
+	for actor in game.outfield:
 		if actor.participant_id==id:
 			actor.participant_id = keeper_id if points[keeper_id]>0 else ""
 			break
@@ -134,16 +136,16 @@ func finish_rally() -> void:
 func reset_positions() -> void:
 	if game.ball.held_by!=null:
 		game.ball.held_by.release_ball()
-	var actors = [game.get_node("Player"),game.get_node("Teammate")]
-	if actors[0].participant_id.is_empty():
-		actors.reverse()
+	var actors: Array = game.outfield.duplicate()
+	actors.sort_custom(func(a,b): return not a.participant_id.is_empty() and b.participant_id.is_empty())
 	game.player = actors[0]
 	game.teammate = actors[1]
-	for i in 2:
+	var starts = [Vector3.ZERO,Vector3(3,0,-2),Vector3(-3,0,1),Vector3(2,0,4)]
+	for i in actors.size():
 		var actor = actors[i]
 		actor.visible = not actor.participant_id.is_empty()
 		actor.collision_layer = 16 if actor.visible else 0
-		actor.position = Vector3.ZERO if i==0 else Vector3(3,0,-2)
+		actor.position = starts[i]
 		actor.velocity = Vector3.ZERO
 		actor.controlled = i==0
 		actor.charging = false
@@ -160,8 +162,9 @@ func reset_positions() -> void:
 	game.get_node("HUD/Restart").hide()
 
 func refresh_labels() -> void:
-	for actor in [game.get_node("Player"),game.get_node("Teammate"),game.get_node("Goalkeeper")]:
+	for actor in game.outfield+[game.get_node("Goalkeeper")]:
 		var id: String = actor.participant_id
+		FootballRoster.apply_kit(actor)
 		actor.get_node("NameLabel").text = "%s · %d" % [id,points.get(id,0)] if not id.is_empty() else ""
 	var scores = PackedStringArray()
 	for id in points:

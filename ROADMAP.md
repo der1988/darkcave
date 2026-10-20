@@ -1,5 +1,12 @@
 # Roadmap · Campo Libero
 
+## Cinque partecipanti e smarcamenti distribuiti
+
+- Marco rosso, Simone blu, Brad giallo, Matt verde e David viola: quattro giocatori di movimento e un portiere. Palette centralizzata e maglie ricolorate senza alterare gli sprite originali; nome, colore e punti seguono i cambi di ruolo.
+- Tre corsie offensive di supporto, piccoli movimenti continui e separazione dai vicini. Tutti i compagni guardano la palla. Passaggio scelto fra i compagni disponibili secondo distanza, direzione e avanzamento; ricezione aerea con intercetto vicino alla traiettoria.
+- Regolamento verificato con cinque partecipanti, eliminazioni progressive, duello finale e ripristino completo. Test di distribuzione: distanza minima osservata 1.52 unità e ampiezza delle corsie oltre 7 unità.
+- 196/196 verifiche attive e 239/239 storiche (435/435). Export Web e browser Chromium desktop/mobile verificati; screenshot in `screenshots/football-18/`. Nessun multiplayer introdotto.
+
 ## Campetto d’asfalto e partita Undici
 
 - Superficie d’asfalto consumato con linee e limiti di campo; erba, tracce e alberi rimossi dalla scena attiva. Porta originale footballgame `posts_0`/`net_up_0`, con trasparenza rete e collisioni di pali, traversa e fondo.

@@ -1,29 +1,37 @@
 class_name FootballTeammateSupport
 extends RefCounted
-## Small supporting runs around the carrier; all movement still uses collisions.
+## Distinct attacking lanes plus separation; everyone keeps looking at the ball.
 var clock: float = 0.0
-var next_run: float = 0.0
 var target = Vector3.ZERO
-var carrier_id: int = 0
 
-func direction(carrier: FootballPlayer, teammate: FootballPlayer, ball: FootballBall, delta: float) -> Vector3:
+func direction(carrier: FootballPlayer, teammate: FootballPlayer, ball: FootballBall, delta: float, teammates: Array = [], lane: int = 0, actors: Array = []) -> Vector3:
 	clock += delta
-	if carrier.get_instance_id()!=carrier_id or clock>=next_run or carrier.position.distance_to(target)>7.0:
-		carrier_id = carrier.get_instance_id()
-		next_run = clock+1.6
-		var forward = ball.goal_center-carrier.position
-		forward.y = 0.0
-		forward = forward.normalized()
-		var side = Vector3(-forward.z,0,forward.x)
-		var sign_side = 1.0 if (teammate.position-carrier.position).dot(side)>=0.0 else -1.0
-		target = carrier.position+side*sign_side*(3.4+sin(clock*1.7)*0.9)+forward*(0.7+cos(clock*1.3)*1.2)
-		# Stay in front of the tree goal rather than running through the keeper.
-		var away = -ball.goal_center.normalized()
-		var depth = (target-ball.goal_center).dot(away)
-		target += away*(clampf(depth,1.6,11.8)-depth)
-		var width_axis = Vector3(-away.z,0,away.x)
-		var width = (target-ball.goal_center).dot(width_axis)
-		target += width_axis*(clampf(width,-6.3,6.3)-width)
+	var away = -ball.goal_center.normalized()
+	var side = Vector3(-away.z,0,away.x)
+	var count = maxi(1,teammates.size())
+	var width = lerpf(-4.8,4.8,float(lane)/float(count-1)) if count>1 else (3.5 if (teammate.position-carrier.position).dot(side)>=0 else -3.5)
+	var depth = 3.3 if count>1 and absf(width)<1.0 else 5.6
+	width += sin(clock*0.9+lane*2.1)*0.55
+	depth += cos(clock*0.7+lane)*0.7
+	var ball_width = (ball.position-ball.goal_center).dot(side)
+	width += clampf(ball_width*0.15,-0.7,0.7)
+	# A nearby carrier gets his own pocket instead of being crowded by a support run.
+	var carrier_width = (carrier.position-ball.goal_center).dot(side)
+	var carrier_depth = (carrier.position-ball.goal_center).dot(away)
+	if absf(width-carrier_width)<1.8 and absf(depth-carrier_depth)<2.0:
+		depth = carrier_depth+2.4
+	target = ball.goal_center+side*clampf(width,-6.3,6.3)+away*clampf(depth,1.8,11.5)
 	var gap = target-teammate.position
 	gap.y = 0.0
-	return gap.normalized()*minf(0.65,gap.length()*1.5) if gap.length()>0.25 else Vector3.ZERO
+	var desired = gap.normalized()*minf(0.65,gap.length()*1.2) if gap.length()>0.2 else Vector3.ZERO
+	var separation = Vector3.ZERO
+	for other in actors:
+		if other==teammate:
+			continue
+		var offset = teammate.position-other.position
+		offset.y = 0.0
+		var distance = offset.length()
+		if distance<2.3:
+			var push = offset/distance if distance>0.01 else side*(1.0 if teammate.get_instance_id()>other.get_instance_id() else -1.0)
+			separation += push*(2.3-distance)/2.3
+	return (desired+separation*1.6).limit_length(0.75)

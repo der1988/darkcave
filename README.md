@@ -1,6 +1,6 @@
 # Campo Libero · Undici
 
-Campetto d’asfalto all’aperto, consumato, in pixel art isometrica. Tre partecipanti **X, Y, Z** partono con **11 punti**; Z è inizialmente il portiere. Pali e rete e sprite dei personaggi provengono da [footballgame](https://github.com/der1988/footballgame).
+Campetto d’asfalto all’aperto, consumato, in pixel art isometrica. Cinque partecipanti **Marco, Simone, Brad, Matt e David** partono con **11 punti**; David è inizialmente il portiere. Maglie rispettivamente rossa, blu, gialla, verde e viola, conservate ai cambi di ruolo. Pali e rete e sprite dei personaggi provengono da [footballgame](https://github.com/der1988/footballgame).
 
 ## Regole giocabili
 

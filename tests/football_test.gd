@@ -33,7 +33,7 @@ func run() -> void:
 	game.get_node("DeviceUI/ControlMode").choose_mode("pc")
 	await ticks(30)
 	check(ProjectSettings.get_setting("application/run/main_scene")=="res://scenes/football/main.tscn","Football sandbox is the active game")
-	check(get_nodes_in_group("football_player").size()==2 and game.find_children("*","Light3D",true,false).is_empty(),"Two outfield players and no flashlight or other lights")
+	check(get_nodes_in_group("football_player").size()==4 and game.find_children("*","Light3D",true,false).is_empty(),"Four outfield players and no flashlight or other lights")
 	check(game.get_node_or_null("Father")==null and game.get_node_or_null("Child")==null and game.get_node_or_null("Enemy")==null,"No companion or hostile actor in the new scene")
 	check(game.camera.projection==Camera3D.PROJECTION_ORTHOGONAL and is_equal_approx(game.camera.size,18.72),"Fixed isometric orthographic framing")
 	var wheel = InputEventMouseButton.new()
@@ -397,7 +397,7 @@ func run() -> void:
 	await ticks(110)
 	check(game.player==receiver and receiver.controlled and not passer.controlled,"Receiving a short pass transfers control to the teammate")
 	check(game.ball.controlled and game.ball.position.distance_to(receiver.position)<1.2,"Receiver takes the same physical ball under foot control")
-	check(get_nodes_in_group("football_player").size()==2,"There are exactly two outfield players")
+	check(get_nodes_in_group("football_player").size()==4,"There are exactly four outfield players")
 	command("recall")
 	await ticks(30)
 	command("lob")
@@ -474,7 +474,7 @@ func run() -> void:
 	game.attempt_pass(1.0,true)
 	var aerial_receiver = game.teammate
 	var switched_airborne = false
-	for i in 80:
+	for i in 140:
 		await physics_frame
 		if game.player==aerial_receiver and game.ball.position.y>0.4:
 			switched_airborne = true

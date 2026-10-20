@@ -67,6 +67,16 @@ position = Vector3(3,0,-2)
 controlled = false
 participant_id = "Y"
 
+[node name="Teammate2" parent="." instance=ExtResource("2")]
+position = Vector3(-3,0,1)
+controlled = false
+participant_id = "Brad"
+
+[node name="Teammate3" parent="." instance=ExtResource("2")]
+position = Vector3(2,0,4)
+controlled = false
+participant_id = "Matt"
+
 [node name="Ball" parent="." instance=ExtResource("3")]
 position = Vector3(0.6,0.22,0.6)
 

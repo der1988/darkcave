@@ -21,23 +21,23 @@ func run() -> void:
 	game.get_node("DeviceUI/ControlMode").choose_mode("pc")
 	rules = game.get_node("MatchRules")
 	await ticks(20)
-	check(rules.points=={"X":11,"Y":11,"Z":11},"Every participant starts at eleven")
+	check(rules.points=={"Marco":11,"Simone":11,"Brad":11,"Matt":11,"David":11},"Every participant starts at eleven")
 	check(game.get_node_or_null("GrassTrails")==null and game.get_node_or_null("Terrain")==null,"No grass or grass trails on asphalt")
 	check(game.get_node("Goal/PostsArt").texture.resource_path.ends_with("posts_0.png"),"Goal uses original footballgame posts artwork")
 	check(game.get_node("Goal/NetArt").texture.resource_path.ends_with("net_up_0.png"),"Goal uses original footballgame net artwork")
-	check(game.get_node("Player/NameLabel").text=="X · 11" and game.get_node("Goalkeeper/NameLabel").text=="Z · 11","Names and points appear under the correct players")
+	check(game.get_node("Player/NameLabel").text=="Marco · 11" and game.get_node("Goalkeeper/NameLabel").text=="David · 11","Names and points appear under the correct players")
 	check(not rules.rally_live,"Ball can rest before the first serve")
 	check(game.attempt_pass(0.0,false),"S can start an aerial short serve")
-	check(game.ball.linear_velocity.y>3.0 and rules.last_touch=="X","Short passes are airborne and identify the last player")
+	check(game.ball.linear_velocity.y>3.0 and rules.last_touch=="Marco","Short passes are airborne and identify the last player")
 	var uncommanded_height = 0.0
 	for i in 100:
 		await physics_frame
 		uncommanded_height = maxf(uncommanded_height,maxf(game.get_node("Player").position.y,game.get_node("Teammate").position.y))
 	check(uncommanded_height<1.0,"Ball cannot carry outfield players upward as a moving platform")
-	check(rules.keeper_id=="X","An unreturned serve touching asphalt sends its last player into goal")
+	check(rules.keeper_id=="Marco","An unreturned serve touching asphalt sends its last player into goal")
 	await ticks(80)
-	check(rules.points=={"X":11,"Y":11,"Z":11},"A change of keeper preserves everyone's points")
-	check(game.get_node("Goalkeeper/NameLabel").text=="X · 11","Names follow role swaps")
+	check(rules.points=={"Marco":11,"Simone":11,"Brad":11,"Matt":11,"David":11},"A change of keeper preserves everyone's points")
+	check(game.get_node("Goalkeeper/NameLabel").text=="Marco · 11","Names follow role swaps")
 	check(not rules.resetting and not rules.rally_live,"Dead-ball restart returns to a ready service")
 	rules.start_match()
 	await ticks(20)
@@ -54,43 +54,51 @@ func run() -> void:
 	check(game.attempt_kick(0.6,false),"Airborne heading contact can shoot")
 	check(game.ball.last_contact_kind=="head" and actor.sprite.frame>=48,"Header uses the original header frames and records head scoring")
 	rules.goal("head")
-	check(rules.points.Z==8,"Header goal removes three points from the keeper")
+	check(rules.points.David==8,"Header goal removes three points from the keeper")
 	rules.goal("head")
-	check(rules.points.Z==8,"A dead rally cannot deduct points a second time")
+	check(rules.points.David==8,"A dead rally cannot deduct points a second time")
 	await ticks(80)
 	rules.rally_live = true
-	rules.last_touch = "Y"
-	rules.fault("Y","Palla fuori")
-	check(rules.keeper_id=="Y" and rules.points.Z==8,"Out-of-bounds culprit becomes keeper without resetting scores")
+	rules.last_touch = "Simone"
+	rules.fault("Simone","Palla fuori")
+	check(rules.keeper_id=="Simone" and rules.points.David==8,"Out-of-bounds culprit becomes keeper without resetting scores")
 	await ticks(80)
 	rules.start_match()
 	rules.rally_live = true
-	rules.last_touch = "X"
+	rules.last_touch = "Marco"
 	game.ball.last_kick_volley = true
 	rules.goal("foot")
-	check(rules.points.Z==10,"Foot volley costs one point")
+	check(rules.points.David==10,"Foot volley costs one point")
 	await ticks(80)
 	rules.rally_live = true
-	rules.last_touch = "X"
+	rules.last_touch = "Marco"
 	game.ball.last_kick_volley = true
 	rules.goal("heel")
-	check(rules.points.Z==5,"Backheel costs five points")
+	check(rules.points.David==5,"Backheel costs five points")
 	await ticks(80)
 	rules.rally_live = true
-	rules.last_touch = "X"
+	rules.last_touch = "Marco"
 	game.ball.last_kick_volley = true
 	rules.goal("bicycle")
-	check(rules.points.Z==0 and rules.keeper_id=="X","Zero points eliminates the keeper and selects the next keeper")
+	check(rules.points.David==0 and rules.keeper_id=="Marco","Zero points eliminates the keeper and selects the next keeper")
 	await ticks(80)
-	check(not game.teammate.visible and game.player.participant_id=="Y","Eliminated identity disappears and the remaining outfielder is controllable")
-	check(game.attempt_pass(0.0,true),"Final two participants can lift a self-serve for a volley")
-	rules.points.X = 1
-	game.ball.last_kick_volley = true
-	rules.goal("foot")
-	check(rules.finished and rules.winner=="Y" and game.ball.freeze,"Last survivor wins and the ball stops")
+	check(game.active_outfield().size()==3,"Elimination leaves three outfield players and one keeper")
+	for remaining in [3,2,1]:
+		var scorer = game.player.participant_id
+		rules.points[rules.keeper_id] = 1
+		rules.rally_live = true
+		rules.last_touch = scorer
+		game.ball.last_kick_volley = true
+		rules.goal("foot")
+		await ticks(80)
+		if remaining>1:
+			check(game.active_outfield().size()==remaining-1,"Elimination removes exactly one identity")
+			if remaining==2:
+				check(game.attempt_pass(0.0,true),"Final two participants can lift a self-serve for a volley")
+	check(rules.finished and not rules.winner.is_empty() and game.ball.freeze,"Last survivor wins and the ball stops")
 	check(game.get_node("HUD/Restart").visible,"Victory offers a clickable restart on PC and touch")
 	rules.start_match()
-	check(not rules.finished and rules.points=={"X":11,"Y":11,"Z":11} and game.teammate.visible,"Restart restores all three players and eleven points")
+	check(not rules.finished and rules.points=={"Marco":11,"Simone":11,"Brad":11,"Matt":11,"David":11} and game.teammate.visible,"Restart restores all five players and eleven points")
 	await ticks(20)
 	var actor_again = game.player
 	game.ball.pending_recall = actor_again.position+actor_again.facing*0.7+Vector3.UP*0.7
@@ -105,7 +113,7 @@ func run() -> void:
 	rules.start_match()
 	await ticks(20)
 	rules.rally_live = true
-	rules.last_touch = "X"
+	rules.last_touch = "Marco"
 	rules.shot_in_flight = true
 	rules.rally_time = 0.3
 	game.ball.pending_recall = Vector3(0,0.21,0)
@@ -114,10 +122,10 @@ func run() -> void:
 	await ticks(4)
 	check(not rules.resetting,"A volley shot may bounce after contact without invalidating the shot")
 	rules.rally_live = true
-	rules.last_touch = "X"
+	rules.last_touch = "Marco"
 	game.ball.pending_recall = Vector3(20,1,0)
 	await ticks(4)
-	check(rules.keeper_id=="X" and rules.resetting,"A real ball leaving the court triggers the keeper change")
+	check(rules.keeper_id=="Marco" and rules.resetting,"A real ball leaving the court triggers the keeper change")
 	game.queue_free()
 	await process_frame
 	print("RESULT eleven: ",checks-failures,"/",checks)
