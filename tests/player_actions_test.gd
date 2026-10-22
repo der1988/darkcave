@@ -28,7 +28,7 @@ func run():
 	var friend = game.other_outfielder(actor)
 	game.rules.start_match()
 	actor.position = Vector3.ZERO
-	for a in [enemy,friend,game.team_players(1)[1]]: a.position = game.WIDTH*6+game.LENGTH*(a.get_index()-8)
+	for a in game.outfield.filter(func(a): return a!=actor): a.position = game.WIDTH*6+game.LENGTH*(a.get_index()-8)
 	check(is_equal_approx(actor.sprite.pixel_size,0.075*0.85) and is_equal_approx(game.keepers[0].sprite.pixel_size,0.075*0.85),"All six characters are 15 percent smaller at the same camera distance")
 	check(is_equal_approx(actor.get_node("Body").shape.height,1.45*0.85),"Player collision height follows the smaller proportions")
 	var original = load("res://assets/football/player.png").get_image()
@@ -68,7 +68,7 @@ func run():
 	check(game.charging and game.charging_lob and actor.action==StreetPlayer.Action.NORMAL,"D with the ball retains the high-pass charge")
 	game.charge_time = 0.4
 	command(false)
-	check(game.pass_receiver==friend and game.ball.linear_velocity.y>5.0,"Releasing possession D sends the existing high pass to a teammate")
+	check(game.pass_receiver!=null and game.pass_receiver.team==actor.team and game.pass_receiver!=actor and game.ball.linear_velocity.y>5.0,"Releasing possession D sends the existing high pass to a teammate")
 	game.pass_receiver = null
 	game.ball.pending_recall = game.WIDTH*5+Vector3.UP*0.22
 	await ticks(2)
@@ -146,10 +146,12 @@ func run():
 	await ticks(2)
 	game.possession = actor
 	var plan = FootballTeamAI.new()
+	plan.pressure_time = 1.3
 	plan.step(game,enemy,1.0/60.0)
 	check(enemy.action==StreetPlayer.Action.SLIDE and plan.tackles==1,"AI can initiate a contextual sliding challenge")
 	game.set_controlled(actor)
-	friend.fall(game.LENGTH)
+	for mate in game.team_players(0):
+		if mate!=actor: mate.fall(game.LENGTH)
 	check(game.choose_pass_target()==null,"A downed teammate is not shown as an available receiver")
 	var change = InputEventAction.new()
 	change.action = "football_switch"
@@ -159,5 +161,6 @@ func run():
 	check(game.help.text.contains("scivolata"),"Help explains contextual D")
 	game.queue_free()
 	await process_frame
+	OS.delay_msec(100) # Flush the real audio mixer after accelerated physics.
 	print("RESULT player actions: ",checks-failures,"/",checks)
 	quit(1 if failures else 0)

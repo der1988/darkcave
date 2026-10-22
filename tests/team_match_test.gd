@@ -16,10 +16,10 @@ func run():
 	current_scene = game
 	game.get_node("DeviceUI/ControlMode").choose_mode("pc")
 	await ticks(20)
-	check(game.outfield.size()==4 and game.keepers.size()==2,"Six actors: two outfield and a keeper per team")
+	check(game.outfield.size()==6 and game.keepers.size()==2,"Eight actors: three outfield and a keeper per team")
 	for team in 2:
 		var actors = game.team_players(team)+[game.keepers[team]]
-		check(actors.size()==3 and actors.all(func(a): return a.team==team),"Three players per side")
+		check(actors.size()==4 and actors.all(func(a): return a.team==team),"Four players per side")
 		var color = actors[0].sprite.material_override.get_shader_parameter("kit_color")
 		check(actors.all(func(a): return a.sprite.material_override.get_shader_parameter("kit_color")==color),"Uniform team kits including keeper")
 	check(game.team_players(0)[0].sprite.material_override.get_shader_parameter("kit_color")!=game.team_players(1)[0].sprite.material_override.get_shader_parameter("kit_color"),"Red and blue are distinct")
@@ -153,5 +153,6 @@ func run():
 	ui.choose_mode("pc")
 	game.queue_free()
 	await process_frame
+	OS.delay_msec(100) # Flush the real audio mixer after accelerated physics.
 	print("RESULT teams: ",checks-failures,"/",checks)
 	quit(1 if failures else 0)

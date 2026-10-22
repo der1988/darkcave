@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://scripts/football/team_match.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
@@ -20,6 +20,8 @@
 [ext_resource type="Shader" path="res://assets/football/net.gdshader" id="12"]
 
 [ext_resource type="Script" path="res://scripts/football/street_player.gd" id="13"]
+
+[ext_resource type="Script" path="res://scripts/football/ball_audio.gd" id="14"]
 
 [sub_resource type="StandardMaterial3D" id="TargetMaterial"]
 shading_mode = 0
@@ -155,6 +157,20 @@ controlled = false
 participant_id = "Matt"
 team = 1
 
+[node name="Red3" parent="." instance=ExtResource("2")]
+script = ExtResource("13")
+collision_mask = 113
+controlled = false
+participant_id = "Luca"
+team = 0
+
+[node name="Blue3" parent="." instance=ExtResource("2")]
+script = ExtResource("13")
+collision_mask = 113
+controlled = false
+participant_id = "Leo"
+team = 1
+
 [node name="PassTarget" type="Node3D" parent="."]
 script = ExtResource("11")
 
@@ -165,6 +181,9 @@ cast_shadow = 0
 
 [node name="Ball" parent="." instance=ExtResource("3")]
 position = Vector3(0.6,0.22,0.6)
+
+[node name="Audio" type="Node" parent="Ball"]
+script = ExtResource("14")
 
 [node name="CameraRig" type="Node3D" parent="."]
 
@@ -195,7 +214,7 @@ offset_right = 550.0
 offset_bottom = 65.0
 theme_override_colors/font_color = Color(0.94,0.98,0.89,0.5)
 theme_override_font_sizes/font_size = 12
-text = "3 CONTRO 3 · primo a 5 gol · pareti giocabili"
+text = "4 CONTRO 4 · primo a 5 gol · pareti giocabili"
 
 [node name="Controls" type="Label" parent="HUD"]
 anchor_top = 1.0

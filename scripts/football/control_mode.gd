@@ -57,6 +57,8 @@ func choose_mode(value: String) -> void:
 		return
 	release_all()
 	mode = value
+	var sound = game.get_node_or_null("Ball/Audio")
+	if sound!=null: sound.enabled = true
 	picker.hide()
 	game.help.visible = mode=="pc"
 	if mode=="smartphone":

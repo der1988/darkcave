@@ -1,5 +1,13 @@
 # Roadmap · Campo Libero
 
+## Quattro per squadra, avversari più tranquilli e suoni
+
+- Otto giocatori: tre di movimento e un portiere per squadra. Aggiunti Luca ai rossi e Leo ai blu; formazioni su due fasce, passaggi disponibili a entrambi i compagni, Q e touch scorrono tutti e tre i giocatori disponibili. Ripartenze e IA generalizzate al nuovo organico.
+- Blu meno aggressivi: movimento al 78%, accelerazione più dolce, 0.65 s prima della pressione, contrasto solo del più vicino dopo 1.25 s ed entro 1.65 m; pausa di 4.5 s fra tentativi. Altri due giocatori in copertura/appoggio separati.
+- Audio leggero di tiro, passaggio/contrasto, rimbalzo e parete/palo, sintetizzato localmente in PCM. Eventi reali della palla, quattro voci, volume contenuto e limiti indipendenti per evitare ripetizioni. Attivazione dopo scelta dei controlli, nessuna musica.
+- 25/25 nuovi controlli di organico, Q, ritmo blu e audio fisico; 38/38 partita, 36/36 azioni e 453/453 regressioni: 552/552. Mixer verificato e chiuso correttamente nei test accelerati. Browser PC/mobile senza errori, AudioContext attivo dopo interazione e segnale audio non nullo rilevato su entrambi.
+- Export Web aggiornato; screenshot in `screenshots/football-22/`. Regole, campo, dimensione dei personaggi e comandi contestuali conservati.
+
 ## Proporzioni e azioni originali footballgame
 
 - Tutti e sei i personaggi ridotti del 15%, piedi ancorati al terreno, ombre e capsule proporzionate; camera e campo invariati per aumentare lo spazio percepito.

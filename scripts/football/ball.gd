@@ -1,5 +1,6 @@
 class_name FootballBall
 extends RigidBody3D
+signal struck(kind: String, strength: float)
 
 @export var shot_max_speed: float = 45.0
 @export var air_drag: float = 0.013366
@@ -121,6 +122,7 @@ func kick(player: FootballPlayer, power: float, lob: bool = false, aim_override:
 	if rules!=null and rules.enabled:
 		rules.touch(player,rules.contact_kind(player,not lob),not lob)
 	player.show_kick(last_contact_kind if rules!=null and rules.enabled else "foot")
+	struck.emit("shot",clampf(power,0.15,1.0))
 	return true
 
 func recall(player: FootballPlayer) -> void:
@@ -174,4 +176,5 @@ func pass_to(player: FootballPlayer, target: Vector3, power: float, high: bool) 
 	if rules!=null and rules.enabled:
 		rules.touch(player,rules.contact_kind(player,false),false)
 	player.show_kick(last_contact_kind if rules!=null and rules.enabled else "foot")
+	struck.emit("pass",0.4+power*0.35)
 	return true

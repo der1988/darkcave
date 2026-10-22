@@ -9,7 +9,7 @@ var switch_cooldown: float = 0.0
 var slide_press: bool = false
 
 func _ready() -> void:
-	outfield.assign([$Player,$Teammate,$Blue1,$Blue2])
+	outfield.assign([$Player,$Teammate,$Red3,$Blue1,$Blue2,$Blue3])
 	keepers = [$RedKeeper,$BlueKeeper]
 	FootballControls.configure()
 	help.text = FootballControls.help_text(true)
@@ -41,7 +41,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		rules.start_match()
 	elif event.is_action_pressed("football_switch") and not rules.resetting and not rules.finished:
 		var candidate = other_outfielder(player)
-		if candidate.can_play_ball():
+		if candidate!=player and candidate.can_play_ball():
 			set_controlled(candidate)
 			switch_cooldown = 1.2
 	else:
@@ -57,9 +57,12 @@ func attack_direction(team: int) -> Vector3:
 	return LENGTH if team==0 else -LENGTH
 
 func other_outfielder(actor: FootballPlayer) -> FootballPlayer:
-	for candidate in team_players(actor.team):
-		if candidate!=actor: return candidate
-	return null
+	var squad = team_players(actor.team)
+	var index = squad.find(actor)
+	for offset in range(1,squad.size()):
+		var candidate = squad[(index+offset)%squad.size()]
+		if candidate.can_play_ball(): return candidate
+	return actor
 
 func nearest_outfielder(point: Vector3, team: int = -1, available: bool = false) -> FootballPlayer:
 	var nearest: FootballPlayer
@@ -73,8 +76,16 @@ func nearest_outfielder(point: Vector3, team: int = -1, available: bool = false)
 			nearest = actor
 	return nearest
 
-func team_outlet(team: int, point: Vector3) -> FootballPlayer:
-	return nearest_outfielder(point,team)
+func team_outlet(team: int, point: Vector3, exclude: FootballPlayer = null) -> FootballPlayer:
+	var best: FootballPlayer
+	var distance = INF
+	for candidate in team_players(team):
+		if candidate==exclude or not candidate.can_play_ball(): continue
+		var gap = candidate.position.distance_to(point)
+		if gap<distance:
+			distance = gap
+			best = candidate
+	return best if best!=null else exclude
 
 func set_controlled(actor: FootballPlayer) -> void:
 	cancel_charge()

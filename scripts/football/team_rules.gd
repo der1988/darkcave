@@ -66,7 +66,8 @@ func reset_positions() -> void:
 		actor.reset_action()
 		var sign_value = 1.0 if actor.team==0 else -1.0
 		var index = game.team_players(actor.team).find(actor)
-		actor.position = game.LENGTH*(-sign_value*(2.0 if index==0 else 5.0))+game.WIDTH*(0.0 if index==0 else 3.0*sign_value)
+		var lane = 0.0 if index==0 else (3.5 if index==1 else -3.5)
+		actor.position = game.LENGTH*(-sign_value*(2.0 if index==0 else 5.0))+game.WIDTH*lane*sign_value
 		actor.velocity = Vector3.ZERO
 		actor.facing = game.attack_direction(actor.team)
 	for keeper in game.keepers:

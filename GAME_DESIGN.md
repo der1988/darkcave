@@ -1,6 +1,6 @@
-# Campo Libero · 3 contro 3
+# Campo Libero · 4 contro 4
 
-Partita locale contro IA, su campetto d’asfalto all’aperto. Sei giocatori: rossi Marco e Simone con David in porta; blu Brad e Matt con Alex in porta. Tutti indossano il colore della propria squadra, inclusi i portieri. Sprite e animazioni originali conservati, GDScript/Godot 4.6.3 Compatibility/Web.
+Partita locale contro IA, su campetto d’asfalto all’aperto. Otto giocatori: rossi Marco, Simone e Luca con David in porta; blu Brad, Matt e Leo con Alex in porta. Tutti indossano il colore della propria squadra, inclusi i portieri. Sprite e animazioni originali conservati, GDScript/Godot 4.6.3 Compatibility/Web.
 
 ## Campo e regole
 
@@ -14,13 +14,13 @@ Rimbalzi sul pavimento e sulle pareti restano in gioco. Solo un’uscita anomala
 
 Il giocatore controlla un rosso alla volta, identificato dall’anello a terra. Q cambia il rosso controllato; su smartphone è presente il pulsante Q. Passando al compagno, il controllo passa al ricevente quando la palla è raggiungibile. In difesa viene selezionato automaticamente il rosso significativamente più vicino, con un intervallo per evitare continui cambi. Le frecce e l’analogico selezionano il destinatario: triangolo giallo sul compagno, condiviso da S e D. Nessun passaggio assistito seleziona avversari.
 
-IA di entrambe le squadre: il più vicino pressa/intercetta, l’altro copre il centro e la strada verso la propria porta. In possesso si avanza, si cerca un appoggio se pressati e si tira dalla distanza utile verso un angolo libero. Il compagno offre larghezza e una linea diagonale. Movimenti fisici, accelerazioni graduali e separazione; posizioni ripristinate solo alle ripartenze. I due portieri difendono la propria porta con predizione, tuffi, presa e rilancio al compagno. L’IA non legge le frecce del giocatore per mirare i propri tiri.
+IA di entrambe le squadre: il più vicino pressa/intercetta, gli altri due coprono il centro e le fasce verso la propria porta. In possesso si avanza, si cerca un appoggio se pressati e si tira dalla distanza utile verso un angolo libero. Il compagno offre larghezza e una linea diagonale. Movimenti fisici, accelerazioni graduali e separazione; posizioni ripristinate solo alle ripartenze. I due portieri difendono la propria porta con predizione, tuffi, presa e rilancio al compagno. L’IA non legge le frecce del giocatore per mirare i propri tiri.
 
 ## Comandi
 
 Frecce: movimento, senza scatto. A: tiro caricato anche da terra; ↑/↓ durante il tiro orientano la mira attraverso la porta. S: passaggio corto. D: passaggio alto caricato quando si ha la palla, scivolata immediata senza palla. Spazio: salto. Q: cambia rosso. H: comandi. R: nuova partita. Rotellina: zoom. Smartphone: analogico e A/S/D/Q, landscape fullscreen quando consentito dal browser, pausa in verticale.
 
-La camera mantiene la proiezione isometrica e una vista dell’intero campetto. I sei personaggi sono più piccoli del 15%, con ancoraggio dei piedi e collisioni ridimensionati; campo e distanza della camera restano invariati. Il tiro conserva la dinamica di footballgame, carica ottimale all’80%, sovraccarica meno potente e più alta.
+La camera mantiene la proiezione isometrica e una vista dell’intero campetto. Gli otto personaggi sono più piccoli del 15%, con ancoraggio dei piedi e collisioni ridimensionati; campo e distanza della camera restano invariati. Il tiro conserva la dinamica di footballgame, carica ottimale all’80%, sovraccarica meno potente e più alta.
 
 ## Moduli e storico
 
@@ -28,6 +28,12 @@ Scena attiva `scenes/football/main.tscn`; regia in `team_match.gd`, IA in `team_
 
 ## Contrasti e animazioni
 
-`street_player.gd` estende il movimento esistente soltanto per il 3v3. Scivolata di 0.5 s, recupero di 0.18 s e intervallo di 1.6 s prima del contrasto successivo. La direzione si sceglie alla pressione di D; il rilascio non lancia un passaggio. Il movimento usa sempre `move_and_slide`, postura bassa e collisioni native. Contatto sulla palla basso: deviazione fisica; contatto con un avversario: caduta di 0.75 s, recupero e 0.6 s di corsa sbilanciata. Protezione temporanea impedisce di far ricadere continuamente chi si sta rialzando. Nessun contrasto su compagni, portieri, attraverso le pareti o in salto.
+`street_player.gd` estende il movimento esistente soltanto per il 4v4. Scivolata di 0.5 s, recupero di 0.18 s e intervallo di 1.6 s prima del contrasto successivo. La direzione si sceglie alla pressione di D; il rilascio non lancia un passaggio. Il movimento usa sempre `move_and_slide`, postura bassa e collisioni native. Contatto sulla palla basso: deviazione fisica; contatto con un avversario: caduta di 0.75 s, recupero e 0.6 s di corsa sbilanciata. Protezione temporanea impedisce di far ricadere continuamente chi si sta rialzando. Nessun contrasto su compagni, portieri, attraverso le pareti o in salto.
 
 Durante scivolata, caduta e rialzata non si può saltare o giocare la palla. I giocatori a terra non sono selezionabili con Q o come destinatari assistiti. Le pose sono quelle originali: una scivolata, due pose di caduta e quattro di corsa sbilanciata per ciascuna delle otto direzioni. La rialzata breve riutilizza la prima posa di caduta in senso inverso: non esiste una sequenza originale dedicata. Le 96 pose precedenti restano identiche; il timing del colpo di testa è sincronizzato alla sequenza sorgente.
+
+## Ritmo avversario e audio
+
+Solo il giocatore blu più vicino può pressare: 0.65 s di attesa sotto possesso rosso, velocità al 78% e accelerazione più dolce. Scivolate dopo almeno 1.25 s, entro 1.65 m e con intervallo di 4.5 s. I due appoggi occupano corsie opposte; Q scorre i tre rossi disponibili.
+
+`ball_audio.gd`, figlio della palla nella sola scena attiva, sintetizza quattro brevi effetti PCM: tiro, passaggio, rimbalzo e parete/palo. Segnale del colpo per tiri/passaggi/contrasti, contatti fisici nativi per gli impatti. Quattro voci al massimo, volume contenuto, soglie di velocità e cooldown indipendenti sui rimbalzi. Audio attivato dalla scelta esplicita dei controlli per rispettare l’autoplay Web. Nessuna musica o telecronaca.

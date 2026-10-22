@@ -116,6 +116,7 @@ func resolve_tackle(before: Vector3) -> void:
 			ball.sleeping = false
 			ball.play_id += 1
 			ball.last_kick_volley = false
+			ball.struck.emit("pass",0.4)
 			game.rules.touch(self,"foot",false)
 			game.possession = null
 			ball_hit = true
