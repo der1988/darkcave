@@ -1,5 +1,13 @@
 # Roadmap · Campo Libero
 
+## Rimbalzi, destinatario del passaggio e smarcamenti più fluidi
+
+- I passaggi possono rimbalzare senza cambio del portiere; ricezione, recupero e nuovo passaggio consentiti anche da terra. Tiro valido solo al volo, incluso un pallone che risale dopo il rimbalzo. Palla fuori e tiro fermo restano errori. Messaggi e regole visibili aggiornati.
+- Piccolo triangolo sopra il destinatario: selezione direzionale con frecce o analogico, orientamento quando non si preme nulla. S e D condividono l’anteprima; tolleranza sui quasi pari merito evita sfarfallii. Nessun indicatore su eliminati, durante ripartenze o senza compagni.
+- Appoggi su corsie distinte, mete influenzate dalla palla e interpolate, accelerazione graduale e pause con soglie di arresto/ripartenza diverse. Separazione mantenuta: minimo osservato 1.56 unità nella suite dei cinque giocatori.
+- 214/214 controlli del calcio, inclusi 18 nuovi controlli di rimbalzi fisici, ricezione a terra, mira, anteprima coerente con S/D e fluidità (variazione massima di velocità osservata 0.12 unità/s per frame). Suite storiche: 239/239 dopo riesecuzione isolata di `noise_test.gd`, che al primo giro aveva due fallimenti intermittenti; nessun file storico modificato.
+- Export Web aggiornato; verifica browser desktop e touch con screenshot in `screenshots/football-19/`.
+
 ## Cinque partecipanti e smarcamenti distribuiti
 
 - Marco rosso, Simone blu, Brad giallo, Matt verde e David viola: quattro giocatori di movimento e un portiere. Palette centralizzata e maglie ricolorate senza alterare gli sprite originali; nome, colore e punti seguono i cambi di ruolo.

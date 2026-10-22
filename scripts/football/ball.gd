@@ -91,7 +91,7 @@ func control_near(player: FootballPlayer, delta: float) -> void:
 
 func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 	var rules = get_parent().get_node_or_null("MatchRules")
-	if rules!=null and not rules.can_touch(player):
+	if rules!=null and not rules.can_touch(player,not lob):
 		return false
 	if not (reachable(player) if lob else volley_reachable(player)):
 		return false

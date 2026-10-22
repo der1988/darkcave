@@ -14,6 +14,7 @@ Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è il prototipo 
 - Scena di avvio: `scenes/football/main.tscn`; giocatore e palla nelle due scene accanto.
 - Animazioni originali portiere: `scripts/football/goalkeeper_sprite.gd`, atlas/manifest `assets/football/goalkeeper.*`; import riproducibile `tools/import_goalkeeper_art.gd`.
 - Portiere: `scripts/football/goalkeeper.gd` e `scenes/football/goalkeeper.tscn`.
+- Destinatario/indicatore condiviso da S e D: `scripts/football/pass_target.gd`; regressioni rimbalzi, mira e fluidità: `tests/passing_test.gd`. I passaggi consentono rimbalzi e ricezione da terra; solo i tiri devono partire al volo.
 - Smarcamenti: `scripts/football/teammate_support.gd`; gol al volo: `scripts/football/volley_goal.gd`.
 - Scelta PC/smartphone e touch: `scripts/football/control_mode.gd`; test `tests/control_mode_test.gd`. La scelta iniziale mette in pausa: i test/capture devono selezionare esplicitamente PC.
 - Input: `scripts/football/controls.gd`; movimento e animazione: `scripts/football/player.gd`.

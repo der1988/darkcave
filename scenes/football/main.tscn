@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/football/sandbox.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
@@ -14,6 +14,19 @@
 [ext_resource type="Script" path="res://scripts/football/volley_goal.gd" id="9"]
 
 [ext_resource type="Script" path="res://scripts/football/control_mode.gd" id="10"]
+
+[ext_resource type="Script" path="res://scripts/football/pass_target.gd" id="11"]
+
+[sub_resource type="StandardMaterial3D" id="TargetMaterial"]
+shading_mode = 0
+albedo_color = Color(1,0.88,0.35,1)
+billboard_mode = 1
+no_depth_test = true
+cull_mode = 2
+
+[sub_resource type="PrismMesh" id="TargetTriangle"]
+material = SubResource("TargetMaterial")
+size = Vector3(0.32,0.25,0.01)
 
 [sub_resource type="WorldBoundaryShape3D" id="Floor"]
 
@@ -77,6 +90,14 @@ position = Vector3(2,0,4)
 controlled = false
 participant_id = "Matt"
 
+[node name="PassTarget" type="Node3D" parent="."]
+script = ExtResource("11")
+
+[node name="Marker" type="MeshInstance3D" parent="PassTarget"]
+visible = false
+mesh = SubResource("TargetTriangle")
+cast_shadow = 0
+
 [node name="Ball" parent="." instance=ExtResource("3")]
 position = Vector3(0.6,0.22,0.6)
 
@@ -109,7 +130,7 @@ offset_right = 550.0
 offset_bottom = 65.0
 theme_override_colors/font_color = Color(0.94,0.98,0.89,0.5)
 theme_override_font_sizes/font_size = 12
-text = "UNDICI · solo al volo · piede 1 / testa 3 / tacco e rovesciata 5"
+text = "UNDICI · gol al volo · piede 1 / testa 3 / tacco e rovesciata 5"
 
 [node name="Controls" type="Label" parent="HUD"]
 anchor_top = 1.0

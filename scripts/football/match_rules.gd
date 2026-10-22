@@ -31,7 +31,7 @@ func start_match() -> void:
 	finished = false
 	winner = ""
 	last_reason = ""
-	game.feedback.text = "Servizio: S o D · poi solo al volo"
+	game.feedback.text = "Passaggi anche di rimbalzo · gol solo al volo"
 	game.feedback_time = 2.5
 	game.get_node("VolleyGoal").volley_goals = 0
 	game.get_node("VolleyGoal").armed = false
@@ -55,13 +55,12 @@ func contact_kind(actor: FootballPlayer, shot: bool) -> String:
 		return "head"
 	return "heel" if backward else "foot"
 
-func can_touch(actor: FootballPlayer) -> bool:
+func can_touch(actor: FootballPlayer, shot: bool = false) -> bool:
 	if not enabled:
 		return true
 	if finished or resetting or actor.participant_id.is_empty():
 		return false
-	if rally_live and (game.ball.position.y<0.36 or game.ball.bounce_age<0.08):
-		fault(last_touch if not last_touch.is_empty() else actor.participant_id,"Palla a terra")
+	if shot and game.ball.position.y<=0.36:
 		return false
 	return true
 
@@ -157,6 +156,7 @@ func reset_positions() -> void:
 	game.ball.freeze = false
 	game.ball.recall(game.player)
 	game.pass_receiver = null
+	game.support_plans.clear()
 	last_touch = ""
 	rally_live = false
 	game.get_node("HUD/Restart").hide()
@@ -192,5 +192,5 @@ func _physics_process(delta: float) -> void:
 		finish_rally()
 	elif absf(offset.dot(side))>7.5 or offset.dot(normal)>13.0 or offset.dot(normal)< -2.0:
 		fault(last_touch,"Palla fuori")
-	elif rally_time>0.15 and (ball.bounce_age<0.04 or (ball.position.y<=0.24 and ball.linear_velocity.y<=0.2)) and (not shot_in_flight or (rally_time>1.0 and ball.linear_velocity.length()<0.5)):
-		fault(last_touch,"Palla a terra")
+	elif shot_in_flight and rally_time>1.0 and ball.position.y<=0.24 and ball.linear_velocity.length()<0.5:
+		fault(last_touch,"Tiro fermo")

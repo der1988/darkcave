@@ -8,6 +8,7 @@ extends Node3D
 @onready var camera: Camera3D = $CameraRig/Camera3D
 @onready var court: MeshInstance3D = $Court
 @onready var rules = $MatchRules
+@onready var pass_target = $PassTarget
 @onready var help: Label = $HUD/Controls
 @onready var feedback: Label = $HUD/Feedback
 var charge_time: float = 0.0
@@ -76,8 +77,7 @@ func _physics_process(delta: float) -> void:
 	if rules.enabled and (rules.finished or rules.resetting):
 		return
 	volley_buffer = maxf(0.0,volley_buffer-delta)
-	if volley_buffer>0.0 and ball.volley_reachable(player):
-		ball.kick(player,volley_power,false)
+	if volley_buffer>0.0 and ball.volley_reachable(player) and ball.kick(player,volley_power,false):
 		pass_receiver = null
 		volley_buffer = 0.0
 	var direction = Vector3.ZERO
@@ -92,7 +92,7 @@ func _physics_process(delta: float) -> void:
 		gap.y = 0.0
 		if gap.length()>0.2:
 			direction = gap.normalized()
-		var ground_receive = not rules.enabled and ball.reachable(pass_receiver) and ball.position.y<0.35
+		var ground_receive = ball.reachable(pass_receiver) and ball.position.y<0.35
 		var aerial_receive = (pass_high or rules.enabled) and ball.held_by==null and ball.position.y>0.35 and ball.position.y<3.2 and Vector2(ball.position.x-pass_receiver.position.x,ball.position.z-pass_receiver.position.z).length()<2.6
 		if pass_age>0.25 and (ground_receive or aerial_receive):
 			var previous = player
@@ -120,8 +120,9 @@ func _physics_process(delta: float) -> void:
 		var movement = direction if actor==pass_receiver else plan.direction(player,actor,ball,delta,teammates,i,active_outfield())
 		actor.look_at_ball = ball.position
 		actor.drive(movement,delta)
-	if not rules.enabled or not rules.rally_live:
-		ball.control_near(player,delta)
+	ball.control_near(player,delta)
+	if rules.enabled and rules.rally_live and ball.controlled and (rules.last_touch!=player.participant_id or rules.shot_in_flight):
+		rules.touch(player,"foot",false)
 	if charging:
 		charge_time = minf(0.85,charge_time+delta)
 
@@ -148,7 +149,7 @@ func attempt_kick(power: float, lob: bool) -> bool:
 			feedback.text = ""
 			return false
 	if not success:
-		feedback.text = "Avvicinati alla palla"
+		feedback.text = "Gol solo al volo · alza la palla con S o D" if rules.enabled and not lob and ball.reachable(player) else "Avvicinati alla palla"
 		feedback_time = 1.2
 	return success
 
@@ -156,12 +157,13 @@ func attempt_pass(power: float, high: bool) -> bool:
 	var receiver = choose_pass_target()
 	if receiver!=null:
 		teammate = receiver
-	var success = ball.pass_to(player,teammate.position if not teammate.participant_id.is_empty() else player.position+player.facing*0.8,power,high)
+	var target_position = receiver.position if receiver!=null else player.position+player.facing*0.8
+	var success = ball.pass_to(player,target_position,power,high)
 	if not success:
 		feedback.text = "Avvicinati alla palla"
 		feedback_time = 1.2
 		return false
-	pass_receiver = teammate if not teammate.participant_id.is_empty() else null
+	pass_receiver = receiver
 	pass_high = high
 	pass_age = 0.0
 	volley_buffer = 0.0
@@ -198,16 +200,4 @@ func active_outfield() -> Array:
 func choose_pass_target() -> FootballPlayer:
 	var wish = Input.get_vector("football_left","football_right","football_up","football_down")
 	var direction = FootballControls.world_direction(wish) if wish.length()>0.2 else player.facing
-	var best: FootballPlayer = null
-	var best_score = INF
-	for actor in active_outfield():
-		if actor==player:
-			continue
-		var gap = actor.position-player.position
-		gap.y = 0.0
-		var toward_goal = (player.position.distance_to(ball.goal_center)-actor.position.distance_to(ball.goal_center))*0.25
-		var score = gap.length()-gap.normalized().dot(direction)*1.5-toward_goal
-		if score<best_score:
-			best_score = score
-			best = actor
-	return best
+	return pass_target.choose(player,active_outfield(),direction)
