@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://scripts/football/team_match.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
@@ -18,6 +18,8 @@
 [ext_resource type="Script" path="res://scripts/football/pass_target.gd" id="11"]
 
 [ext_resource type="Shader" path="res://assets/football/net.gdshader" id="12"]
+
+[ext_resource type="Script" path="res://scripts/football/street_player.gd" id="13"]
 
 [sub_resource type="StandardMaterial3D" id="TargetMaterial"]
 shading_mode = 0
@@ -113,35 +115,41 @@ position = Vector3(8.485281,0,-8.485281)
 rotation_degrees = Vector3(0,-45,0)
 
 [node name="RedKeeper" parent="." instance=ExtResource("8")]
+visual_scale = 0.85
 position = Vector3(-8.131728,0,8.131728)
 participant_id = "David"
 team = 0
 goal_node = NodePath("LeftGoal")
 
 [node name="BlueKeeper" parent="." instance=ExtResource("8")]
+visual_scale = 0.85
 position = Vector3(8.131728,0,-8.131728)
 participant_id = "Alex"
 team = 1
 goal_node = NodePath("RightGoal")
 
 [node name="Player" parent="." instance=ExtResource("2")]
+script = ExtResource("13")
 collision_mask = 113
 participant_id = "Marco"
 team = 0
 
 [node name="Teammate" parent="." instance=ExtResource("2")]
+script = ExtResource("13")
 collision_mask = 113
 controlled = false
 participant_id = "Simone"
 team = 0
 
 [node name="Blue1" parent="." instance=ExtResource("2")]
+script = ExtResource("13")
 collision_mask = 113
 controlled = false
 participant_id = "Brad"
 team = 1
 
 [node name="Blue2" parent="." instance=ExtResource("2")]
+script = ExtResource("13")
 collision_mask = 113
 controlled = false
 participant_id = "Matt"

@@ -18,10 +18,16 @@ IA di entrambe le squadre: il più vicino pressa/intercetta, l’altro copre il 
 
 ## Comandi
 
-Frecce: movimento, senza scatto. A: tiro caricato anche da terra; ↑/↓ durante il tiro orientano la mira attraverso la porta. S: passaggio corto. D: passaggio alto caricato. Spazio: salto. Q: cambia rosso. H: comandi. R: nuova partita. Rotellina: zoom. Smartphone: analogico e A/S/D/Q, landscape fullscreen quando consentito dal browser, pausa in verticale.
+Frecce: movimento, senza scatto. A: tiro caricato anche da terra; ↑/↓ durante il tiro orientano la mira attraverso la porta. S: passaggio corto. D: passaggio alto caricato quando si ha la palla, scivolata immediata senza palla. Spazio: salto. Q: cambia rosso. H: comandi. R: nuova partita. Rotellina: zoom. Smartphone: analogico e A/S/D/Q, landscape fullscreen quando consentito dal browser, pausa in verticale.
 
-La camera mantiene la proiezione isometrica e una vista dell’intero campetto. Il tiro conserva la dinamica di footballgame, carica ottimale all’80%, sovraccarica meno potente e più alta.
+La camera mantiene la proiezione isometrica e una vista dell’intero campetto. I sei personaggi sono più piccoli del 15%, con ancoraggio dei piedi e collisioni ridimensionati; campo e distanza della camera restano invariati. Il tiro conserva la dinamica di footballgame, carica ottimale all’80%, sovraccarica meno potente e più alta.
 
 ## Moduli e storico
 
 Scena attiva `scenes/football/main.tscn`; regia in `team_match.gd`, IA in `team_ai.gd`, regole in `team_rules.gd`. Input, cariche, passaggi, sprite e fisica vengono riutilizzati dai moduli precedenti. Il vecchio Undici è conservato in `scenes/football/eleven.tscn`, con le sue suite di regressione; Father & Son resta storico. Nessuno dei due viene caricato all’avvio.
+
+## Contrasti e animazioni
+
+`street_player.gd` estende il movimento esistente soltanto per il 3v3. Scivolata di 0.5 s, recupero di 0.18 s e intervallo di 1.6 s prima del contrasto successivo. La direzione si sceglie alla pressione di D; il rilascio non lancia un passaggio. Il movimento usa sempre `move_and_slide`, postura bassa e collisioni native. Contatto sulla palla basso: deviazione fisica; contatto con un avversario: caduta di 0.75 s, recupero e 0.6 s di corsa sbilanciata. Protezione temporanea impedisce di far ricadere continuamente chi si sta rialzando. Nessun contrasto su compagni, portieri, attraverso le pareti o in salto.
+
+Durante scivolata, caduta e rialzata non si può saltare o giocare la palla. I giocatori a terra non sono selezionabili con Q o come destinatari assistiti. Le pose sono quelle originali: una scivolata, due pose di caduta e quattro di corsa sbilanciata per ciascuna delle otto direzioni. La rialzata breve riutilizza la prima posa di caduta in senso inverso: non esiste una sequenza originale dedicata. Le 96 pose precedenti restano identiche; il timing del colpo di testa è sincronizzato alla sequenza sorgente.

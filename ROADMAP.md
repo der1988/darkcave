@@ -1,5 +1,14 @@
 # Roadmap · Campo Libero
 
+## Proporzioni e azioni originali footballgame
+
+- Tutti e sei i personaggi ridotti del 15%, piedi ancorati al terreno, ombre e capsule proporzionate; camera e campo invariati per aumentare lo spazio percepito.
+- Import riproducibile di 56 pose originali aggiuntive: scivolata, due pose di caduta e quattro di corsa sbilanciata nelle otto direzioni. Atlas completo di 152 frame; primi 96 verificati identici pixel per pixel. Colpo di testa riattivato nel 3v3 con timing originale.
+- D senza palla avvia la scivolata direzionale, con palla mantiene il passaggio alto caricato, anche touch. Il rilascio della scivolata non genera passaggi. Intervallo fra contrasti, postura bassa e movimento fisico contro pareti e ostacoli.
+- Deviazione fisica della palla e caduta degli avversari colpiti, breve rialzata e corsa sbilanciata; protezione contro cadute ripetute. Nessuna caduta dei compagni, nessun colpo attraverso le pareti. Stop ad azioni e salto durante le fasi a terra; esclusi i compagni caduti da cambio Q e passaggio assistito. IA capace di contrastare.
+- 36/36 test delle azioni, 38/38 del 3v3 e 453/453 regressioni storiche: 527/527. Verificati otto orientamenti, pareti, cooldown, palla deviata, caduta/recupero, input contestuale e azioni IA. Export Web e browser PC/mobile verificati; immagini in `screenshots/football-21/`.
+- Limite visivo: il sorgente ha una sola posa di scivolata e nessuna rialzata dedicata; movimento e recupero riutilizzano quelle pose senza inventare fotogrammi.
+
 ## Calcio 3 contro 3 · rossi contro blu
 
 - Sei attori: Marco/Simone/David rossi e Brad/Matt/Alex blu, un portiere per squadra. Nessuna eliminazione o punto individuale: gol rasoterra e al volo, primo a 5, breve pausa e ripartenza della squadra che subisce. Controllo continuo delle due linee di porta, nessun doppio conteggio.

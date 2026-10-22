@@ -23,13 +23,14 @@ func start_match() -> void:
 	update_score()
 
 func can_touch(actor: FootballPlayer, _shot: bool = false) -> bool:
-	return not resetting and not finished and not actor.participant_id.is_empty()
+	return not resetting and not finished and not actor.participant_id.is_empty() and actor.can_play_ball()
 
-func contact_kind(_actor: FootballPlayer, _shot: bool) -> String:
-	return "foot"
+func contact_kind(actor: FootballPlayer, _shot: bool) -> String:
+	return "head" if game.ball.position.y-actor.position.y>=1.2 else "foot"
 
-func touch(actor: FootballPlayer, _kind: String, shot: bool) -> void:
+func touch(actor: FootballPlayer, kind: String, shot: bool) -> void:
 	last_touch = actor.participant_id
+	game.ball.last_contact_kind = kind
 	shot_in_flight = shot
 	rally_live = true
 
@@ -60,7 +61,9 @@ func reset_positions() -> void:
 	game.pass_receiver = null
 	game.possession = null
 	game.ai_plans.clear()
+	game.slide_press = false
 	for actor in game.outfield:
+		actor.reset_action()
 		var sign_value = 1.0 if actor.team==0 else -1.0
 		var index = game.team_players(actor.team).find(actor)
 		actor.position = game.LENGTH*(-sign_value*(2.0 if index==0 else 5.0))+game.WIDTH*(0.0 if index==0 else 3.0*sign_value)

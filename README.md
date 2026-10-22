@@ -19,14 +19,16 @@ All’avvio scegli PC o Smartphone.
 | Frecce | Movimento e direzione del passaggio |
 | A tenuto e rilasciato | Tiro; carica ideale all’80%, ↑/↓ per orientarlo |
 | S | Passaggio corto al compagno indicato |
-| D tenuto e rilasciato | Passaggio alto caricato |
+| D | Con la palla: passaggio alto caricato. Senza palla: scivolata nella direzione indicata |
 | Q | Cambia il rosso controllato |
 | Spazio | Salto |
 | R | Nuova partita |
 | H | Mostra/nascondi comandi |
 | Rotellina | Zoom |
 
-Su smartphone: analogico a sinistra, A/S/D/Q a destra e selezione automatica del difensore. Il gioco richiede l’orientamento orizzontale; fullscreen e blocco dell’orientamento dipendono dal browser. I tocchi simultanei restano supportati.
+Su smartphone: analogico a sinistra, A/S/D/Q a destra e selezione automatica del difensore. Il gioco richiede l’orientamento orizzontale; fullscreen e blocco dell’orientamento dipendono dal browser. I tocchi simultanei restano supportati. D usa lo stesso comportamento contestuale anche su smartphone.
+
+I sei personaggi sono ridotti del 15% con collisioni proporzionate, a camera e campo invariati. Scivolate, cadute e corsa sbilanciata usano 56 pose originali aggiuntive di footballgame; il colpo di testa usa il timing originale. Un contrasto può far cadere l’avversario e deviare la palla; breve recupero e intervallo fra scivolate evitano concatenazioni continue. Anche l’IA può scivolare.
 
 ## Sviluppo e verifiche
 
@@ -35,10 +37,11 @@ Godot **4.6.3 Standard / Compatibility**, scena `scenes/football/main.tscn`. Mod
 ```sh
 godot --headless --editor --import --path . --quit
 godot --headless --fixed-fps 60 --path . --script tests/team_match_test.gd
+godot --headless --fixed-fps 60 --path . --script tests/player_actions_test.gd
 ./tools/export_web.sh
 ```
 
-L’export completo usa i template Web 4.6.3. Se assenti, lo script rigenera il pacchetto dati riutilizzando il runtime Web 4.6.3 versionato e aggiorna le dimensioni nel loader. Vercel serve `web/`; committare anche l’export. Anteprime in `screenshots/football-20/`.
+L’export completo usa i template Web 4.6.3. Se assenti, lo script rigenera il pacchetto dati riutilizzando il runtime Web 4.6.3 versionato e aggiorna le dimensioni nel loader. Vercel serve `web/`; committare anche l’export. Anteprime in `screenshots/football-21/`.
 
 Il precedente Undici rimane in `scenes/football/eleven.tscn` con i test storici del calcio; Father & Son in `scenes/main.tscn`. Non sono caricati nel nuovo avvio. Provenienza degli asset in `assets/football/README.md`.
 

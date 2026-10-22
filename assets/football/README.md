@@ -25,3 +25,13 @@ Portiere: `goalkeeper.png` contiene tutti i 240 frame originali `goalkeeper_*` i
 Porta: `posts_0.png` e `net_up_0.png` sono ritagli originali 100×56 di `sprites.png`, letti da `entity_goal.c` e `entity_goal_net.c`; importer `tools/import_goal_art.gd`. Alpha della rete conservato. Il foglio `player.png` ora contiene 96 celle (8×12): le 48 pose precedenti più sei frame di testa in tutte le otto direzioni, senza ridisegno.
 
 `kit.gdshader` recolors only the original red jerseys at runtime. Five identity colors are defined in `scripts/football/roster.gd`; source sheets, skin, hair, shorts and goalkeeper animation frames are preserved.
+
+## Street actions
+
+`player_actions.png` preserves the 96 original packed player frames, then appends 56 untouched source poses in eight directions: row 12 `tackle_slide`, rows 13–14 `fall`, rows 15–18 `run_tackled`. Cells remain 61 × 61, palette resolved by the same importer. No new hand-drawn frames. Regenerate with:
+
+```sh
+godot --headless --path . --script tools/import_player_actions.gd -- --source=/path/to/footballgame --preview
+```
+
+`--preview` also writes `screenshots/football-21/20-pose-originali.png`: standing, slide, falling, grounded, first and last off-balance running pose, left to right. Source fall timing is 0.025 s per entry (0,0,0,1,1,1,1); off-balance run is 0.15 s per frame; header uses 0.02 s entries. Gameplay holds the grounded pose before recovery; get-up reuses the initial fall pose because the source has no dedicated get-up clip.

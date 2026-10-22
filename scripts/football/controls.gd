@@ -36,6 +36,7 @@ static func help_text(team_match: bool = false) -> String:
 	var text = "Frecce · Muovi    %s · Carica e tira\n%s · Passaggio alto    %s · Passaggio corto    %s · Salta    %s · Servizio / rinuncia    %s · Comandi    Rotellina · Zoom" % [OS.get_keycode_string(KEYS.shoot[0]),OS.get_keycode_string(KEYS.lob[0]),OS.get_keycode_string(KEYS.pass[0]),OS.get_keycode_string(KEYS.jump[0]),OS.get_keycode_string(KEYS.recall[0]),OS.get_keycode_string(KEYS.help[0])]
 
 	if team_match:
-		text = text.replace("Servizio / rinuncia","Nuova partita")
-		text += "\n%s · Cambia rosso" % OS.get_keycode_string(KEYS.switch[0])
+		text = text.replace("Servizio / rinuncia","Nuova partita").replace("Passaggio alto","Passaggio alto / scivolata senza palla")
+		text = text.replace("    %s · Salta" % OS.get_keycode_string(KEYS.jump[0]),"\n%s · Salta" % OS.get_keycode_string(KEYS.jump[0]))
+		text += "    %s · Cambia rosso" % OS.get_keycode_string(KEYS.switch[0])
 	return text

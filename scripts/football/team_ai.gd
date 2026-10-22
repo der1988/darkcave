@@ -4,13 +4,26 @@ extends RefCounted
 var steering = Vector3.ZERO
 var action_cooldown: float = 0.0
 var actions: int = 0
+var tackles: int = 0
 
 func step(game, actor: FootballPlayer, delta: float) -> void:
 	action_cooldown = maxf(0.0,action_cooldown-delta)
+	var street = actor as StreetPlayer
+	if street!=null and street.is_busy():
+		actor.drive(Vector3.ZERO,delta)
+		return
 	var ball: FootballBall = game.ball
 	var attack: Vector3 = game.attack_direction(actor.team)
 	var mate: FootballPlayer = game.other_outfielder(actor)
 	var holder: FootballPlayer = game.possession
+	if street!=null and holder!=null and holder.team!=actor.team and action_cooldown<=0.0:
+		var gap = holder.position-actor.position
+		gap.y = 0.0
+		if gap.length()>1.0 and gap.length()<2.3 and ball.position.y<0.8 and actor.facing.dot(gap.normalized())>0.4 and street.start_slide(gap):
+			action_cooldown = 2.2
+			tackles += 1
+			actor.drive(Vector3.ZERO,delta)
+			return
 	var target: Vector3
 	if game.pass_receiver==actor:
 		target = ball.position+Vector3(ball.linear_velocity.x,0,ball.linear_velocity.z)*0.22

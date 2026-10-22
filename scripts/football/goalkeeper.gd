@@ -1,6 +1,7 @@
 extends CharacterBody3D
 @export var participant_id: String = "Z"
 @export var team: int = -1
+@export var visual_scale: float = 1.0
 @export var goal_node: NodePath = ^"Goal"
 ## Adapted from footballgame ai_goalie / entity_player goalie states.
 enum State { PROTECT, DIVE, JUMP, SMOTHER, RECOVER, HOLD, THROW }
@@ -27,6 +28,10 @@ var dive_face: String = "front"
 func _ready() -> void:
 	remove_from_group("football_player")
 	$Body.shape = $Body.shape.duplicate()
+	$Body.shape.radius *= visual_scale
+	sprite.pixel_size *= visual_scale
+	sprite.position.y *= visual_scale
+	$Shadow.scale = Vector3(visual_scale,1,visual_scale)
 	var posts = get_parent().get_node(goal_node)
 	center = (posts.get_node("LeftPost").global_position+posts.get_node("RightPost").global_position)*0.5
 	lateral = (posts.get_node("RightPost").global_position-posts.get_node("LeftPost").global_position).normalized()
@@ -139,8 +144,8 @@ func _physics_process(delta: float) -> void:
 		state = State.PROTECT
 		state_time = 0.0
 	var low_posture = (state==State.DIVE or state==State.SMOTHER or state==State.RECOVER) and not dive_high
-	$Body.shape.height = 0.6 if low_posture else 1.45
-	$Body.position.y = 0.3 if low_posture else 0.725
+	$Body.shape.height = (0.6 if low_posture else 1.45)*visual_scale
+	$Body.position.y = $Body.shape.height*0.5
 	velocity.x = move_toward(velocity.x,desired.x,25.0*delta)
 	velocity.z = move_toward(velocity.z,desired.z,25.0*delta)
 	velocity.y = -0.5 if is_on_floor() and velocity.y<=0.0 else velocity.y-20.0*delta
