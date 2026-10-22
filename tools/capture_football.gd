@@ -12,9 +12,10 @@ func ticks(count: int) -> void:
 
 func shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
-	assert(root.get_texture().get_image().save_png("res://screenshots/football-17/"+name+".png")==OK)
+	assert(root.get_texture().get_image().save_png("res://screenshots/football-20/"+name+".png")==OK)
 
 func run() -> void:
+	DirAccess.make_dir_recursive_absolute("res://screenshots/football-20")
 	game = load("res://scenes/football/main.tscn").instantiate()
 	root.add_child(game)
 	current_scene = game
@@ -75,7 +76,7 @@ func run() -> void:
 	game._unhandled_input(charge)
 	await ticks(1)
 	await shot("05-tiro-al-volo")
-	var keeper = game.get_node("Goalkeeper")
+	var keeper = game.get_node("BlueKeeper")
 	game.player.position = Vector3.ZERO
 	game.player.velocity = Vector3.ZERO
 	keeper.position = keeper.center

@@ -106,6 +106,8 @@ func layout() -> void:
 		"pass":Vector2(size.x-145,size.y-70),
 		"lob":Vector2(size.x-60,size.y-60),
 	}
+	if game.has_method("team_players"):
+		button_centers["switch"] = Vector2(size.x-145,size.y-145)
 	queue_redraw()
 
 func update_orientation() -> void:

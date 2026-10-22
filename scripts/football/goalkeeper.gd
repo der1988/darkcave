@@ -1,5 +1,7 @@
 extends CharacterBody3D
 @export var participant_id: String = "Z"
+@export var team: int = -1
+@export var goal_node: NodePath = ^"Goal"
 ## Adapted from footballgame ai_goalie / entity_player goalie states.
 enum State { PROTECT, DIVE, JUMP, SMOTHER, RECOVER, HOLD, THROW }
 @export var movement_speed: float = 3.2
@@ -25,13 +27,13 @@ var dive_face: String = "front"
 func _ready() -> void:
 	remove_from_group("football_player")
 	$Body.shape = $Body.shape.duplicate()
-	var posts = get_parent().get_node("Goal")
-	center = (posts.get_child(0).position+posts.get_child(1).position)*0.5
-	lateral = (posts.get_child(1).position-posts.get_child(0).position).normalized()
+	var posts = get_parent().get_node(goal_node)
+	center = (posts.get_node("LeftPost").global_position+posts.get_node("RightPost").global_position)*0.5
+	lateral = (posts.get_node("RightPost").global_position-posts.get_node("LeftPost").global_position).normalized()
 	forward = lateral.cross(Vector3.UP).normalized()
 	if forward.dot(-center)<0.0:
 		forward = -forward
-	half_width = posts.get_child(0).position.distance_to(posts.get_child(1).position)*0.5-0.45
+	half_width = posts.get_node("LeftPost").global_position.distance_to(posts.get_node("RightPost").global_position)*0.5-0.45
 
 func predict_crossing() -> Dictionary:
 	var point = ball.position
@@ -95,7 +97,7 @@ func choose_smother() -> bool:
 		return false
 	var gap = ball.position-position
 	gap.y = 0.0
-	var player = get_parent().player
+	var player = get_parent().nearest_outfielder(ball.position) if team>=0 else get_parent().player
 	if gap.length()>2.5 or gap.length()<0.3 or player.position.distance_to(ball.position)>3.0:
 		return false
 	if absf((ball.position-center).dot(lateral))>half_width or (ball.position-center).dot(forward)<0.0:
@@ -217,7 +219,11 @@ func release_ball() -> void:
 		ball.freeze = false
 		ball.sprite.visible = true
 		ball.pending_recall = ball.global_position
-		ball.release_velocity = forward*7.0+Vector3.UP*2.0
+		var direction = forward
+		if team>=0:
+			var outlet = get_parent().team_outlet(team,position)
+			direction = (outlet.position-position).normalized() if outlet!=null else forward
+		ball.release_velocity = direction*7.0+Vector3.UP*2.0
 		ball.touch_lock = 0.4
 	state = State.RECOVER
 	state_time = 0.0

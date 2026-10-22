@@ -1,5 +1,15 @@
 # Roadmap · Campo Libero
 
+## Calcio 3 contro 3 · rossi contro blu
+
+- Sei attori: Marco/Simone/David rossi e Brad/Matt/Alex blu, un portiere per squadra. Nessuna eliminazione o punto individuale: gol rasoterra e al volo, primo a 5, breve pausa e ripartenza della squadra che subisce. Controllo continuo delle due linee di porta, nessun doppio conteggio.
+- Campo asfaltato orizzontale 24 × 14 m, aree e centrocampo; porte 3D a sinistra/destra con collisioni e reti. Sponde esterne alle linee e recinzione: rimbalzi laterali e di fondo sempre in gioco, nessun fallo laterale.
+- Nuovi moduli circoscritti per partita, regole e IA. Riutilizzati sprite, animazioni, movimento, tiro, passaggi, touch e portieri originali; configurazione speculare delle due porte. Presa e rilancio del portiere non fermano la partita.
+- IA di entrambe le squadre: pressione del più vicino, copertura dell’altro, appoggi diagonali, conduzione, passaggio sotto pressione e tiro verso un angolo libero. Mira IA indipendente dalle frecce umane. Simulazione live con attacchi e gol autonomi verificata.
+- Si controllano i rossi: anello a terra, Q o pulsante touch per cambiare, trasferimento al ricevente e selezione automatica del difensore più vicino con intervallo fra cambi. Triangolo del passaggio limitato alla propria squadra. Comandi e HUD aggiornati.
+- 38/38 verifiche del nuovo 3v3, comprese sponde oltre le linee, entrambe le porte, tiri da terra, vittoria/ripartenze, controllo touch e azioni IA. 453/453 regressioni del calcio precedente e Father & Son: i test Undici ora caricano esplicitamente `eleven.tscn`, conservato come storico.
+- Export Web e browser desktop/mobile verificati; anteprime in `screenshots/football-20/`. Limiti: partita locale contro IA, portieri automatici, nessun cronometro, fuorigioco o sistema di falli. Ripristino di sicurezza solo se la palla supera anormalmente tutta la recinzione.
+
 ## Rimbalzi, destinatario del passaggio e smarcamenti più fluidi
 
 - I passaggi possono rimbalzare senza cambio del portiere; ricezione, recupero e nuovo passaggio consentiti anche da terra. Tiro valido solo al volo, incluso un pallone che risale dopo il rimbalzo. Palla fuori e tiro fermo restano errori. Messaggi e regole visibili aggiornati.

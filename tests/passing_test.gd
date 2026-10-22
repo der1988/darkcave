@@ -12,7 +12,7 @@ func check(value: bool, label: String):
 func ticks(n: int):
 	for i in n: await physics_frame
 func run():
-	game = load("res://scenes/football/main.tscn").instantiate()
+	game = load("res://scenes/football/eleven.tscn").instantiate()
 	root.add_child(game)
 	current_scene = game
 	game.get_node("DeviceUI/ControlMode").choose_mode("pc")

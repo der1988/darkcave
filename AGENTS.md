@@ -1,6 +1,6 @@
 # Regole operative · Campo Libero
 
-Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è il prototipo di calcio isometrico con quattro calciatori (uno controllato alla volta) e un portiere; Father & Son resta storico e non viene caricato all’avvio.
+Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è calcio 3 contro 3: rossi contro blu, due calciatori e un portiere per squadra, porte a sinistra/destra e sponde. Undici e Father & Son restano storici.
 
 - Godot 4.6 stabile, GDScript e renderer Compatibility. Nessun framework o asset esterno necessario.
 - Conservare `.git`, cronologia, branch e remote. L’utente ha autorizzato stabilmente il push finale su GitHub, anche quando il prompt dell’attività contiene la formula “non pushare”. Includere l’export Web aggiornato quando cambia il gioco e verificare l’esito del push.
@@ -9,23 +9,18 @@ Valgono GAME_DESIGN.md e la richiesta corrente. Il gioco attivo è il prototipo 
 - Non aggiungere funzionalità, astrazioni o dipendenze per ipotetiche esigenze future.
 - Aggiornare ROADMAP.md e i test soltanto quando cambia un comportamento rilevante. Distinguere controlli eseguiti da quelli non eseguiti.
 
-## Gioco attivo · calcio isometrico
+## Gioco attivo · 3 contro 3
 
-- Scena di avvio: `scenes/football/main.tscn`; giocatore e palla nelle due scene accanto.
-- Animazioni originali portiere: `scripts/football/goalkeeper_sprite.gd`, atlas/manifest `assets/football/goalkeeper.*`; import riproducibile `tools/import_goalkeeper_art.gd`.
-- Portiere: `scripts/football/goalkeeper.gd` e `scenes/football/goalkeeper.tscn`.
-- Destinatario/indicatore condiviso da S e D: `scripts/football/pass_target.gd`; regressioni rimbalzi, mira e fluidità: `tests/passing_test.gd`. I passaggi consentono rimbalzi e ricezione da terra; solo i tiri devono partire al volo.
-- Smarcamenti: `scripts/football/teammate_support.gd`; gol al volo: `scripts/football/volley_goal.gd`.
-- Scelta PC/smartphone e touch: `scripts/football/control_mode.gd`; test `tests/control_mode_test.gd`. La scelta iniziale mette in pausa: i test/capture devono selezionare esplicitamente PC.
-- Input: `scripts/football/controls.gd`; movimento e animazione: `scripts/football/player.gd`.
-- Regolamento Undici, identità e punti: `scripts/football/match_rules.gd`; test dedicati `tests/eleven_test.gd`. I test fisici isolati disabilitano esplicitamente il regolamento.
-- Campo attivo: `assets/football/asphalt.gdshader`; porta originale: `scenes/football/goal.tscn`, import `tools/import_goal_art.gd`. Erba, tracce e alberi restano solo come file storici, non caricati.
-- Modello del tiro portato da footballgame: `scripts/football/shot_model.gd` (carica, mira e lancio).
-- Fisica e controllo della palla: `scripts/football/ball.gd`; coordinamento, camera e HUD: `scripts/football/sandbox.gd`.
-- Asset originali footballgame convertiti in `assets/football/`; autore Aseprite in `art/football/` (escluso dall’export). Provenienza e conversione in `assets/football/README.md`.
-- Import riproducibile: `tools/import_football_art.gd -- --source=/path/to/footballgame`. Non ridisegnare gli sprite per cambiare il comportamento.
-- Test attivi: `godot --headless --fixed-fps 60 --path . --script tests/football_test.gd`. Verifica visiva: `tools/capture_football.gd`.
-- Export/push: `tools/export_web.sh`, commit anche di `web/`, push finale autorizzato su `main`.
+- Scena attiva: `scenes/football/main.tscn`. Regia/controllo rosso: `scripts/football/team_match.gd`, derivato dal controller precedente per riutilizzare input/cariche/passaggi.
+- Regole di squadra e gol: `scripts/football/team_rules.gd`; primo a 5, tutte le conclusioni valide, rimbalzi sulle pareti in gioco. Test attivi: `tests/team_match_test.gd`.
+- IA tattica: `scripts/football/team_ai.gd`; possesso, pressione, copertura, appoggio e conclusione. Due portieri riusano `goalkeeper.gd`, configurati con squadra e porta; `goalkeeper_sprite.gd` conserva le animazioni originali.
+- Campo e porte: `assets/football/arena_asphalt.gdshader`, `scenes/football/side_goal.tscn`, `assets/football/net.gdshader`. I muri e la recinzione sono nodi modificabili nella scena principale.
+- Input centralizzato: `controls.gd`; dispositivo e touch: `control_mode.gd`, con Q aggiuntivo solo nel gioco a squadre. Player/ball mantengono i moduli fisici e sprite esistenti. Il tiro sceglie la porta in base alla squadra; i comandi umani non influenzano la mira dell’IA.
+- Destinatario e indicatore del passaggio: `pass_target.gd`; seleziona soltanto il compagno rosso. Controllo automatico al ricevente e al difensore più vicino, Q per cambio manuale.
+- Partenza in pausa fino alla scelta PC/smartphone: test e capture devono chiamare `DeviceUI/ControlMode.choose_mode`.
+- Storico Undici: `scenes/football/eleven.tscn`, `sandbox.gd`, `match_rules.gd`, `teammate_support.gd`, `volley_goal.gd`. Le suite football/control_mode/eleven/five_player/passing usano questa scena per verificare i moduli riutilizzati; non descrivono il regolamento attivo.
+- Asset originali footballgame in `assets/football/`; autore Aseprite in `art/football/` escluso dall’export. Provenienza e import riproducibile in `assets/football/README.md`.
+- Export/push: `tools/export_web.sh`, commit anche di `web/`, push finale autorizzato su `main`. Capture nativa: `tools/capture_football.gd`; screenshot Web in `screenshots/football-20/`.
 
 ## Mappa storica · Father & Son
 

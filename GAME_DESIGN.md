@@ -1,25 +1,27 @@
-# Campo Libero · Undici sull’asfalto
+# Campo Libero · 3 contro 3
 
-Gioco locale contro IA: quattro giocatori di movimento e un portiere, identità Marco/Simone/Brad/Matt/David con 11 punti iniziali. Camera isometrica fissa, zoom iniziale 18.72, regolabile 12–34. Movimento senza scatto a 4 unità/s, sprite piccoli e pixel nitidi.
+Partita locale contro IA, su campetto d’asfalto all’aperto. Sei giocatori: rossi Marco e Simone con David in porta; blu Brad e Matt con Alex in porta. Tutti indossano il colore della propria squadra, inclusi i portieri. Sprite e animazioni originali conservati, GDScript/Godot 4.6.3 Compatibility/Web.
 
-Il campo è una superficie d’asfalto con crepe, variazioni contenute e linee scolorite. I limiti giocabili sono 15 m di larghezza e 13 m davanti alla porta. Erba, alberi e tracce sull’erba non sono più istanziati. La porta usa gli originali `posts_0`/`net_up_0` di footballgame, con collisioni dei pali, traversa e fondo rete; larghezza 5.657 m, altezza 2.44 m.
+## Campo e regole
 
-## Partita
+Campo di 24 × 14 m orientato orizzontalmente sullo schermo, porte a sinistra e a destra larghe 4.8 m e alte 2.44 m. Linee consumate, centrocampo e aree sull’asfalto. Porte 3D con pali, traversa e reti fisiche. La sponda esterna si trova oltre le linee dipinte, a ±13.4 m longitudinalmente e ±8.2 m trasversalmente; muretto e recinzione contengono la palla. Si può giocare anche nello spazio fra linea e sponda. Nessun fallo laterale.
 
-Il primo contatto è un servizio aereo da terra. I passaggi tramite piede, testa o petto possono rimbalzare; si può recuperare e ripassare la palla anche a terra. Soltanto i tiri richiedono contatto al volo, anche dopo un rimbalzo. Il controllo passa al ricevente in anticipo; il compagno si smarca e guarda il pallone. Una finestra di anticipo sul tiro agevola la volée senza attrarre la palla o permettere colpi remoti.
+Ogni gol vale uno, rasoterra oppure al volo. Vince la prima squadra a 5. Il pallone deve oltrepassare interamente la linea, fra i pali e sotto la traversa; controllo continuo del segmento percorso evita di saltare la linea ad alta velocità. Nessuna eliminazione o punteggio personale. Dopo il gol, breve pausa e calcio d’inizio alla squadra che lo ha subito. I portieri parano, trattengono e rilanciano senza interrompere l’azione.
 
-L’ultimo toccatore è responsabile della palla fuori o di un tiro fermo e non riuscito; va in porta senza perdere i punti personali. Il gol al volo toglie al portiere 1 punto di piede, 3 di testa o 5 di tacco/rovesciata, senza doppio conteggio. Un rimbalzo dopo il tiro non annulla la conclusione. A zero il portiere è eliminato; il marcatore subentra. Nel duello finale rimane il servizio personale. L’ultimo partecipante non eliminato vince; restart accessibile da tastiera o touch.
+Rimbalzi sul pavimento e sulle pareti restano in gioco. Solo un’uscita anomala oltre tutta la recinzione o sotto il terreno attiva il ripristino di sicurezza. Non ci sono fuorigioco, falli, tempo limite o multiplayer.
 
-I contatti speciali sono classificati da altezza, orientamento e salto, non da tasti nuovi: testa da 1.2 m relativa, tacco se rivolti lontano dalla porta, rovesciata se all’indietro in salto e contatto da 0.8 m. Testa animata con i sei frame originali; petto/tacco/rovesciata richiedono pose visive dedicate in futuro. Nessuna scelta del tipo di tiro nell’interfaccia.
+## Controllo e squadre
 
-Le identità e i punti sono autorevoli in `match_rules.gd`; i cinque nodi attore rappresentano i posti in campo. Ai cambi di ruolo a palla morta si trasferiscono identità/punti e si riposizionano gli attori. Durante l’azione movimento e collisioni sono fisici, senza teletrasporti. Solo il terreno può essere una piattaforma per i personaggi: il pallone non può lanciarli in aria come un ascensore.
+Il giocatore controlla un rosso alla volta, identificato dall’anello a terra. Q cambia il rosso controllato; su smartphone è presente il pulsante Q. Passando al compagno, il controllo passa al ricevente quando la palla è raggiungibile. In difesa viene selezionato automaticamente il rosso significativamente più vicino, con un intervallo per evitare continui cambi. Le frecce e l’analogico selezionano il destinatario: triangolo giallo sul compagno, condiviso da S e D. Nessun passaggio assistito seleziona avversari.
 
-## Input e IA
+IA di entrambe le squadre: il più vicino pressa/intercetta, l’altro copre il centro e la strada verso la propria porta. In possesso si avanza, si cerca un appoggio se pressati e si tira dalla distanza utile verso un angolo libero. Il compagno offre larghezza e una linea diagonale. Movimenti fisici, accelerazioni graduali e separazione; posizioni ripristinate solo alle ripartenze. I due portieri difendono la propria porta con predizione, tuffi, presa e rilancio al compagno. L’IA non legge le frecce del giocatore per mirare i propri tiri.
 
-PC: frecce, A tiro caricato, S passaggio corto aereo, D passaggio alto caricato, Spazio salto, H comandi, R servizio o rinuncia all’azione. Il tiro mantiene la curva di footballgame (80% ideale, sovraccarica meno potente/più alta). D va da corto/arcuato a lungo/teso. Smartphone: scelta iniziale, fullscreen landscape quando consentito, analogico a sinistra e A/S/D a destra; portrait mette in pausa e invita alla rotazione. Multi-touch e cancellazione su focus perso.
+## Comandi
 
-Portiere: sprite originali, predizione, tuffi, salto, uscita bassa, presa e rilancio adattati a Godot. Parata in presa chiude l’azione e prepara un nuovo servizio; nessuna IA di squadre complete o regole arbitrali aggiuntive.
+Frecce: movimento, senza scatto. A: tiro caricato anche da terra; ↑/↓ durante il tiro orientano la mira attraverso la porta. S: passaggio corto. D: passaggio alto caricato. Spazio: salto. Q: cambia rosso. H: comandi. R: nuova partita. Rotellina: zoom. Smartphone: analogico e A/S/D/Q, landscape fullscreen quando consentito dal browser, pausa in verticale.
 
-Godot 4.6.3, GDScript e Compatibility/Web. Render e animazioni separati da regole, possesso e punteggi. Il mondo storico Father & Son resta inattivo.
+La camera mantiene la proiezione isometrica e una vista dell’intero campetto. Il tiro conserva la dinamica di footballgame, carica ottimale all’80%, sovraccarica meno potente e più alta.
 
-I tre compagni senza palla occupano corsie distinte nella metà offensiva, guardano il pallone e si separano dai vicini. Gli appoggi reagiscono alla posizione della palla, con mete e accelerazioni graduali, movimenti sfalsati e soglie diverse per fermarsi e ripartire. Il passaggio privilegia il compagno nella direzione indicata dalle frecce/analogico, oppure dall’orientamento senza input, con distanza secondaria e una piccola tolleranza per evitare cambi nervosi fra quasi pari merito. Il triangolo sopra il destinatario condivide la selezione con S e D; il ricevente intercetta il pallone alto prima di inseguirne la caduta. Palette e nomi sono centralizzati in `roster.gd`; lo shader cambia solo la maglia, preservando gli sprite originali.
+## Moduli e storico
+
+Scena attiva `scenes/football/main.tscn`; regia in `team_match.gd`, IA in `team_ai.gd`, regole in `team_rules.gd`. Input, cariche, passaggi, sprite e fisica vengono riutilizzati dai moduli precedenti. Il vecchio Undici è conservato in `scenes/football/eleven.tscn`, con le sue suite di regressione; Father & Son resta storico. Nessuno dei due viene caricato all’avvio.

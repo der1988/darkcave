@@ -27,7 +27,7 @@ func touch(index: int, point: Vector2, pressed: bool) -> void:
 	ui._input(event)
 
 func run() -> void:
-	game = load("res://scenes/football/main.tscn").instantiate()
+	game = load("res://scenes/football/eleven.tscn").instantiate()
 	root.add_child(game)
 	current_scene = game
 	game.get_node("MatchRules").enabled = false

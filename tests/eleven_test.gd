@@ -15,7 +15,7 @@ func check(value: bool, text_value: String) -> void:
 		failures += 1
 		push_error("FAIL · "+text_value)
 func run() -> void:
-	game = load("res://scenes/football/main.tscn").instantiate()
+	game = load("res://scenes/football/eleven.tscn").instantiate()
 	root.add_child(game)
 	current_scene = game
 	game.get_node("DeviceUI/ControlMode").choose_mode("pc")

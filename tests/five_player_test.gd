@@ -9,7 +9,7 @@ func check(value: bool, label: String):
 		failures += 1
 		push_error(label)
 func run():
-	var game = load("res://scenes/football/main.tscn").instantiate()
+	var game = load("res://scenes/football/eleven.tscn").instantiate()
 	root.add_child(game)
 	game.get_node("DeviceUI/ControlMode").choose_mode("pc")
 	game.rules.enabled = false

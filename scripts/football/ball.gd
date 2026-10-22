@@ -89,7 +89,7 @@ func control_near(player: FootballPlayer, delta: float) -> void:
 	sleeping = false
 	controlled = true
 
-func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
+func kick(player: FootballPlayer, power: float, lob: bool = false, aim_override: Vector2 = Vector2.INF) -> bool:
 	var rules = get_parent().get_node_or_null("MatchRules")
 	if rules!=null and not rules.can_touch(player,not lob):
 		return false
@@ -103,7 +103,14 @@ func kick(player: FootballPlayer, power: float, lob: bool = false) -> bool:
 	else:
 		var steering = Input.get_vector("football_left","football_right","football_up","football_down")
 		var accuracy_extra = randf_range(1.1,2.0) if force>0.8 else randf_range(0.0,1.0)
-		var aim = FootballShotModel.aim(position,goal_center,goal_half_width,steering,player.velocity,force,accuracy_extra)
+		var target_goal = player.attack_goal if player.attack_goal.is_finite() else goal_center
+		if player.attack_goal.is_finite():
+			# Horizontal team match: aim across the mouth with the up/down component.
+			var center = (target_goal-position).normalized()
+			var lateral = Vector3(-center.z,0,center.x)
+			steering = Vector2(FootballControls.world_direction(steering).dot(lateral),0.0) if player.controlled else Vector2.ZERO
+		if aim_override.is_finite(): steering = aim_override
+		var aim = FootballShotModel.aim(position,target_goal,goal_half_width,steering,player.velocity,force,accuracy_extra)
 		var multiplier = contact_multiplier()
 		linear_velocity = FootballShotModel.launch(Vector3(aim.x,0,aim.z),force,aim.w,shot_max_speed,multiplier)
 

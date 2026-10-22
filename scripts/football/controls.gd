@@ -5,7 +5,7 @@ const KEYS = {
 	"left": [KEY_LEFT], "right": [KEY_RIGHT],
 	"up": [KEY_UP], "down": [KEY_DOWN],
 	"shoot": [KEY_A], "lob": [KEY_D],
-	"pass": [KEY_S], "jump": [KEY_SPACE], "recall": [KEY_R], "help": [KEY_H],
+	"switch": [KEY_Q], "pass": [KEY_S], "jump": [KEY_SPACE], "recall": [KEY_R], "help": [KEY_H],
 }
 
 static func configure() -> void:
@@ -32,5 +32,10 @@ static func orientation(direction: Vector3) -> int:
 	var projected = screen_direction(direction)
 	return posmod(roundi(projected.angle()/(PI/4.0)),8)
 
-static func help_text() -> String:
-	return "Frecce · Muovi    %s · Carica e tira\n%s · Passaggio alto    %s · Passaggio corto    %s · Salta    %s · Servizio / rinuncia    %s · Comandi    Rotellina · Zoom" % [OS.get_keycode_string(KEYS.shoot[0]),OS.get_keycode_string(KEYS.lob[0]),OS.get_keycode_string(KEYS.pass[0]),OS.get_keycode_string(KEYS.jump[0]),OS.get_keycode_string(KEYS.recall[0]),OS.get_keycode_string(KEYS.help[0])]
+static func help_text(team_match: bool = false) -> String:
+	var text = "Frecce · Muovi    %s · Carica e tira\n%s · Passaggio alto    %s · Passaggio corto    %s · Salta    %s · Servizio / rinuncia    %s · Comandi    Rotellina · Zoom" % [OS.get_keycode_string(KEYS.shoot[0]),OS.get_keycode_string(KEYS.lob[0]),OS.get_keycode_string(KEYS.pass[0]),OS.get_keycode_string(KEYS.jump[0]),OS.get_keycode_string(KEYS.recall[0]),OS.get_keycode_string(KEYS.help[0])]
+
+	if team_match:
+		text = text.replace("Servizio / rinuncia","Nuova partita")
+		text += "\n%s · Cambia rosso" % OS.get_keycode_string(KEYS.switch[0])
+	return text

@@ -1,0 +1,78 @@
+[gd_scene load_steps=13 format=3]
+[ext_resource type="Shader" path="res://assets/football/net.gdshader" id="1"]
+[sub_resource type="StandardMaterial3D" id="White"]
+shading_mode = 0
+albedo_color = Color(0.85,0.86,0.81,1)
+[sub_resource type="ShaderMaterial" id="NetMaterial"]
+shader = ExtResource("1")
+[sub_resource type="PhysicsMaterial" id="Metal"]
+bounce = 0.3
+friction = 0.1
+[sub_resource type="CylinderShape3D" id="PostShape"]
+radius = 0.09
+height = 2.44
+[sub_resource type="CylinderMesh" id="PostMesh"]
+material = SubResource("White")
+top_radius = 0.09
+bottom_radius = 0.09
+height = 2.44
+radial_segments = 8
+[sub_resource type="BoxShape3D" id="BarShape"]
+size = Vector3(4.8,0.14,0.14)
+[sub_resource type="BoxMesh" id="BarMesh"]
+material = SubResource("White")
+size = Vector3(4.8,0.14,0.14)
+[sub_resource type="BoxShape3D" id="BackShape"]
+size = Vector3(4.8,2.44,0.1)
+[sub_resource type="BoxMesh" id="BackMesh"]
+material = SubResource("NetMaterial")
+size = Vector3(4.8,2.44,0.03)
+[sub_resource type="BoxMesh" id="SideMesh"]
+material = SubResource("NetMaterial")
+size = Vector3(0.03,2.44,1.0)
+[sub_resource type="BoxShape3D" id="SideShape"]
+size = Vector3(0.1,2.44,1.0)
+[node name="SideGoal" type="Node3D"]
+[node name="LeftPost" type="StaticBody3D" parent="."]
+position = Vector3(-2.4,0,0)
+physics_material_override = SubResource("Metal")
+[node name="Shape" type="CollisionShape3D" parent="LeftPost"]
+position = Vector3(0,1.22,0)
+shape = SubResource("PostShape")
+[node name="Art" type="MeshInstance3D" parent="LeftPost"]
+position = Vector3(0,1.22,0)
+mesh = SubResource("PostMesh")
+[node name="RightPost" type="StaticBody3D" parent="."]
+position = Vector3(2.4,0,0)
+physics_material_override = SubResource("Metal")
+[node name="Shape" type="CollisionShape3D" parent="RightPost"]
+position = Vector3(0,1.22,0)
+shape = SubResource("PostShape")
+[node name="Art" type="MeshInstance3D" parent="RightPost"]
+position = Vector3(0,1.22,0)
+mesh = SubResource("PostMesh")
+[node name="Crossbar" type="StaticBody3D" parent="."]
+position = Vector3(0,2.44,0)
+physics_material_override = SubResource("Metal")
+[node name="Shape" type="CollisionShape3D" parent="Crossbar"]
+shape = SubResource("BarShape")
+[node name="Art" type="MeshInstance3D" parent="Crossbar"]
+mesh = SubResource("BarMesh")
+[node name="BackNet" type="StaticBody3D" parent="."]
+position = Vector3(0,1.22,-1)
+[node name="Shape" type="CollisionShape3D" parent="BackNet"]
+shape = SubResource("BackShape")
+[node name="Art" type="MeshInstance3D" parent="BackNet"]
+mesh = SubResource("BackMesh")
+[node name="LeftNet" type="StaticBody3D" parent="."]
+position = Vector3(-2.4,1.22,-0.5)
+[node name="Art" type="MeshInstance3D" parent="LeftNet"]
+mesh = SubResource("SideMesh")
+[node name="Shape" type="CollisionShape3D" parent="LeftNet"]
+shape = SubResource("SideShape")
+[node name="RightNet" type="StaticBody3D" parent="."]
+position = Vector3(2.4,1.22,-0.5)
+[node name="Art" type="MeshInstance3D" parent="RightNet"]
+mesh = SubResource("SideMesh")
+[node name="Shape" type="CollisionShape3D" parent="RightNet"]
+shape = SubResource("SideShape")

@@ -1,21 +1,23 @@
-[gd_scene load_steps=18 format=3]
+[gd_scene load_steps=28 format=3]
 
-[ext_resource type="Script" path="res://scripts/football/sandbox.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/football/team_match.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/football/player.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/football/ball.tscn" id="3"]
-[ext_resource type="Shader" path="res://assets/football/asphalt.gdshader" id="4"]
+[ext_resource type="Shader" path="res://assets/football/arena_asphalt.gdshader" id="4"]
 
-[ext_resource type="Script" path="res://scripts/football/match_rules.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/football/team_rules.gd" id="5"]
 
-[ext_resource type="PackedScene" path="res://scenes/football/goal.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/football/side_goal.tscn" id="7"]
 
 [ext_resource type="PackedScene" path="res://scenes/football/goalkeeper.tscn" id="8"]
 
-[ext_resource type="Script" path="res://scripts/football/volley_goal.gd" id="9"]
+
 
 [ext_resource type="Script" path="res://scripts/football/control_mode.gd" id="10"]
 
 [ext_resource type="Script" path="res://scripts/football/pass_target.gd" id="11"]
+
+[ext_resource type="Shader" path="res://assets/football/net.gdshader" id="12"]
 
 [sub_resource type="StandardMaterial3D" id="TargetMaterial"]
 shading_mode = 0
@@ -45,11 +47,45 @@ ambient_light_color = Color(1,1,1,1)
 ambient_light_energy = 1.0
 reflected_light_source = 2
 
+[sub_resource type="PhysicsMaterial" id="WallPhysics"]
+bounce = 0.35
+friction = 0.08
+[sub_resource type="StandardMaterial3D" id="WallMaterial"]
+shading_mode = 0
+albedo_color = Color(0.29,0.31,0.32,1)
+[sub_resource type="BoxShape3D" id="LongWallShape"]
+size = Vector3(27.2,5,0.25)
+[sub_resource type="BoxMesh" id="LongWallMesh"]
+material = SubResource("WallMaterial")
+size = Vector3(27.2,0.8,0.25)
+[sub_resource type="BoxShape3D" id="EndWallShape"]
+size = Vector3(0.25,5,16.4)
+[sub_resource type="BoxMesh" id="EndWallMesh"]
+material = SubResource("WallMaterial")
+size = Vector3(0.25,0.8,16.4)
+[sub_resource type="StandardMaterial3D" id="RingMaterial"]
+shading_mode = 0
+albedo_color = Color(1,0.92,0.54,1)
+[sub_resource type="TorusMesh" id="ControlMesh"]
+material = SubResource("RingMaterial")
+inner_radius = 0.38
+outer_radius = 0.44
+rings = 16
+ring_segments = 6
+
+[sub_resource type="ShaderMaterial" id="FenceMaterial"]
+shader = ExtResource("12")
+shader_parameter/opacity = 0.12
+[sub_resource type="BoxMesh" id="LongFence"]
+material = SubResource("FenceMaterial")
+size = Vector3(27.2,4.2,0.02)
+[sub_resource type="BoxMesh" id="EndFence"]
+material = SubResource("FenceMaterial")
+size = Vector3(0.02,4.2,16.4)
+
 [node name="FootballSandbox" type="Node3D"]
 script = ExtResource("1")
 
-[node name="VolleyGoal" type="Node" parent="."]
-script = ExtResource("9")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Daylight")
@@ -68,27 +104,48 @@ cast_shadow = 0
 [node name="MatchRules" type="Node" parent="."]
 script = ExtResource("5")
 
-[node name="Goal" parent="." instance=ExtResource("7")]
+[node name="LeftGoal" parent="." instance=ExtResource("7")]
+position = Vector3(-8.485281,0,8.485281)
+rotation_degrees = Vector3(0,135,0)
 
-[node name="Goalkeeper" parent="." instance=ExtResource("8")]
-position = Vector3(-4,0,-4)
+[node name="RightGoal" parent="." instance=ExtResource("7")]
+position = Vector3(8.485281,0,-8.485281)
+rotation_degrees = Vector3(0,-45,0)
+
+[node name="RedKeeper" parent="." instance=ExtResource("8")]
+position = Vector3(-8.131728,0,8.131728)
+participant_id = "David"
+team = 0
+goal_node = NodePath("LeftGoal")
+
+[node name="BlueKeeper" parent="." instance=ExtResource("8")]
+position = Vector3(8.131728,0,-8.131728)
+participant_id = "Alex"
+team = 1
+goal_node = NodePath("RightGoal")
 
 [node name="Player" parent="." instance=ExtResource("2")]
+collision_mask = 113
+participant_id = "Marco"
+team = 0
 
 [node name="Teammate" parent="." instance=ExtResource("2")]
-position = Vector3(3,0,-2)
+collision_mask = 113
 controlled = false
-participant_id = "Y"
+participant_id = "Simone"
+team = 0
 
-[node name="Teammate2" parent="." instance=ExtResource("2")]
-position = Vector3(-3,0,1)
+[node name="Blue1" parent="." instance=ExtResource("2")]
+collision_mask = 113
 controlled = false
 participant_id = "Brad"
+team = 1
 
-[node name="Teammate3" parent="." instance=ExtResource("2")]
-position = Vector3(2,0,4)
+[node name="Blue2" parent="." instance=ExtResource("2")]
+collision_mask = 113
 controlled = false
 participant_id = "Matt"
+team = 1
 
 [node name="PassTarget" type="Node3D" parent="."]
 script = ExtResource("11")
@@ -107,7 +164,7 @@ position = Vector3(0.6,0.22,0.6)
 position = Vector3(14,14,14)
 rotation_degrees = Vector3(-35.264,45,0)
 projection = 1
-size = 18.72
+size = 20.0
 near = 0.1
 far = 100.0
 current = true
@@ -130,7 +187,7 @@ offset_right = 550.0
 offset_bottom = 65.0
 theme_override_colors/font_color = Color(0.94,0.98,0.89,0.5)
 theme_override_font_sizes/font_size = 12
-text = "UNDICI · gol al volo · piede 1 / testa 3 / tacco e rovesciata 5"
+text = "3 CONTRO 3 · primo a 5 gol · pareti giocabili"
 
 [node name="Controls" type="Label" parent="HUD"]
 anchor_top = 1.0
@@ -173,7 +230,7 @@ offset_top = 72.0
 offset_right = 700.0
 offset_bottom = 94.0
 theme_override_font_sizes/font_size = 16
-text = "X  11   Y  11   Z  11"
+text = "ROSSI  0   —   0  BLU"
 [node name="Restart" type="Button" parent="HUD"]
 visible = false
 offset_left = 24.0
@@ -181,3 +238,82 @@ offset_top = 105.0
 offset_right = 240.0
 offset_bottom = 150.0
 text = "Nuova partita"
+
+[node name="ControlRing" type="MeshInstance3D" parent="."]
+mesh = SubResource("ControlMesh")
+cast_shadow = 0
+
+[node name="Walls" type="Node3D" parent="."]
+rotation_degrees = Vector3(0,45,0)
+
+[node name="North" type="StaticBody3D" parent="Walls"]
+position = Vector3(0,0,-8.2)
+collision_layer = 1
+collision_mask = 112
+physics_material_override = SubResource("WallPhysics")
+[node name="Shape" type="CollisionShape3D" parent="Walls/North"]
+position = Vector3(0,2.5,0)
+shape = SubResource("LongWallShape")
+[node name="Art" type="MeshInstance3D" parent="Walls/North"]
+position = Vector3(0,0.4,0)
+mesh = SubResource("LongWallMesh")
+cast_shadow = 0
+
+[node name="South" type="StaticBody3D" parent="Walls"]
+position = Vector3(0,0,8.2)
+collision_layer = 1
+collision_mask = 112
+physics_material_override = SubResource("WallPhysics")
+[node name="Shape" type="CollisionShape3D" parent="Walls/South"]
+position = Vector3(0,2.5,0)
+shape = SubResource("LongWallShape")
+[node name="Art" type="MeshInstance3D" parent="Walls/South"]
+position = Vector3(0,0.4,0)
+mesh = SubResource("LongWallMesh")
+cast_shadow = 0
+
+[node name="West" type="StaticBody3D" parent="Walls"]
+position = Vector3(-13.4,0,0)
+collision_layer = 1
+collision_mask = 112
+physics_material_override = SubResource("WallPhysics")
+[node name="Shape" type="CollisionShape3D" parent="Walls/West"]
+position = Vector3(0,2.5,0)
+shape = SubResource("EndWallShape")
+[node name="Art" type="MeshInstance3D" parent="Walls/West"]
+position = Vector3(0,0.4,0)
+mesh = SubResource("EndWallMesh")
+cast_shadow = 0
+
+[node name="East" type="StaticBody3D" parent="Walls"]
+position = Vector3(13.4,0,0)
+collision_layer = 1
+collision_mask = 112
+physics_material_override = SubResource("WallPhysics")
+[node name="Shape" type="CollisionShape3D" parent="Walls/East"]
+position = Vector3(0,2.5,0)
+shape = SubResource("EndWallShape")
+[node name="Art" type="MeshInstance3D" parent="Walls/East"]
+position = Vector3(0,0.4,0)
+mesh = SubResource("EndWallMesh")
+cast_shadow = 0
+
+[node name="Fence" type="MeshInstance3D" parent="Walls/North"]
+position = Vector3(0,2.9,0)
+mesh = SubResource("LongFence")
+cast_shadow = 0
+
+[node name="Fence" type="MeshInstance3D" parent="Walls/South"]
+position = Vector3(0,2.9,0)
+mesh = SubResource("LongFence")
+cast_shadow = 0
+
+[node name="Fence" type="MeshInstance3D" parent="Walls/West"]
+position = Vector3(0,2.9,0)
+mesh = SubResource("EndFence")
+cast_shadow = 0
+
+[node name="Fence" type="MeshInstance3D" parent="Walls/East"]
+position = Vector3(0,2.9,0)
+mesh = SubResource("EndFence")
+cast_shadow = 0

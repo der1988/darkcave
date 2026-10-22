@@ -1,6 +1,8 @@
 class_name FootballPlayer
 extends CharacterBody3D
 @export var participant_id: String = "X"
+@export var team: int = -1
+@export var attack_goal: Vector3 = Vector3.INF
 
 @export var controlled: bool = true
 @export var walk_speed: float = 4.0
